@@ -1,0 +1,6 @@
+@Vives_Bank_Net_HostAddress = http://localhost:5283
+
+GET {{Vives_Bank_Net_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
