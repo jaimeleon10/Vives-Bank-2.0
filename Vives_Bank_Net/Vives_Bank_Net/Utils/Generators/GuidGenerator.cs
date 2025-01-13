@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Vives_Banks_Net.Utils.Generators;
+namespace Vives_Bank_Net.Utils.Generators;
 
 public class GuidGenerator
 {
