@@ -24,8 +24,6 @@ public class CuentaEntity
     [Required]
     public BigInteger Saldo { get; set; }
     
-    [Required]
-    public TipoCuenta TipoCuenta { get; set; }
     
     [ForeignKey("Tarjeta")] 
     [Column("tarjeta_id")]

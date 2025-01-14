@@ -21,21 +21,18 @@ public class Cuenta
 
     [JsonPropertyName("saldo")] 
     public BigInteger Saldo { get; set; } = 0;
-
-    [JsonPropertyName("saldo")] 
-    public TipoCuenta TipoCuenta { get; set; } = TipoCuenta.NORMAL;
-
+    
     public long? TarjetaId { get; set; } = null;
     
     //[JsonPropertyName("tarjeta")] 
     //public Tarjeta? Tarjeta { get; set; } = null
     
-    public long ClienteId { get; set; } = 0;
+    public long ClienteId { get; set; }
 
     [JsonPropertyName("cliente")] 
     public Cliente Cliente { get; set; }
     
-    public long ProductoId { get; set; } = 0;
+    public long ProductoId { get; set; }
     
     //[JsonPropertyName("producto")] 
     //public Producto Producto { get; set; }

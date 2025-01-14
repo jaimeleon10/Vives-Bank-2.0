@@ -47,10 +47,6 @@ public class CuentaDbContext(DbContextOptions<CuentaDbContext> options) : DbCont
             .IsRequired(); 
 
         modelBuilder.Entity<CuentaEntity>()
-            .Property(c => c.TipoCuenta)
-            .IsRequired(); 
-
-        modelBuilder.Entity<CuentaEntity>()
             .Property(c => c.IsDeleted)
             .IsRequired();
 
