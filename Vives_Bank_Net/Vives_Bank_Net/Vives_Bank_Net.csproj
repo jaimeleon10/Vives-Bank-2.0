@@ -24,7 +24,7 @@
         <PackageReference Include="NUnit" Version="4.3.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
-        <PackageReference Include="GraphQL.AspNet.TestFramework" Version="1.4.2"/>
+        <PackageReference Include="GraphQL.AspNet.TestFramework" Version="1.4.2" />
         
         <!-- Cache -->
         <PackageReference Include="CacheManager.Core" Version="2.0.0-beta-1629" />
@@ -32,6 +32,14 @@
         
         <!-- Mongo -->
         <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
+
+        <!-- Storage -->
+        <PackageReference Include="Serilog" Version="4.0.1" />
+        <PackageReference Include="Serilog.Extensions" Version="8.0.2" />
+        <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
     </ItemGroup>
 
