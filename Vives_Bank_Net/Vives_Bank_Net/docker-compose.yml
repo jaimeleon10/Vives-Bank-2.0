@@ -1,0 +1,15 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb_vives-bank
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_vives-bank:/data/db
+
+volumes:
+  mongo_vives-bank:
+    driver: local
