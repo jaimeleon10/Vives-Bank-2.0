@@ -9,6 +9,8 @@
 
     <ItemGroup>
         
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+        
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
         
         <!-- GraphQL -->
@@ -37,6 +39,10 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Rest\Producto\Cuenta\Dto\" />
     </ItemGroup>
 
 </Project>
