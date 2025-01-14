@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="e228a702-69f9-4a47-91d4-d9b29f7a247e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Movimientos/Models/PagoConTarjeta.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Movimientos/Models/PagoConTarjeta.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Movimientos/Models/Transferencia.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Movimientos/Models/Transferencia.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.model.nuget.info" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.model.nuget.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="2rckVVYCPjl9jRlXp7hQd9EpgK1" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "feature/movimientos",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RunManager" selected="Docker.Vives_Bank_Net/Dockerfile">
     <configuration name="Vives_Bank_Net: IIS Express" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Vives_Bank_Net/Vives_Bank_Net.csproj" />
@@ -58,8 +98,27 @@
       <method v="2" />
     </configuration>
     <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
-      <deployment type="dockerfile" />
+      <deployment type="dockerfile">
+        <settings />
+      </deployment>
+      <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
       <method v="2" />
     </configuration>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e228a702-69f9-4a47-91d4-d9b29f7a247e" name="Changes" comment="" />
+      <created>1736865785208</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1736865785208</updated>
+      <workItem from="1736865788044" duration="398000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
 </project>
