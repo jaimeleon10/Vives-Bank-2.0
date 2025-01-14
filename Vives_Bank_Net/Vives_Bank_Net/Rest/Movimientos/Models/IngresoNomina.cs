@@ -10,8 +10,8 @@ public abstract class IngresoNomina
     [JsonPropertyName("ibanDestino")]
     public required string IbanDestino { get; set; }
     
-    [JsonPropertyName("cantidad")]
-    public required decimal Cantidad { get; set; }
+    [JsonPropertyName("importe")]
+    public required decimal Importe { get; set; }
     
     [JsonPropertyName("nombreEmpresa")]
     public required string NombreEmpresa { get; set; }

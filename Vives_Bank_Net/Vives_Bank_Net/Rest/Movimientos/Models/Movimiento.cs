@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Vives_Bank_Net.Utils.Generators;
+using Vives_Banks_Net.Rest.Cliente;
 
 namespace Vives_Bank_Net.Rest.Movimientos.Models;
 
@@ -15,8 +16,8 @@ public class Movimiento
     [JsonPropertyName("guid")]
     public string Guid { get; set; } = GuidGenerator.GenerarId();
 
-    [JsonPropertyName("clienteId")]
-    public required string ClienteId { get; set; }
+    [JsonPropertyName("cliente")]
+    public required Cliente Cliente { get; set; }
 
     [JsonPropertyName("domiciliacion")]
     public Domiciliacion? Domiciliacion { get; set; }

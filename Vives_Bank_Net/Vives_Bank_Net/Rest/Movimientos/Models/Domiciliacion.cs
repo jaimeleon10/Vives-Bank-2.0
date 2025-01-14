@@ -15,8 +15,8 @@ public abstract class Domiciliacion
     [JsonPropertyName("guid")]
     public string Guid = GuidGenerator.GenerarId();
     
-    [JsonPropertyName("clienteGuid")]
-    public required string ClienteGuid { get; set; }
+    [JsonPropertyName("cliente")]
+    public required string Cliente { get; set; }
     
     [JsonPropertyName("ibanOrigen")]
     public required string IbanOrigen { get; set; }
@@ -24,8 +24,8 @@ public abstract class Domiciliacion
     [JsonPropertyName("ibanDestino")]
     public required string IbanDestino { get; set; }
     
-    [JsonPropertyName("cantidad")]
-    public required decimal Cantidad { get; set; }
+    [JsonPropertyName("importe")]
+    public required decimal Importe { get; set; }
     
     [JsonPropertyName("acreedor")]
     public required string Acreedor { get; set; }
