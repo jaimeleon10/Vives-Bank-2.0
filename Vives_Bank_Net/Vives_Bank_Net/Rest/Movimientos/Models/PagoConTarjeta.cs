@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace Vives_Bank_Net.Rest.Movimientos.Models;
 
@@ -8,7 +9,7 @@ public abstract class PagoConTarjeta
     public required string NumeroTarjeta { get; set; }
     
     [JsonPropertyName("importe")]
-    public required double Importe { get; set; }
+    public required BigInteger Importe { get; set; }
     
     [JsonPropertyName("nombreComercio")]
     public required string NombreComercio { get; set; }

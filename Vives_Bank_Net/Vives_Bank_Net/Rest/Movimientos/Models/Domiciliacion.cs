@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Numerics;
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Vives_Bank_Net.Utils.Generators;
@@ -25,7 +26,7 @@ public abstract class Domiciliacion
     public required string IbanDestino { get; set; }
     
     [JsonPropertyName("importe")]
-    public required decimal Importe { get; set; }
+    public required BigInteger Importe { get; set; }
     
     [JsonPropertyName("acreedor")]
     public required string Acreedor { get; set; }

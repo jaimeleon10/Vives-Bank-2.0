@@ -126,7 +126,7 @@ void TryConnectionDataBase()
 {
     logger.Debug("Trying to connect to MongoDB");
     // Leemos la cadena de conexión a la base de datos desde la configuración
-    var connectionString = configuration.GetSection("CategoriaDatabase:ConnectionString").Value;
+    var connectionString = configuration.GetSection("MovimientosDB:ConnectionString").Value;
     var settings = MongoClientSettings.FromConnectionString(connectionString);
     // Set the ServerApi field of the settings object to set the version of the Stable API on the client
     settings.ServerApi = new ServerApi(ServerApiVersion.V1);
