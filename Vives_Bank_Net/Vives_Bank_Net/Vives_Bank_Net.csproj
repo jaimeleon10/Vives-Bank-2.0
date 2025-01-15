@@ -8,13 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- Base de Datos -->
+        
+        <!-- Coverage -->
+        <PackageReference Include="coverlet.msbuild" Version="6.0.3">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-        <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
-
-        <!-- API -->
+        
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-
+        
         <!-- GraphQL -->
         <PackageReference Include="GraphQL" Version="8.2.1" />
         <PackageReference Include="GraphQL.Server.Transports.AspNetCore" Version="8.2.0" />
