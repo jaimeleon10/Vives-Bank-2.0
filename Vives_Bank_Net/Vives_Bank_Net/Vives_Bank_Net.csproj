@@ -8,40 +8,46 @@
     </PropertyGroup>
 
     <ItemGroup>
-        
+        <!-- Base de Datos -->
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-        
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
-        
+        <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
+
+        <!-- API -->
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+
         <!-- GraphQL -->
         <PackageReference Include="GraphQL" Version="8.2.1" />
         <PackageReference Include="GraphQL.Server.Transports.AspNetCore" Version="8.2.0" />
         <PackageReference Include="GraphQL.Server.Ui.Playground" Version="8.2.0" />
         <PackageReference Include="GraphQL.SystemTextJson" Version="8.2.1" />
-        
+
         <!-- Test -->
         <PackageReference Include="Moq" Version="4.20.72" />
         <PackageReference Include="NUnit" Version="4.3.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
         <PackageReference Include="GraphQL.AspNet.TestFramework" Version="1.4.2" />
-        
-        <!-- Cache -->
+
+        <!-- Caché -->
         <PackageReference Include="CacheManager.Core" Version="2.0.0-beta-1629" />
         <PackageReference Include="CacheMeIfYouCan.Redis" Version="0.2.197" />
-        
-        <!-- Mongo -->
-        <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
 
-        <!-- Storage -->
+        <!-- Registro y Gestión de Logs -->
         <PackageReference Include="Serilog" Version="4.0.1" />
         <PackageReference Include="Serilog.Extensions" Version="8.0.2" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
+        <!-- Storages -->
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
+        <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
+        <PackageReference Include="IronZIP" Version="2025.1.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
+        
     </ItemGroup>
+
 
     <ItemGroup>
       <Content Include="..\.dockerignore">
