@@ -1,18 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using StackExchange.Redis;
+using Vives_Bank_Net.Rest.Cliente.Models;
 using Vives_Bank_Net.Utils.Generators;
 
-namespace Vives_Bank_Net.Rest.Cliente.Models;
+namespace Vives_Bank_Net.Rest.Cliente.Database;
 
-[Table("Clientes")]
-public class Cliente
+[Table("Clientes") ]
+public class ClienteEntity
 {
+
+    public const long NewId = 0; 
+    
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long Id { get; set; }
+    public long Id { get; set; } = NewId;
 
     [Required]
-    public string Guid { get; set; } = GuidGenerator.GenerarId();
+    public string Guid { get; set; }
 
     [Required]
     [RegularExpression(@"^\d{8}[TRWAGMYFPDXBNJZSQVHLCKE]$", ErrorMessage = "El DNI debe tener 8 números seguidos de una letra en mayúsculas")]
@@ -35,23 +41,22 @@ public class Cliente
     [RegularExpression(@"^\d{9}$", ErrorMessage = "El teléfono debe tener 9 números")]
     public string Telefono { get; set; }
 
-    [JsonPropertyName("fotopPerfil")]
+    [Required]
     public string FotoPerfil { get; set; }
 
-    [JsonPropertyName("fotoDni")]
+    [Required]
     public string FotoDni { get; set; }
 
-    public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
+    public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
 
-    [JsonPropertyName("usuario")]
-    public User User { get; set; }
+    [Required]
+    public User.Models.User User { get; set; }
 
-    [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
-    
-    [JsonPropertyName("updatedAt")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-    [JsonPropertyName("isDeleted")]
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    
+    [Required]
+    [DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 }
