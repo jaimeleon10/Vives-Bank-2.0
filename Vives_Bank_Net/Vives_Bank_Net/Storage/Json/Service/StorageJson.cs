@@ -29,11 +29,6 @@ public class StorageJson : IStorageJson
             var json = JsonConvert.SerializeObject(data, _jsonSettings);
             File.WriteAllText(file.FullName, json);
         }
-        catch (FileNotFoundException fnfEx)
-        {
-            _logger.LogError(fnfEx, $"Archivo no encontrado al guardar el archivo JSON de {typeof(T).Name}");
-            throw new JsonNotFoundException($"No se encontró el archivo para guardar los datos de {typeof(T).Name}.", fnfEx);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error al guardar el archivo JSON de {typeof(T).Name}");
