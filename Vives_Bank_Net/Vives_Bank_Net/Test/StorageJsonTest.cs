@@ -84,35 +84,26 @@ public class StorageJsonTest
     }
     
     [Test]
-    public void ImportJsonEmptyList()
+    public void ImportJsonInvalido()
     {
         var path = Path.Combine(Path.GetTempPath(), "testImport.json");
         var file = new FileInfo(path);
 
         File.WriteAllText(path, "{ json invalido }");
-        
-        var result = _storageJson.ImportJson<User>(file);
 
-        Assert.That(result, Is.Not.Null, "El resultado es nulo.");
-        Assert.That(result, Is.Empty, "El resultado no es una lista vacía.");
-
-        var exception = Assert.Throws<StorageException>(() => _storageJson.ImportJson<User>(file));
-        Assert.That(exception.Message, Is.EqualTo("Error al leer el archivo JSON de User"));
+        var exception = Assert.Throws<JsonReadException>(() => _storageJson.ImportJson<User>(file));
+        Assert.That(exception.Message, Is.EqualTo("Error al procesar el archivo JSON de User."));
     }
 
     [Test]
-    public void ImportJsonFileNotExist()
+    public void ImportJsonFileNotFound()
     {
         var path = Path.Combine(Path.GetTempPath(), "inexistente.json");
         var file = new FileInfo(path);
 
-        var result = _storageJson.ImportJson<User>(file);
+        var exception = Assert.Throws<JsonNotFoundException>(() => _storageJson.ImportJson<User>(file));
 
-        Assert.That(result, Is.Not.Null, "El resultado es nulo.");
-        Assert.That(result, Is.Empty, "El resultado no es una lista vacía.");
-        
-        var exception = Assert.Throws<StorageException>(() => _storageJson.ImportJson<User>(file));
-        Assert.That(exception.Message, Is.EqualTo("Error al leer el archivo JSON de User"));
+        Assert.That(exception.Message, Is.EqualTo("No se encontró el archivo para leer los datos de User."));
     }
     
     [Test]
@@ -160,26 +151,12 @@ public class StorageJsonTest
     }
     
     [Test]
-    public void ExportJsonSerializationFails()
+    public void ExportJsonErrorSerializacion()
     {
         var fileInfo = new FileInfo("path/to/file.json");
         var data = new List<object> { new { Property = "value" } };
         
-        _storageJson.ExportJson(fileInfo, data);
-        
-        var exception = Assert.Throws<StorageException>(() => _storageJson.ExportJson(fileInfo, data));
-        Assert.That(exception.Message, Is.EqualTo("Error al guardar el archivo JSON de User"));
-    }
-
-    [Test]
-    public void ExportJsonFileWriteFails()
-    {
-        var fileInfo = new FileInfo("path/to/file.json");
-        var data = new List<object> { new { Property = "value" } };
-        
-        _storageJson.ExportJson(fileInfo, data);
-        
-        var exception = Assert.Throws<StorageException>(() => _storageJson.ExportJson(fileInfo, data));
-        Assert.That(exception.Message, Is.EqualTo("Error al guardar el archivo JSON de User"));
+        var exception = Assert.Throws<JsonStorageException>(() => _storageJson.ExportJson(fileInfo, data));
+        Assert.That(exception.Message, Is.EqualTo("Ocurrió un error inesperado al guardar el archivo."));
     }
 }
