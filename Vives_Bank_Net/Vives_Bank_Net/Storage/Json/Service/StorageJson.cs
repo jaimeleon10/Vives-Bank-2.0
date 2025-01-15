@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Vives_Bank_Net.Storage.Exceptions;
 
 public class StorageJson : IStorageJson
 {
@@ -28,10 +29,15 @@ public class StorageJson : IStorageJson
             var json = JsonConvert.SerializeObject(data, _jsonSettings);
             File.WriteAllText(file.FullName, json);
         }
+        catch (FileNotFoundException fnfEx)
+        {
+            _logger.LogError(fnfEx, $"Archivo no encontrado al guardar el archivo JSON de {typeof(T).Name}");
+            throw new JsonNotFoundException($"No se encontró el archivo para guardar los datos de {typeof(T).Name}.", fnfEx);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error al guardar el archivo JSON de {typeof(T).Name}");
-            //Lanzamos excepcion
+            throw new JsonStorageException("Ocurrió un error inesperado al guardar el archivo.", ex);
         }
     }
     
@@ -44,10 +50,20 @@ public class StorageJson : IStorageJson
             var json = File.ReadAllText(file.FullName);
             return JsonConvert.DeserializeObject<List<T>>(json, _jsonSettings) ?? new List<T>();
         }
+        catch (FileNotFoundException fnfEx)
+        {
+            _logger.LogError(fnfEx, "Archivo no encontrado");
+            throw new JsonNotFoundException($"No se encontró el archivo para leer los datos de {typeof(T).Name}.", fnfEx);
+        }
+        catch (JsonException jsonEx)
+        {
+            _logger.LogError(jsonEx, "Error al leer el archivo");
+            throw new JsonReadException($"Error al procesar el archivo JSON de {typeof(T).Name}.", jsonEx);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error al leer el archivo JSON de {typeof(T).Name}");
-            return new List<T>();
+            _logger.LogError(ex, "Error al leer el archivo JSON");
+            throw new JsonStorageException("Ocurrió un error inesperado al leer el archivo.", ex);
         }
     }
 }
