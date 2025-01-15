@@ -17,10 +17,12 @@ public interface ICuentaService
     public Task<CuentaResponse> getByGuid(string guid);
     
     public Task<CuentaResponse> getByIban(string iban);
+
+    public Task<CuentaResponse> getMeByIban(string guid, string iban);
     
-    public Task<CuentaResponse> save(CuentaRequest cuentaRequest);
+    public Task<CuentaResponse> save(string guid,CuentaRequest cuentaRequest);
     
-    public Task<CuentaResponse> update(string guid, CuentaUpdateRequest cuentaRequest);
+    public Task<CuentaResponse> update(string guidClient,string guid, CuentaUpdateRequest cuentaRequest);
     
-    public Task<CuentaResponse> delete(string guid);
+    public Task<CuentaResponse> delete(string guidClient,string guid);
 }

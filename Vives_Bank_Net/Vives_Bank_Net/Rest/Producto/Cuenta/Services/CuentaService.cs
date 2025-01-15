@@ -15,13 +15,19 @@ public class CuentaService : ICuentaService
     private readonly CuentaDbContext _context;
     private readonly ILogger<CuentaService> _logger;
 
+    public CuentaService(CuentaDbContext context, ILogger<CuentaService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
     public async Task<PageResponse<CuentaResponse>> GetAll(
         BigInteger? saldoMax,
         BigInteger? saldoMin,
         String? tipoCuenta,
         PageRequest pageRequest)
     {
-        
+        _logger.LogInformation("Buscando todos las Cuentas en la base de datos");
         int pageNumber = pageRequest.PageNumber >= 0 ? pageRequest.PageNumber : 0;
         int pageSize = pageRequest.PageSize > 0 ? pageRequest.PageSize : 10;
 
@@ -29,17 +35,20 @@ public class CuentaService : ICuentaService
 
         if (saldoMax.HasValue)
         {
+            _logger.LogInformation($"Filtrando por Saldo Maximo: {saldoMax}");
             query = query.Where(c => c.Saldo <= saldoMax.Value);
         }
 
         if (saldoMin.HasValue)
         {
+            _logger.LogInformation($"Filtrando por Saldo Minimo: {saldoMax}");
             query = query.Where(c => c.Saldo >= saldoMin.Value);
         }
         //TODO
         /*
         if (!string.IsNullOrEmpty(tipoCuenta))
         {
+            _logger.LogInformation($"Filtrando por Tipo de cuenta: {tipoCuenta}");
             query = query.Where(c => c.Producto.Nombre.ToString().Contains(tipoCuenta));
         }
         */
@@ -78,6 +87,7 @@ public class CuentaService : ICuentaService
 
     public async Task<List<CuentaResponse>> getByClientGuid(string guid)
     {
+        _logger.LogInformation($"Buscando todos las Cuentas del cliente {guid} en la base de datos");
         //TODO
         //Verificar que el cliente existe
         var query = _context.Cuentas.AsQueryable().Where(c => c.Cliente.Guid == guid); 
@@ -92,10 +102,12 @@ public class CuentaService : ICuentaService
 
     public async Task<CuentaResponse> getByGuid(string guid)
     {
+        _logger.LogInformation($"Buscando Cuenta: {guid} en la base de datos");
         var cuenta = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);
 
         if (cuenta == null)
         {
+            _logger.LogError($"Cuenta: {guid}  no encontrada en la base de datos");
             throw new CuentaNoEncontradaException($"Cuenta con Guid {guid} no encontrada.");
         }
 
@@ -106,23 +118,50 @@ public class CuentaService : ICuentaService
 
     public async Task<CuentaResponse> getByIban(string iban)
     {
+        _logger.LogInformation($"Buscando Cuenta por IBAN: {iban} en la base de datos");
         var cuenta = await _context.Cuentas.FirstOrDefaultAsync(c => c.Iban == iban);
 
         if (cuenta == null)
         {
+            _logger.LogError($"Cuenta con IBAN: {iban}  no encontrada en la base de datos");
             throw new CuentaNoEncontradaException($"Cuenta con IBAN {iban} no encontrada.");
         }
         var cuentaResponse = cuenta.ToCuentaResponse();
 
         return cuentaResponse;
     }
-
-    public async Task<CuentaResponse> save(CuentaRequest cuentaRequest)
+    
+    public async Task<CuentaResponse> getMeByIban(string guid,string iban)
     {
+        _logger.LogInformation($"Buscando Cuenta por IBAN: {iban} en la base de datos");
+        var cuenta = await _context.Cuentas.FirstOrDefaultAsync(c => c.Iban == iban);
+
+        if (cuenta == null)
+        {
+            _logger.LogError($"Cuenta con IBAN: {iban}  no encontrada en la base de datos");
+            throw new CuentaNoEncontradaException($"Cuenta con IBAN {iban} no encontrada.");
+        }
+
+        if (cuenta.Cliente.Guid != guid)
+        {
+            _logger.LogError($"Cuenta con IBAN: {iban}  no le pertenece");
+            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {iban}  no le pertenece");
+            
+        }
+        var cuentaResponse = cuenta.ToCuentaResponse();
+
+        return cuentaResponse;
+    }
+
+    public async Task<CuentaResponse> save(string guid,CuentaRequest cuentaRequest)
+    {
+        
+        _logger.LogInformation($"Creando cuenta nueva");
         //TODO
         //Comprobar que el tipo de cuenta existe y pasarselo
+        //buscar el cliente y pasarle el id
         //Pasarle el clienteid
-        var cuenta = crearCuenta(0,0);
+        var cuenta =crearCuenta(0,0);
         
         var cuentaEntity = cuenta.ToCuentaEntity();
 
@@ -147,15 +186,24 @@ public class CuentaService : ICuentaService
 
     }
 
-    public async Task<CuentaResponse> update(string guid, CuentaUpdateRequest cuentaRequest)
+    public async Task<CuentaResponse> update(string guidClient,string guid, CuentaUpdateRequest cuentaRequest)
     {
+        _logger.LogInformation($"Actualizando cuenta {guid}");
         var cuenta = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
 
         if (cuenta == null)
         {
+            _logger.LogError($"La cuenta con el GUID {guid} no existe.");
             //TODO
             //Cambiar por excepcion de cliente
-            throw new SaldoInsuficiente("La cuenta con el GUID proporcionado no existe.");
+            throw new SaldoInsuficienteException($"La cuenta con el GUID {guid} no existe.");
+        }
+        
+        if (cuenta.Cliente.Guid != guidClient)
+        {
+            _logger.LogError($"Cuenta con IBAN: {cuenta.Iban}  no le pertenece");
+            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {cuenta.Iban}  no le pertenece");
+            
         }
 
 
@@ -163,7 +211,8 @@ public class CuentaService : ICuentaService
         {
             if (saldo <= 0)
             {
-                throw new SaldoInsuficiente("El saldo debe ser mayor a 0.");
+                _logger.LogError($"Saldo insuficiente para actualizar.");
+                throw new SaldoInsuficienteException("El saldo debe ser mayor a 0.");
             }
             else
             {
@@ -173,7 +222,8 @@ public class CuentaService : ICuentaService
         }
         else
         {
-            throw new ArgumentException("El saldo proporcionado no es válido.");
+            _logger.LogError($"El saldo proporcionado no es válido.");
+            throw new SaldoInvalidoException("El saldo proporcionado no es válido.");
         }
 
         await _context.SaveChangesAsync();
@@ -184,15 +234,24 @@ public class CuentaService : ICuentaService
     }
 
 
-    public async Task<CuentaResponse> delete(string guid)
+    public async Task<CuentaResponse> delete(string guidClient,string guid)
     {
+        _logger.LogInformation($"Eliminando cuenta {guid}");
         var cuenta = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
 
         if (cuenta == null)
         {
+            _logger.LogError($"La cuenta con el GUID {guid} no existe.");
             //TODO
             //Cambiar por excepcion de cliente
-            throw new SaldoInsuficiente("La cuenta con el GUID proporcionado no existe.");
+            throw new SaldoInsuficienteException($"La cuenta con el GUID {guid} no existe.");
+        }
+        
+        if (cuenta.Cliente.Guid != guidClient)
+        {
+            _logger.LogError($"Cuenta con IBAN: {cuenta.Iban}  no le pertenece");
+            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {cuenta.Iban}  no le pertenece");
+            
         }
 
         cuenta.IsDeleted = true;

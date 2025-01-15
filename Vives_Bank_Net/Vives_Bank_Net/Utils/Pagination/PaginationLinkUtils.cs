@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.WebUtilities;
 
 public class PaginationLinksUtils
 {
-    public string CreateLinkHeader<T>(Page<T> page, Uri baseUri)
+    public string CreateLinkHeader<T>(PageResponse<T> page, Uri baseUri)
     {
         var linkHeader = new StringBuilder();
 
