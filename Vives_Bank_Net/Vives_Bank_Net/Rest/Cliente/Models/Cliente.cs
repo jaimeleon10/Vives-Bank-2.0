@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+using Vives_Bank_Net.Rest.User;
 using Vives_Bank_Net.Rest.Producto.Cuenta;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Models;
 using Vives_Bank_Net.Utils.Generators;
@@ -37,20 +39,23 @@ public class Cliente
     [RegularExpression(@"^\d{9}$", ErrorMessage = "El teléfono debe tener 9 números")]
     public string Telefono { get; set; }
 
-    [Required]
+    [JsonPropertyName("fotopPerfil")]
     public string FotoPerfil { get; set; }
 
-    [Required]
+    [JsonPropertyName("fotoDni")]
     public string FotoDni { get; set; }
 
-    public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
+    public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
 
-    [Required]
+    [JsonPropertyName("usuario")]
     public User.User User { get; set; }
 
+    [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
-
+    
+    [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+    [JsonPropertyName("isDeleted")]
     public bool IsDeleted { get; set; } = false;
 }
