@@ -2,9 +2,9 @@
 
 namespace Vives_Banks_Net.Utils.Generators;
 
-public static class TarjetaGenerator
+public class TarjetaGenerator
 {
-    public static string GenerarTarjeta()
+    public string GenerarTarjeta()
     {
         var numTarjeta = new StringBuilder();
         numTarjeta.Append("4");
