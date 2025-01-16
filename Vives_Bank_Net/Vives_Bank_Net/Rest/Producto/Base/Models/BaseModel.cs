@@ -1,8 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using Vives_Banks_Net.Utils.Generators;
+using Vives_Bank_Net.Utils.Generators;
 
-
-namespace DefaultNamespace;
+namespace Vives_Bank_Net.Rest.Producto.Base.Models;
 
 public class BaseModel
 {
