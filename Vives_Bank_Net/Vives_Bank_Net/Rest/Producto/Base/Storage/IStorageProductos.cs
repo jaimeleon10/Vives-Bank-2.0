@@ -1,4 +1,5 @@
-﻿using DefaultNamespace;
+﻿
+using Vives_Bank_Net.Rest.Producto.Base.Models;
 
 namespace Vives_Bank_Net.Rest.Producto.Base.Storage;
 

@@ -1,8 +1,9 @@
-﻿namespace Vives_Bank_Net.Rest.Producto.Base.Storage;
+﻿using Vives_Bank_Net.Rest.Producto.Base.Models;
+
+namespace Vives_Bank_Net.Rest.Producto.Base.Storage;
 
 using System.Globalization;
 using System.Text;
-using DefaultNamespace;
 
 public class StorageProductos : IStorageProductos
 {
