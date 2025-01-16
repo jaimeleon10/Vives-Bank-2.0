@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Vives_Banks_Net.Rest.Cliente;
+using Vives_Bank_Net.Rest.Cliente.Models;
+using Vives_Bank_Net.Storage.Json.Service;
 using Vives_Banks_Net.Rest.User;
 
-namespace Vives_Bank_Net.Storage.Controller;
-
+namespace Vives_Bank_Net.Storage.Json.Controller;
 
 // Este controller solo es de prueba, las funciones definitivas estaran dentro de cada uno de sus 
-
-
 [ApiController]
 [Route("api/[controller]")]
 public class StorageController : ControllerBase

@@ -1,13 +1,11 @@
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using Vives_Bank_Net.Config.Storage;
-using Vives_Bank_Net.Storage;
-using Vives_Bank_Net.Storage.Exceptions;
-using FileNotFoundException = System.IO.FileNotFoundException;
+using Vives_Bank_Net.Storage.Files.Exceptions;
+using Vives_Bank_Net.Storage.Files.Service;
 
-namespace Vives_Bank_Net.Test;
+namespace Vives_Bank_Net.Test.Storage;
 
 public class StorageFileTest
 {

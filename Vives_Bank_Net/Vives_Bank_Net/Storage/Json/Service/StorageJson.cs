@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Vives_Bank_Net.Storage.Exceptions;
+using Vives_Bank_Net.Storage.Json.Exceptions;
 using FileNotFoundException = System.IO.FileNotFoundException;
+
+namespace Vives_Bank_Net.Storage.Json.Service;
 
 public class StorageJson : IStorageJson
 {

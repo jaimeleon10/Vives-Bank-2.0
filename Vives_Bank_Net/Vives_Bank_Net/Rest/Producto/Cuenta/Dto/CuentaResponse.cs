@@ -4,9 +4,9 @@ namespace Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 
 public class CuentaResponse
 {
-    public string Guid { get; set; }
+    public required string Guid { get; set; }
     
-    public string Iban { get; set; } 
+    public required string Iban { get; set; } 
     
     public BigInteger Saldo { get; set; }
 

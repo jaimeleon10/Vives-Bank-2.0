@@ -1,8 +1,4 @@
-﻿namespace Vives_Bank_Net.Storage.Controller;
-
-using Microsoft.AspNetCore.Mvc;
-using Vives_Bank_Net.Storage;
-using Vives_Bank_Net.Storage.Exceptions;
+﻿namespace Vives_Bank_Net.Storage.Files.Controller;
 /*
 [ApiController]
 [Route("api/[controller]")]

@@ -1,15 +1,15 @@
-using DefaultNamespace;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Vives_Bank_Net.Rest.Producto.Base.Database;
+using Vives_Bank_Net.Rest.Producto.Base.Dto;
 using Vives_Bank_Net.Rest.Producto.Base.Exceptions;
+using Vives_Bank_Net.Rest.Producto.Base.Mappers;
 using Vives_Bank_Net.Rest.Producto.Base.Models;
 
 namespace Vives_Bank_Net.Rest.Producto.Base.Services;
 
 public class BaseService : IBaseService
 {
-
     private const string CacheKeyPrefix = "Base_";
     private readonly BaseDbContext _context;
     private readonly ILogger<BaseService> _logger;
@@ -54,6 +54,23 @@ public class BaseService : IBaseService
         return model.ToModelFromEntity().ToResponseFromModel();
     }
 
+    public async Task<BaseResponseDto> GetByTipoAsync(string nombre)
+    {
+        _logger.LogDebug("Buscando producto por tipo: {tipo}", nombre);
+
+        var product = await _context.Bases.FindAsync(nombre);
+
+        if (product == null)
+        {
+            _logger.LogWarning($"No se encontró ningún producto con el tipo: {nombre}");
+            return null;
+        }
+
+        _logger.LogDebug("Producto encontrado con el tipo: {tipo}", nombre);
+
+        return product.ToModelFromEntity().ToResponseFromModel();
+    }
+
     public async Task<BaseResponseDto> CreateAsync(BaseRequestDto baseRequest)
     {
         _logger.LogDebug("Creando un nuevo producto base");
@@ -62,6 +79,12 @@ public class BaseService : IBaseService
         {
             _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
             throw new BaseExistByNameException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
+        }
+        
+        if (await _context.Bases.AnyAsync(b => b.TipoProducto.ToLower() == baseRequest.TipoProducto.ToLower()))
+        {
+            _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
+            throw new BaseDuplicateException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
         }
 
         var modelEntity = baseRequest.ToEntityFromRequest();
