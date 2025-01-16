@@ -11,6 +11,7 @@ public static class BaseMappers
         return new BaseEntity
         {
             Id = model.Id,
+            Guid = model.Guid,
             Nombre = model.Nombre,
             Descripcion = model.Descripcion,
             Tae = model.Tae,
