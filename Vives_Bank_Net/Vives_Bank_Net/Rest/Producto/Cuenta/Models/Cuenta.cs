@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
+using Vives_Bank_Net.Rest.Producto.Base.Models;
 using Vives_Bank_Net.Utils.Generators;
 using Vives_Banks_Net.Rest.Cliente;
 
@@ -32,8 +33,8 @@ public class Cuenta
     
     public long ProductoId { get; set; }
     
-    //[JsonPropertyName("producto")] 
-    //public Producto Producto { get; set; }
+    [JsonPropertyName("producto")] 
+    public BaseModel Producto { get; set; }
 
     [JsonPropertyName("isDeleted")]
     public bool IsDeleted { get; set; } = false;
