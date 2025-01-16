@@ -1,0 +1,6 @@
+﻿id,guid,nombre,descripcion,tae,createdAt,updatedAt,isDeleted
+1,1d23a567-89b0-12d3-4567-8e9f01a23456,Santander 123,Cuenta corriente con beneficios para clientes frecuentes,1.2,2025-01-15T12:00:00,2025-01-15T12:00:00,false
+2,2b34c678-90d1-23e4-5678-9f0a12b34567,BBVA Online,Cuenta digital sin comisiones,1.5,2025-01-15T12:00:00,2025-01-15T12:00:00,false
+3,3c45d789-01e2-34f5-6789-0a1b23c45678,ING Naranja,Cuenta sin comisiones ni condiciones,0.8,2025-01-15T12:00:00,2025-01-15T12:00:00,false
+4,4d56e890-12f3-45g6-7890-1b2c34d56789,CaixaBank Star,Cuenta con ventajas para jóvenes,1.0,2025-01-15T12:00:00,2025-01-15T12:00:00,false
+5,5e67f901-23g4-56h7-8901-2c3d45e67890,Openbank Everyday,Cuenta flexible y fácil de gestionar,1.3,2025-01-15T12:00:00,2025-01-15T12:00:00,false
