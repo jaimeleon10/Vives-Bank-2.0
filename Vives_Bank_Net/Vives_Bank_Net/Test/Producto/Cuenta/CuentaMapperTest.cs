@@ -9,9 +9,8 @@ namespace Vives_Bank_Net.Test.Producto.Cuenta;
 public class CuentaMapperTest
 {
     [Test]
-    public void ToCuentaEntity_MapsCorrectly()
+    public void ToCuentaEntity()
     {
-        // Arrange
         var cuenta = new Rest.Producto.Cuenta.Cuenta()
         {
             Guid = GuidGenerator.GenerarId(),
@@ -23,10 +22,8 @@ public class CuentaMapperTest
             IsDeleted = false
         };
 
-        // Act
         var result = cuenta.ToCuentaEntity();
 
-        // Assert
         Assert.That(result, Is.EqualTo(cuenta));
         Assert.That(result.Guid, Is.EqualTo(cuenta.Guid));
         Assert.That(result.Iban, Is.EqualTo(cuenta.Iban));
