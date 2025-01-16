@@ -18,6 +18,9 @@ public class BaseModel
 
     [JsonPropertyName("descripcion")] 
     public string Descripcion  { get; set; } = "";
+    
+    [JsonPropertyName("tipo_producto")]
+    public string TipoProducto { get; set; } = null!;
 
     [JsonPropertyName("tae")] 
     public double Tae  { get; set; } = 0.0;

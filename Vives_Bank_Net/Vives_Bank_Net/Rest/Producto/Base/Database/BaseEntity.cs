@@ -24,6 +24,10 @@ public class BaseEntity
     public string Descripcion { get; set; } = string.Empty;
     
     [Required]
+    [MaxLength(100, ErrorMessage = "El tipo no puede estar vacio")]
+    public string TipoProducto { get; set; } = string.Empty;
+    
+    [Required]
     public double Tae { get; set; } = 0.0;
     
     [Required]
