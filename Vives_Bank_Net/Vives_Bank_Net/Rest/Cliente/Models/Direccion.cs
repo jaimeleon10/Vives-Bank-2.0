@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Vives_Banks_Net.Rest.Cliente;
+namespace Vives_Bank_Net.Rest.Cliente.Models;
 
 public class Direccion
 {

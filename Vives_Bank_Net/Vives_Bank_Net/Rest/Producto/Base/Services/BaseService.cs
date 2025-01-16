@@ -1,15 +1,15 @@
-using DefaultNamespace;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Vives_Bank_Net.Rest.Producto.Base.Database;
+using Vives_Bank_Net.Rest.Producto.Base.Dto;
 using Vives_Bank_Net.Rest.Producto.Base.Exceptions;
+using Vives_Bank_Net.Rest.Producto.Base.Mappers;
 using Vives_Bank_Net.Rest.Producto.Base.Models;
 
 namespace Vives_Bank_Net.Rest.Producto.Base.Services;
 
 public class BaseService : IBaseService
 {
-
     private const string CacheKeyPrefix = "Base_";
     private readonly BaseDbContext _context;
     private readonly ILogger<BaseService> _logger;

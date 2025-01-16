@@ -4,7 +4,6 @@ using Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Exceptions;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Mappers;
-using Vives_Banks_Net.Rest.Cliente;
 using VivesBankProject.Utils.Pagination;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Services;

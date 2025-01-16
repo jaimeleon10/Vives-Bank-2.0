@@ -1,4 +1,4 @@
-﻿namespace DefaultNamespace;
+﻿namespace Vives_Bank_Net.Rest.Producto.Base.Dto;
 
 public class BaseResponseDto
 {

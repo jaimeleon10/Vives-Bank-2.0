@@ -4,6 +4,7 @@ using Vives_Bank_Net.Rest.Producto.Tarjeta.Database;
 using Vives_Bank_Net.Rest.Producto.Tarjeta.Dto;
 using Vives_Bank_Net.Rest.Producto.Tarjeta.Mappers;
 using Vives_Bank_Net.Rest.Producto.Tarjeta.Models;
+using Vives_Bank_Net.Utils.Generators;
 using Vives_Bank_Net.Utils.Validators;
 using Vives_Banks_Net.Utils.Generators;
 

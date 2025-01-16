@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 using Vives_Bank_Net.Utils.Generators;
-using Vives_Banks_Net.Rest.Cliente;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Models;
 
@@ -28,7 +27,7 @@ public class Cuenta
     public long ClienteId { get; set; }
 
     [JsonPropertyName("cliente")] 
-    public Cliente Cliente { get; set; }
+    public Cliente.Models.Cliente Cliente { get; set; }
     
     public long ProductoId { get; set; }
     

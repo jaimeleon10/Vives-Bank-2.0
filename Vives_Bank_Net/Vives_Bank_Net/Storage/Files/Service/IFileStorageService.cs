@@ -1,4 +1,4 @@
-﻿namespace Vives_Bank_Net.Storage;
+﻿namespace Vives_Bank_Net.Storage.Files.Service;
 
 public interface IFileStorageService
 {
