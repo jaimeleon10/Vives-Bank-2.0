@@ -11,35 +11,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5ab32372-20ef-4bad-af44-8cd4ed340d0d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/aws.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Controllers/BaseController.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Database/BaseDbContext.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Database/BaseEntity.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Dto/BaseRequestDto.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Dto/BaseResponseDto.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Dto/BaseUpdateDto.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Exceptions/BaseException.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Exceptions/BaseExistByNameException.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Mappers/BaseMappers.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Models/BaseModel.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Services/BaseService.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Services/IBaseService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Model.cs" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Tarjeta/Models/TarjetaModel.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Utils/Generators/CvvGenerator.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Vives_Bank_Net/Utils/Generators/ExpDateGenerator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Vives_Bank_Net.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Vives_Bank_Net.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.assets.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.csproj.AssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.csproj.AssemblyReference.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.dgspec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.props" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.targets" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.assets.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.nuget.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.packagespec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.model.nuget.info" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.model.nuget.info" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,6 +35,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -61,19 +47,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "Merging develop",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.sourceCode.C#",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature-CreditCard&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.C#&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Docker.Vives_Bank_Net/Dockerfile">
     <configuration name="Vives_Bank_Net: IIS Express" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Vives_Bank_Net/Vives_Bank_Net.csproj" />
@@ -150,11 +136,13 @@
       <workItem from="1736798306016" duration="162000" />
       <workItem from="1736864752160" duration="2553000" />
       <workItem from="1736867651335" duration="5037000" />
+      <workItem from="1736965279074" duration="40000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
 </project>
