@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Vives_Bank_Net.Config.Storage;
 using Vives_Bank_Net.Storage.Exceptions;
+using Exception = System.Exception;
 
 namespace Vives_Bank_Net.Storage;
 
@@ -19,25 +20,20 @@ public class FileStorageService : IFileStorageService
     {
         _logger.LogInformation($"Saving file: {file.FileName}");
 
-        // Comprobamos el tamaño del fichero
         if (file.Length > _fileStorageConfig.MaxFileSize)
             throw new FileStorageException("El tamaño del fichero excede el máximo permitido.");
 
-        // Comprobamos la extensión del fichero
         var fileExtension = Path.GetExtension(file.FileName);
         if (!_fileStorageConfig.AllowedFileTypes.Contains(fileExtension))
             throw new FileStorageException("Tipo de fichero no permitido.");
 
-        // Creamos el directorio de subida si no existe, debería estar hecho antes, pero por si acaso
         var uploadPath = Path.Combine(_fileStorageConfig.UploadDirectory);
         if (!Directory.Exists(uploadPath))
             Directory.CreateDirectory(uploadPath);
 
-        // Guardamos el fichero
         var fileName = Guid.NewGuid() + fileExtension;
         var filePath = Path.Combine(uploadPath, fileName);
 
-        // Using es el equivalente a usar un bloque try-finally para asegurarnos de que el recurso se libera correctamente
         await using (var fileStream = new FileStream(filePath, FileMode.Create))
         {
             await file.CopyToAsync(fileStream);
@@ -54,22 +50,24 @@ public class FileStorageService : IFileStorageService
         {
             var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
 
-            // Comprobamos si el fichero existe
             if (!File.Exists(filePath))
             {
                 _logger.LogWarning($"File not found: {filePath}");
-                // throw new FileNotFoundException($"File not found: {fileName}");
-                throw new FileStorageException($"File not found: {fileName}");
+                throw new FileStorageNotFoundException($"File not found: {fileName}");
             }
 
-            // Si todo va bien, devuelve el stream del fichero
             _logger.LogInformation($"File found: {filePath}");
             return new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        }
+        catch (FileStorageNotFoundException ex)
+        {
+            _logger.LogError(ex, "File not found");
+            throw new FileStorageNotFoundException($"File not found: {fileName}");;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting file");
-            throw;
+            throw new FileStorageException($"Error getting file: {fileName}");
         }
     }
 
@@ -80,22 +78,25 @@ public class FileStorageService : IFileStorageService
         {
             var filePath = Path.Combine(_fileStorageConfig.UploadDirectory, fileName);
 
-            // Comprobamos si el fichero existe
             if (!File.Exists(filePath))
             {
                 _logger.LogWarning($"File not found: {filePath}");
-                return false;
+                throw new FileStorageNotFoundException($"File not found: {fileName}");
             }
 
-            // Si existe, lo borramos
             File.Delete(filePath);
             _logger.LogInformation($"File deleted: {filePath}");
             return true;
         }
+        catch (FileStorageNotFoundException ex)
+        {
+            _logger.LogError(ex, "File not found during delete");
+            throw new FileStorageNotFoundException($"File not found: {fileName}");
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting file");
-            throw;
+            throw new FileStorageException($"Error deleting file: {fileName}");
         }
     }
 }
