@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Numerics;
-using Vives_Banks_Net.Rest.Cliente;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 
@@ -36,7 +35,7 @@ public class CuentaEntity
     [Required] 
     public long ClienteId { get; set; }
 
-    public Cliente Cliente { get; set; } 
+    public Cliente.Models.Cliente Cliente { get; set; } 
     
     [ForeignKey("Producto")] 
     [Column("producto_id")]  

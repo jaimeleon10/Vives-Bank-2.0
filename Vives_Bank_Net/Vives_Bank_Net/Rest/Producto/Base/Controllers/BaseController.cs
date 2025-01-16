@@ -1,5 +1,6 @@
-﻿using DefaultNamespace;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Vives_Bank_Net.Rest.Producto.Base.Dto;
+using Vives_Bank_Net.Rest.Producto.Base.Models;
 using Vives_Bank_Net.Rest.Producto.Base.Services;
 
 namespace Vives_Bank_Net.Rest.Producto.Base.Controllers;

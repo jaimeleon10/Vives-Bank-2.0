@@ -4,8 +4,7 @@ using Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Exceptions;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Mappers;
-using Vives_Banks_Net.Rest.Cliente;
-using VivesBankProject.Utils.Pagination;
+using Vives_Bank_Net.Utils.Pagination;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Services;
 
@@ -175,10 +174,10 @@ public class CuentaService : ICuentaService
         
     }
 
-    private Cuenta crearCuenta(long idProducto, long idCliente)
+    private Models.Cuenta crearCuenta(long idProducto, long idCliente)
     {
      
-        return new Cuenta
+        return new Models.Cuenta
         {
             ProductoId = idProducto,
             ClienteId = idCliente

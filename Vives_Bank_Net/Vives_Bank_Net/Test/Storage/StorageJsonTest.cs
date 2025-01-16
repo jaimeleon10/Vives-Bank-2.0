@@ -3,10 +3,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
-using Vives_Bank_Net.Storage.Exceptions;
-using Vives_Banks_Net.Rest.User;
+using Vives_Bank_Net.Storage.Json.Exceptions;
+using Vives_Bank_Net.Storage.Json.Service;
+using Vives_Bank_Net.Rest.User;
 
-namespace Vives_Bank_Net.Test;
+namespace Vives_Bank_Net.Test.Storage;
 
 [TestFixture]
 public class StorageJsonTest

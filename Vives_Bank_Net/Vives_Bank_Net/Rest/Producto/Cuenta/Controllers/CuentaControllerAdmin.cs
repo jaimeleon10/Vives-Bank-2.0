@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Services;
-using VivesBankProject.Utils.Pagination;
+using Vives_Bank_Net.Utils.Pagination;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Controllers;
 

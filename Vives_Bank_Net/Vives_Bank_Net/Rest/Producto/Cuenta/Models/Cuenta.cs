@@ -1,11 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Text.Json.Serialization;
-using Vives_Banks_Net.Rest.Cliente;
-using Vives_Banks_Net.Utils.Generators;
+using Vives_Bank_Net.Utils.Generators;
 
-namespace Vives_Bank_Net.Rest.Producto.Cuenta;
+namespace Vives_Bank_Net.Rest.Producto.Cuenta.Models;
 
 
 public class Cuenta
@@ -30,7 +27,7 @@ public class Cuenta
     public long ClienteId { get; set; }
 
     [JsonPropertyName("cliente")] 
-    public Cliente Cliente { get; set; }
+    public Cliente.Models.Cliente Cliente { get; set; }
     
     public long ProductoId { get; set; }
     

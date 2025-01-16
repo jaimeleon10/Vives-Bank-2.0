@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Vives_Bank_Net.Rest.Cuenta.Models;
-using Vives_Banks_Net.Utils.Generators;
+using Vives_Bank_Net.Rest.Producto.Cuenta.Models;
+using Vives_Bank_Net.Rest.User;
+using Vives_Bank_Net.Utils.Generators;
 
-namespace Vives_Banks_Net.Rest.Cliente;
+namespace Vives_Bank_Net.Rest.Cliente.Models;
 
 [Table("Clientes")]
 public class Cliente

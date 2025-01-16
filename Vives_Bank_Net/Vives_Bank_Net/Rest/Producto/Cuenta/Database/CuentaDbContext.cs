@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Vives_Banks_Net.Rest.Cliente;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 
@@ -8,7 +7,7 @@ public class CuentaDbContext(DbContextOptions<CuentaDbContext> options) : DbCont
 {
     public DbSet<CuentaEntity> Cuentas { get; set; }
     //public DbSet<Tarjeta> Tarjetas { get; set; }
-    public DbSet<Cliente> Clientes { get; set; }
+    public DbSet<Cliente.Models.Cliente> Clientes { get; set; }
     //public DbSet<Producto> Productos { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)

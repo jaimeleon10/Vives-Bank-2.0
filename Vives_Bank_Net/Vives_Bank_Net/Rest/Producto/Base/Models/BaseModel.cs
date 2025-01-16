@@ -1,8 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using Vives_Banks_Net.Utils.Generators;
+using Vives_Bank_Net.Utils.Generators;
 
-
-namespace DefaultNamespace;
+namespace Vives_Bank_Net.Rest.Producto.Base.Models;
 
 public class BaseModel
 {
@@ -18,6 +17,9 @@ public class BaseModel
 
     [JsonPropertyName("descripcion")] 
     public string Descripcion  { get; set; } = "";
+    
+    [JsonPropertyName("tipo_producto")]
+    public string TipoProducto { get; set; } = null!;
 
     [JsonPropertyName("tae")] 
     public double Tae  { get; set; } = 0.0;

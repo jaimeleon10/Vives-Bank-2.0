@@ -1,4 +1,4 @@
-﻿namespace VivesBankProject.Utils.Pagination;
+﻿namespace Vives_Bank_Net.Utils.Pagination;
 
 public class PageRequest
 {

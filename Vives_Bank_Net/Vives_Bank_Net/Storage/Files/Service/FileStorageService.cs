@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using Vives_Bank_Net.Config.Storage;
-using Vives_Bank_Net.Storage.Exceptions;
+using Vives_Bank_Net.Storage.Files.Exceptions;
 using Exception = System.Exception;
 
-namespace Vives_Bank_Net.Storage;
+namespace Vives_Bank_Net.Storage.Files.Service;
 
 public class FileStorageService : IFileStorageService
 {

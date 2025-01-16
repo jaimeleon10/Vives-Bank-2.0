@@ -1,4 +1,4 @@
-﻿namespace Vives_Bank_Net.Storage.Exceptions;
+﻿namespace Vives_Bank_Net.Storage.Files.Exceptions;
 
 public class FileStorageException : Exception
 {
