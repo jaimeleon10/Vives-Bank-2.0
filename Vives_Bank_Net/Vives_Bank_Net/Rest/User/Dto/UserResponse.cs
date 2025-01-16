@@ -1,4 +1,4 @@
-﻿namespace Vives_Bank_Net.Rest.User.Dtos;
+﻿namespace Vives_Bank_Net.Rest.User.Dto;
 
 public class UserResponse
 {

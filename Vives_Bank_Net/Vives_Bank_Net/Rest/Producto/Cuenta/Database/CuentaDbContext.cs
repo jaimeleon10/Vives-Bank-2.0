@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Database;
@@ -32,7 +32,7 @@ public class CuentaDbContext(DbContextOptions<CuentaDbContext> options) : DbCont
             .WithMany() 
             .HasForeignKey(c => c.ProductoId)
             .IsRequired(); 
-        */
+        #1#
         modelBuilder.Entity<CuentaEntity>()
             .Property(c => c.Guid)
             .IsRequired(); 
@@ -57,4 +57,4 @@ public class CuentaDbContext(DbContextOptions<CuentaDbContext> options) : DbCont
             .Property(c => c.UpdatedAt)
             .IsRequired();
     }
-}
+}*/

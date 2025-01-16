@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*using Microsoft.EntityFrameworkCore;
 using Vives_Bank_Net.Rest.User.Database;
 
 public class UserDbContext : DbContext // Corrección de la definición del constructor
@@ -17,4 +17,4 @@ public class UserDbContext : DbContext // Corrección de la definición del cons
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnAddOrUpdate(); // Asegura la actualización
         });
     }
-}
+}*/

@@ -2,7 +2,7 @@
 
 namespace Vives_Bank_Net.Rest.Producto.Tarjeta.Models;
 
-public class TarjetaModel
+public class Tarjeta
 {
     [JsonPropertyName("id")]
     public long Id { get; set; }

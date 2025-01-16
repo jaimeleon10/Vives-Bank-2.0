@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Vives_Bank_Net.Rest.User.Exceptions;
+
+namespace Vives_Bank_Net.Rest.User.Exceptions;
 
 public class HttpResponseExceptionFilter : IActionFilter, IOrderedFilter
 {

@@ -2,6 +2,7 @@
 using Vives_Bank_Net.Rest.Cliente.Models;
 using Vives_Bank_Net.Storage.Json.Service;
 using Vives_Bank_Net.Rest.User;
+using Vives_Bank_Net.Rest.User.Models;
 
 namespace Vives_Bank_Net.Storage.Json.Controller;
 
@@ -33,8 +34,8 @@ public class StorageController : ControllerBase
                     UserName = "Usuario1",
                     PasswordHash = "Password123",
                     Role = Role.ADMIN,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
                     IsDeleted = false
                 },
                 new User
@@ -44,8 +45,8 @@ public class StorageController : ControllerBase
                     UserName = "Usuario2",
                     PasswordHash = "Password456",
                     Role = Role.USER,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
                     IsDeleted = false
                 }
             };
@@ -115,8 +116,8 @@ public class StorageController : ControllerBase
                         UserName = "Usuario1",
                         PasswordHash = "Password123",
                         Role = Role.ADMIN,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
                         IsDeleted = false
                     }
                 },
@@ -143,8 +144,8 @@ public class StorageController : ControllerBase
                         UserName = "Usuario1",
                         PasswordHash = "Password123",
                         Role = Role.ADMIN,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
                         IsDeleted = false
                     }
                 }

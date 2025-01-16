@@ -1,4 +1,5 @@
 ﻿
+/*
 using Microsoft.EntityFrameworkCore;
 
 namespace Vives_Bank_Net.Rest.Cliente.Database;
@@ -16,4 +17,4 @@ public class ClienteDbContext(DbContextOptions<ClienteDbContext> options): DbCon
             entity.OwnsOne(e => e.Direccion);
         });
     }
-}
+}*/

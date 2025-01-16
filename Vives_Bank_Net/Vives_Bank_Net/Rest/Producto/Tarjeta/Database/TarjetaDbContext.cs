@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*using Microsoft.EntityFrameworkCore;
 
 namespace Vives_Bank_Net.Rest.Producto.Tarjeta.Database;
 
@@ -14,4 +14,4 @@ public class TarjetaDbContext(DbContextOptions<TarjetaDbContext> options) : DbCo
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
         });
     }
-}
+}*/

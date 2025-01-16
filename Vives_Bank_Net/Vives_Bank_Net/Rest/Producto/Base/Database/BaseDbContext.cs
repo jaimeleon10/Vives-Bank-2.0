@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*using Microsoft.EntityFrameworkCore;
 
 namespace Vives_Bank_Net.Rest.Producto.Base.Database;
 
@@ -14,4 +14,4 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
         });
     }
-}
+}*/
