@@ -1,8 +1,7 @@
-﻿namespace VivesBankProject.Utils.Pagination;
-
-using System;
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
+
+namespace Vives_Bank_Net.Utils.Pagination;
 
 public class PaginationLinksUtils
 {

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Vives_Bank_Net.Rest.Producto.Cuenta;
 using Vives_Banks_Net.Utils.Generators;
 
-namespace Vives_Banks_Net.Rest.Cliente;
+namespace Vives_Bank_Net.Rest.Cliente.Models;
 
 [Table("Clientes")]
 public class Cliente
@@ -45,7 +45,7 @@ public class Cliente
     public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
 
     [Required]
-    public User User { get; set; }
+    public User.User User { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 

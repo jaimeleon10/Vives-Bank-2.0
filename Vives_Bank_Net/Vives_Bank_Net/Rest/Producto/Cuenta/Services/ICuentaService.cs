@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
-using VivesBankProject.Utils.Pagination;
+using Vives_Bank_Net.Utils.Pagination;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Services;
 

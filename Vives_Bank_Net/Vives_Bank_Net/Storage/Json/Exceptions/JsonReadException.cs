@@ -1,4 +1,4 @@
-﻿namespace Vives_Bank_Net.Storage.Exceptions;
+﻿namespace Vives_Bank_Net.Storage.Json.Exceptions;
 
 public sealed class JsonReadException : JsonStorageException
 {

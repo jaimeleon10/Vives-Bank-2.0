@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Numerics;
@@ -37,7 +37,7 @@ public class CuentaEntity
     [Required] 
     public long ClienteId { get; set; }
 
-    public Cliente Cliente { get; set; } 
+    public Cliente.Models.Cliente Cliente { get; set; } 
     
     [ForeignKey("Producto")] 
     [Column("producto_id")]  

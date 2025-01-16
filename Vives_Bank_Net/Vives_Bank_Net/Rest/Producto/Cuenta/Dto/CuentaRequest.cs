@@ -1,7 +1,8 @@
-﻿namespace Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 
 public class CuentaRequest
 {
-    public string TipoCuenta { get; set; }
-
+    public required string TipoCuenta { get; set; }
 }

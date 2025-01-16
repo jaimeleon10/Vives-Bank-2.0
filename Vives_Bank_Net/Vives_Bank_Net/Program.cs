@@ -11,7 +11,10 @@ using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
 using StackExchange.Redis;
+using Vives_Bank_Net.Rest.User.Service;
 using Vives_Bank_Net.Storage;
+using Vives_Bank_Net.Storage.Files.Service;
+using Vives_Bank_Net.Storage.Json.Service;
 
 var environment = InitLocalEnvironment();
 
@@ -82,6 +85,8 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
     myBuilder.Services.AddSingleton<IStorageJson, StorageJson>();
     myBuilder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+    myBuilder.Services.AddScoped<IUserService, UserService>();
+
 
     // GraphQL
     myBuilder.Services.AddSingleton<MovimientoQuery>();
