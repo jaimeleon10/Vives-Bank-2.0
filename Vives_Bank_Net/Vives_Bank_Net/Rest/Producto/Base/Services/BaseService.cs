@@ -1,9 +1,9 @@
-﻿using DefaultNamespace;
+using DefaultNamespace;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-
 using Vives_Bank_Net.Rest.Producto.Base.Database;
 using Vives_Bank_Net.Rest.Producto.Base.Exceptions;
+using Vives_Bank_Net.Rest.Producto.Base.Models;
 
 namespace Vives_Bank_Net.Rest.Producto.Base.Services;
 

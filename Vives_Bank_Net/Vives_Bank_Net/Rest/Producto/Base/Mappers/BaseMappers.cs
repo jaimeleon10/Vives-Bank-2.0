@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Vives_Bank_Net.Rest.Producto.Base.Database;
+using Vives_Bank_Net.Rest.Producto.Base.Models;
 
 namespace DefaultNamespace;
 
