@@ -32,7 +32,4 @@ public static class CuentaMapper
             ProductoId = cuentaEntity.ProductoId
         };
     }
-
-
-    
 }
