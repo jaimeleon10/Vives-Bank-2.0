@@ -22,6 +22,7 @@ public class MovimientosMongoConfig
     {
         _logger.LogInformation("Trying to connect to MongoDB");
         var settings = MongoClientSettings.FromConnectionString(ConnectionString);
+        _logger.LogInformation("Connected to MongoDB");
         // Set the ServerApi field of the settings object to set the version of the Stable API on the client
         settings.ServerApi = new ServerApi(ServerApiVersion.V1);
         // Create a new client and connect to the server

@@ -1,10 +1,13 @@
 using System.Text;
+using GraphiQl;
+using GraphQL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
 using Serilog.Core;
+using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
 
@@ -37,6 +40,12 @@ app.UseRouting();
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
 
+// Middleware para GraphQL
+app.MapGraphQL<MovimientoSchema>("/graphql");
+
+// GraphQL Playground
+app.UseGraphiQl("/graphiql");
+
 Console.WriteLine($"🕹️ Running service in url: {builder.Configuration["urls"] ?? "not configured"} in mode {environment} 🟢");
 
 logger.Information($"🕹️ Running service in url: {builder.Configuration["urls"] ?? "not configured"} in mode {environment} 🟢");
@@ -61,20 +70,26 @@ WebApplicationBuilder InitServices()
     
     // Configuración de MongoDB
     myBuilder.Services.Configure<MovimientosMongoConfig>(
-        myBuilder.Configuration.GetSection("MovimientosDB"));
+        myBuilder.Configuration.GetSection("MovimientosDatabase"));
     
     TryConnectionDataBase();
     
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
     
-    // Cache en memoria
-    myBuilder.Services.AddMemoryCache();
+    // GraphQL
+    myBuilder.Services.AddSingleton<MovimientoQuery>();
+    myBuilder.Services.AddSingleton<MovimientoSchema>();
+    myBuilder.Services.AddSingleton<MovimientoType>();
+    
+    myBuilder.Services.AddGraphQL(graphQlBuilder =>
+    {
+        graphQlBuilder.AddSystemTextJson();
+    });
 
     // Añadimos los controladores
     myBuilder.Services.AddControllers();
 
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-    // para documentar la API
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle para documentar la API
     myBuilder.Services.AddEndpointsApiExplorer();
     myBuilder.Services.AddSwaggerGen(c =>
     {
@@ -126,7 +141,7 @@ void TryConnectionDataBase()
 {
     logger.Debug("Trying to connect to MongoDB");
     // Leemos la cadena de conexión a la base de datos desde la configuración
-    var connectionString = configuration.GetSection("MovimientosDB:ConnectionString").Value;
+    var connectionString = configuration.GetSection("MovimientosDatabase:ConnectionString").Value;
     var settings = MongoClientSettings.FromConnectionString(connectionString);
     // Set the ServerApi field of the settings object to set the version of the Stable API on the client
     settings.ServerApi = new ServerApi(ServerApiVersion.V1);
