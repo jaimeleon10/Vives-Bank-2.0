@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Vives_Bank_Net.Rest.Producto.Cuenta;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Models;
-using Vives_Bank_Net.Rest.User;
 using Vives_Bank_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.Cliente.Models;
