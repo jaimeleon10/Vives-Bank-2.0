@@ -2,5 +2,5 @@
 
 public class ClienteNotFound(string message) : ClienteException(message)
  {
-     
+   
  }

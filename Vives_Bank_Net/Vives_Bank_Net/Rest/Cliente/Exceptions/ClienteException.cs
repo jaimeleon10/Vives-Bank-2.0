@@ -2,5 +2,5 @@
 
 public class ClienteException (string message) : Exception (message)
 {
-    
+   
 }

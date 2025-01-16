@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Vives_Bank_Net.Utils.Generators;
+using System.Text.Json.Serialization;
+using Vives_Banks_Net.Rest.User;
+using Vives_Banks_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.Cliente.Models;
 
@@ -41,7 +43,7 @@ public class Cliente
     [JsonPropertyName("fotoDni")]
     public string FotoDni { get; set; }
 
-    public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
+    public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
 
     [JsonPropertyName("usuario")]
     public User User { get; set; }

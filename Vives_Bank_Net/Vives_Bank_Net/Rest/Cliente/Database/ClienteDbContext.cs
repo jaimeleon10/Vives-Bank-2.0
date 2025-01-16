@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
+
 namespace Vives_Bank_Net.Rest.Cliente.Database;
 
 public class ClienteDbContext(DbContextOptions<ClienteDbContext> options): DbContext(options)
@@ -9,8 +11,9 @@ public class ClienteDbContext(DbContextOptions<ClienteDbContext> options): DbCon
     {
         modelBuilder.Entity<ClienteEntity>(entity =>
         {
-            entity.Property(entity => entity.CreatedAt).IsRequired().ValueGeneratedOnAdd();
-            entity.Property(entity => entity.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
-        })
+            entity.Property(ent => ent.CreatedAt).IsRequired().ValueGeneratedOnAdd();
+            entity.Property(ent => ent.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
+            entity.OwnsOne(e => e.Direccion);
+        });
     }
 }

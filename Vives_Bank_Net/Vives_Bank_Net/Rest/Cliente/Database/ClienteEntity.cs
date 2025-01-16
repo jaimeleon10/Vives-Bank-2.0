@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using StackExchange.Redis;
 using Vives_Bank_Net.Rest.Cliente.Models;
-using Vives_Bank_Net.Utils.Generators;
+using Vives_Banks_Net.Rest.User;
 
 namespace Vives_Bank_Net.Rest.Cliente.Database;
 
@@ -20,37 +19,33 @@ public class ClienteEntity
     [Required]
     public string Guid { get; set; }
 
-    [Required]
     [RegularExpression(@"^\d{8}[TRWAGMYFPDXBNJZSQVHLCKE]$", ErrorMessage = "El DNI debe tener 8 números seguidos de una letra en mayúsculas")]
     public string Dni { get; set; }
 
-    [Required]
+    
     public string Nombre { get; set; }
 
-    [Required]
     public string Apellidos { get; set; }
 
-    [Required]
     public Direccion Direccion { get; set; }
-
-    [Required]
-    [EmailAddress]
+    
     public string Email { get; set; }
-
-    [Required]
-    [RegularExpression(@"^\d{9}$", ErrorMessage = "El teléfono debe tener 9 números")]
+    
     public string Telefono { get; set; }
+    
+    [DefaultValue("https://example.com/fotoPerfil.jpg")]
+    public string FotoPerfil { get; set; } = "https://example.com/fotoPerfil.jpg";
+ 
+   [DefaultValue("https://example.com/fotoDni.jpg")]
+   public string FotoDni { get; set; } = "https://example.com/fotoDni.jpg";
 
-    [Required]
-    public string FotoPerfil { get; set; }
 
-    [Required]
-    public string FotoDni { get; set; }
+   // public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
 
-    public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
-
-    [Required]
-    public User.Models.User User { get; set; }
+   
+    //[Column("user_id")]
+    // o al reves [ForeignKey("User")
+   // public User User { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
