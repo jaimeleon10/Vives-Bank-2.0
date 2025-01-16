@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Vives_Bank_Net.Storage.Json.Exceptions;
 using Vives_Bank_Net.Storage.Json.Service;
 using Vives_Bank_Net.Rest.User;
+using Vives_Bank_Net.Rest.User.Models;
 
 namespace Vives_Bank_Net.Test.Storage;
 

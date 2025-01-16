@@ -19,7 +19,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TarjetaModel>>> GetAllTarjetas()
+    public async Task<ActionResult<IEnumerable<Models.Tarjeta>>> GetAllTarjetas()
     {
         var tarjetas = await _tarjetaService.GetAllAsync();
         return Ok(tarjetas);
@@ -34,7 +34,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<TarjetaModel>> CreateTarjeta([FromBody] TarjetaRequestDto dto)
+    public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequestDto dto)
     {
         if (!ModelState.IsValid)
         {

@@ -4,12 +4,13 @@ using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Dtos;
 using Vives_Bank_Net.Rest.Cliente.Models;
 using Vives_Bank_Net.Utils.Generators;
+using Vives_Bank_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.Cliente.Mapper;
 
 public class ClienteMapper
 {
-   public Models.Cliente fromSaveDtoToClienteModel(ClienteRequestSave createDto)
+   public Models.Cliente FromSaveDtoToClienteModel(ClienteRequestSave createDto)
    {
       return new Models.Cliente
       {
@@ -30,7 +31,7 @@ public class ClienteMapper
       };
    }
    
-   public ClienteResponse fromModelClienteToResponse(Models.Cliente cliente)
+   public ClienteResponse FromModelClienteToResponse(Models.Cliente cliente)
    {
       return new ClienteResponse
       {
@@ -54,7 +55,7 @@ public class ClienteMapper
       };
    }
 
-   public ClienteEntity fromClienteModelToEntity(Models.Cliente model)
+   public ClienteEntity FromClienteModelToEntity(Models.Cliente model)
    {
       return new ClienteEntity
       {
@@ -76,7 +77,7 @@ public class ClienteMapper
       };
    }
 
-   public Models.Cliente fromEntityClienteToModel(ClienteEntity clienteEntity)
+   public Models.Cliente FromEntityClienteToModel(ClienteEntity clienteEntity)
    {
       return new Models.Cliente
       {
@@ -98,7 +99,7 @@ public class ClienteMapper
       };
    }
 
-   public ClienteResponse fromEntityClienteToResponse(ClienteEntity clienteEntity)
+   public ClienteResponse FromEntityClienteToResponse(ClienteEntity clienteEntity)
    {
       return new ClienteResponse
       {
@@ -122,7 +123,7 @@ public class ClienteMapper
       };
    }
    
-   public ClienteEntity fromSaveDtoToClienteEntity(ClienteRequestSave createDto)
+   public ClienteEntity FromSaveDtoToClienteEntity(ClienteRequestSave createDto)
    {
       return new ClienteEntity
       {
@@ -143,7 +144,7 @@ public class ClienteMapper
       };
    }
    
-   public ClienteEntity fromUpdateDtoToClienteEntity(ClienteEntity oldCliente, ClienteRequestUpdate updateDto)
+   public ClienteEntity FromUpdateDtoToClienteEntity(ClienteEntity oldCliente, ClienteRequestUpdate updateDto)
    {
       if (!string.IsNullOrWhiteSpace(updateDto.Nombre))
       {

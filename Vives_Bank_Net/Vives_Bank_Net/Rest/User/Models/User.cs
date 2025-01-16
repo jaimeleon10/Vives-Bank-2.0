@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 using Vives_Bank_Net.Utils.Generators;
 
-namespace Vives_Bank_Net.Rest.User;
+namespace Vives_Bank_Net.Rest.User.Models;
 
 public class User 
 {
@@ -26,10 +25,10 @@ public class User
     public Role Role { get; set; }
     
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
     
     [Required]
     public bool IsDeleted { get; set; } = false;

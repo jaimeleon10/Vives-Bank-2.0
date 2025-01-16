@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Vives_Bank_Net.Rest.User.Dtos;
+using Vives_Bank_Net.Rest.User.Dto;
 using Vives_Bank_Net.Rest.User.Exceptions;
 using Vives_Bank_Net.Rest.User.Mapper;
 using Vives_Bank_Net.Rest.User.Service;
@@ -20,7 +20,7 @@ namespace Vives_Bank_Net.Rest.User.Controller
         }
         
         [HttpGet]
-        public async Task<ActionResult<List<User>>> GetAllAsync()
+        public async Task<ActionResult<List<Models.User>>> GetAllAsync()
         {
             try
             {
@@ -35,7 +35,7 @@ namespace Vives_Bank_Net.Rest.User.Controller
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetById(string id)
+        public async Task<ActionResult<Models.User>> GetById(string id)
         {
             var user = await _userService.GetByIdAsync(id);
 
@@ -45,7 +45,7 @@ namespace Vives_Bank_Net.Rest.User.Controller
         }
         
         [HttpGet("username/{username}")]
-        public async Task<ActionResult<User>> GetByUsername(string username)
+        public async Task<ActionResult<Models.User>> GetByUsername(string username)
         {
             var user = await _userService.GetByUsernameAsync(username);
 

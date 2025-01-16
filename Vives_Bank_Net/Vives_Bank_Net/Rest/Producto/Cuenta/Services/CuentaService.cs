@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Microsoft.EntityFrameworkCore;
+using Vives_Bank_Net.Rest.Database;
 using Vives_Bank_Net.Rest.Producto.Base.Exceptions;
 using Vives_Bank_Net.Rest.Producto.Base.Services;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Database;
@@ -13,11 +14,11 @@ namespace Vives_Bank_Net.Rest.Producto.Cuenta.Services;
 public class CuentaService : ICuentaService
 {
     
-    private readonly CuentaDbContext _context;
+    private readonly GeneralDbContext _context;
     private readonly IBaseService _baseService;
     private readonly ILogger<CuentaService> _logger;
 
-    public CuentaService(CuentaDbContext context, ILogger<CuentaService> logger, IBaseService baseService)
+    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService)
     {
         _context = context;
         _logger = logger;
