@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Vives_Bank_Net.Storage.Exceptions;
+using FileNotFoundException = System.IO.FileNotFoundException;
 
 public class StorageJson : IStorageJson
 {
@@ -54,11 +55,6 @@ public class StorageJson : IStorageJson
         {
             _logger.LogError(jsonEx, "Error al leer el archivo");
             throw new JsonReadException($"Error al procesar el archivo JSON de {typeof(T).Name}.", jsonEx);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al leer el archivo JSON");
-            throw new JsonStorageException("Ocurrió un error inesperado al leer el archivo.", ex);
         }
     }
 }
