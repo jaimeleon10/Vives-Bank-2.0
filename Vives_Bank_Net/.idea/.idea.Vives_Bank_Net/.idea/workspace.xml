@@ -6,33 +6,15 @@
     <projectFile profileName="http">Vives_Bank_Net/Vives_Bank_Net.csproj</projectFile>
     <projectFile profileName="https">Vives_Bank_Net/Vives_Bank_Net.csproj</projectFile>
   </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="64e7e91d-5056-4972-9ea1-784287332d82" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/aws.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/indexLayout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/material_theme_project_new.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/aws.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/material_theme_project_new.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.GeneratedMSBuildEditorConfig.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.GeneratedMSBuildEditorConfig.editorconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.assets.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.csproj.AssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.csproj.AssemblyReference.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.dgspec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.assets.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.nuget.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.packagespec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.model.nuget.info" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Cliente/Models/Cliente.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Cliente/Models/Cliente.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Cuenta/Models/Cuenta.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Cuenta/Mappers/CuentaMapper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Cuenta/Mappers/CuentaMapper.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,22 +24,22 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "wolverine307mda"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;wolverine307mda&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/wolverine307mda/Vives-Bank-2.0.git",
-    "accountId": "c6126bf2-d9c9-412a-9c49-52f6862ab45a"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/wolverine307mda/Vives-Bank-2.0.git&quot;,
+    &quot;accountId&quot;: &quot;c6126bf2-d9c9-412a-9c49-52f6862ab45a&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 2
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2rdWpM7ntDfFzZPojZMhM36IO6a" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -67,8 +49,13 @@
   "keyToString": {
     ".NET Launch Settings Profile.Vives_Bank_Net: https.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "com.codeium.enabled": "true",
-    "git-widget-placeholder": "develop",
+    "git-widget-placeholder": "feature/testDominioCuenta",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
   }
@@ -131,7 +118,10 @@
       <method v="2" />
     </configuration>
     <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
-      <deployment type="dockerfile" />
+      <deployment type="dockerfile">
+        <settings />
+      </deployment>
+      <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
       <method v="2" />
     </configuration>
   </component>
@@ -144,6 +134,7 @@
       <option name="presentableId" value="Default" />
       <updated>1736889637604</updated>
       <workItem from="1736889656321" duration="241000" />
+      <workItem from="1736967236720" duration="1019000" />
     </task>
     <servers />
   </component>
