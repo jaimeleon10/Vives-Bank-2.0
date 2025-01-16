@@ -5,6 +5,7 @@ using Vives_Bank_Net.Rest.Producto.Cuenta.Services;
 using NUnit.Framework;
 using Moq;
 using Microsoft.EntityFrameworkCore;
+using Vives_Bank_Net.Rest.Producto.Cuenta.Models;
 
 
 [TestFixture]

@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Mappers;
+using Vives_Bank_Net.Utils.Generators;
 using Vives_Banks_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Test.Producto.Cuenta;
@@ -11,7 +12,7 @@ public class CuentaMapperTest
     [Test]
     public void ToCuentaEntity()
     {
-        var cuenta = new Rest.Producto.Cuenta.Cuenta()
+        var cuenta = new Rest.Producto.Cuenta.Models.Cuenta()
         {
             Guid = GuidGenerator.GenerarId(),
             Iban = IbanGenerator.GenerateIban(),
