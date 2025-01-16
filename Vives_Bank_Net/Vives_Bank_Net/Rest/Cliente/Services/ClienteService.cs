@@ -1,20 +1,20 @@
-﻿
-    using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Dtos;
 using Vives_Bank_Net.Rest.Cliente.Exceptions;
 using Vives_Bank_Net.Rest.Cliente.Mapper;
+using Vives_Bank_Net.Rest.Database;
 
 namespace Vives_Bank_Net.Rest.Cliente.Services;
 
 public class ClienteService : IClienteService
 {
     
-    private readonly ClienteDbContext _context;
+    private readonly GeneralDbContext _context;
     private readonly ClienteMapper _clienteMapper;
     private readonly ILogger<ClienteService> _logger;
 
-    public ClienteService(ClienteDbContext context, ClienteMapper clienteMapper, ILogger<ClienteService> logger)
+    public ClienteService(GeneralDbContext context, ClienteMapper clienteMapper, ILogger<ClienteService> logger)
     {
         _context = context;
         _clienteMapper = clienteMapper;
@@ -26,7 +26,7 @@ public class ClienteService : IClienteService
         _logger.LogInformation("Buscando todos los clientes");
 		List<ClienteEntity> clientes = await _context.Clientes.ToListAsync();
 
-        var clienteResponses =  clientes.Select(c => _clienteMapper.fromEntityClienteToResponse(c)).ToList();
+        var clienteResponses =  clientes.Select(c => _clienteMapper.FromEntityClienteToResponse(c)).ToList();
         return clienteResponses;
     }
 
@@ -36,7 +36,7 @@ public class ClienteService : IClienteService
         var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == id);
         if (cliente != null)
         {
-            return _clienteMapper.fromEntityClienteToResponse(cliente);
+            return _clienteMapper.FromEntityClienteToResponse(cliente);
         }
         throw new ClienteNotFound($"Cliente con id '{id}' no existe.");
     }
@@ -47,11 +47,11 @@ public class ClienteService : IClienteService
 
         await ValidateClienteExistente(requestSave.Dni, requestSave.Email, requestSave.Telefono);
 
-        var clienteEntity = _clienteMapper.fromSaveDtoToClienteEntity(requestSave);
+        var clienteEntity = _clienteMapper.FromSaveDtoToClienteEntity(requestSave);
         _context.Clientes.Add(clienteEntity); 
         await _context.SaveChangesAsync();
         
-        return _clienteMapper.fromEntityClienteToResponse(await FindClienteEntity(clienteEntity.Guid));
+        return _clienteMapper.FromEntityClienteToResponse(await FindClienteEntity(clienteEntity.Guid));
     }
 
     public async Task<ClienteResponse> UpdateClienteAsync(string id, ClienteRequestUpdate requestUpdate){
@@ -60,10 +60,10 @@ public class ClienteService : IClienteService
         await ValidateClienteExistente(null, requestUpdate?.Email, requestUpdate?.Telefono);
         if (requestUpdate == null || !requestUpdate.HasAtLeastOneField())
             throw new ClienteBadRequest("Debe cambiar al menos un dato para realizar la actualización.");
-        var updatedCliente = _clienteMapper.fromUpdateDtoToClienteEntity(clienteEntity, requestUpdate); 
+        var updatedCliente = _clienteMapper.FromUpdateDtoToClienteEntity(clienteEntity, requestUpdate); 
         _context.Clientes.Update(updatedCliente);
         await _context.SaveChangesAsync();
-        return _clienteMapper.fromEntityClienteToResponse(await FindClienteEntity(id));
+        return _clienteMapper.FromEntityClienteToResponse(await FindClienteEntity(id));
 
     }
 
@@ -75,7 +75,7 @@ public class ClienteService : IClienteService
         var deletedCliente = DeleteData(entityCliente);
         _context.Clientes.Update(deletedCliente);
         await _context.SaveChangesAsync();
-        return _clienteMapper.fromEntityClienteToResponse(await FindClienteEntity(guid));
+        return _clienteMapper.FromEntityClienteToResponse(await FindClienteEntity(guid));
     }
 
 

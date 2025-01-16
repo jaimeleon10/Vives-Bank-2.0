@@ -41,6 +41,7 @@ public class ClienteEntity
 
 
    // public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
+
    
     //[Column("user_id")]
     // o al reves [ForeignKey("User")

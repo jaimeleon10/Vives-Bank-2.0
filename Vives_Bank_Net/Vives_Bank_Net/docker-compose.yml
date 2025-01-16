@@ -8,7 +8,21 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
-      - mongo_vives-bank:/data/db
+      - mongo_data:/data/db
+    restart: unless-stopped
+  
+  postgres:
+    image: postgres:latest
+    container_name: postgres_vives-bank
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: VivesBankDB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   redis:
     image: 'bitnami/redis:latest'
@@ -22,7 +36,9 @@ services:
     restart: unless-stopped 
 
 volumes:
-  mongo_vives-bank:
+  mongo_data:
     driver: local 
+  postgres_data:
+    driver: local
   redis_data:
     driver: local

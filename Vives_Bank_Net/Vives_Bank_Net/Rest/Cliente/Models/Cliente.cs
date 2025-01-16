@@ -48,7 +48,7 @@ public class Cliente
     public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
 
     [JsonPropertyName("usuario")]
-    public User.User User { get; set; }
+    public User.Models.User User { get; set; }
 
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;

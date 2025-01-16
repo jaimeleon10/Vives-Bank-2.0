@@ -12,8 +12,10 @@ using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
 using StackExchange.Redis;
+using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Mapper;
 using Vives_Bank_Net.Rest.Cliente.Services;
+using Vives_Bank_Net.Rest.Database;
 using Vives_Bank_Net.Rest.User.Mapper;
 using Vives_Bank_Net.Rest.User.Service;
 using Vives_Bank_Net.Storage;
@@ -89,14 +91,19 @@ WebApplicationBuilder InitServices()
     
     TryConnectionDataBase();
     
+    // Services
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
     myBuilder.Services.AddSingleton<IStorageJson, StorageJson>();
     myBuilder.Services.AddSingleton<IFileStorageService, FileStorageService>();
-    myBuilder.Services.AddSingleton<IUserService, UserService>();
+    myBuilder.Services.AddScoped<IUserService, UserService>();
     myBuilder.Services.AddSingleton<UserMapper>();
-    myBuilder.Services.AddSingleton<IClienteService, ClienteService>();
+    myBuilder.Services.AddScoped<IClienteService, ClienteService>();
     myBuilder.Services.AddSingleton<ClienteMapper>();
 
+    // Base de datos en PostgreSQL
+    myBuilder.Services.AddDbContext<GeneralDbContext>(options =>
+        options.UseNpgsql(myBuilder.Configuration.GetConnectionString("PostgreSqlDatabase")));
+    
     // GraphQL
     myBuilder.Services.AddSingleton<MovimientoQuery>();
     myBuilder.Services.AddSingleton<MovimientoSchema>();
