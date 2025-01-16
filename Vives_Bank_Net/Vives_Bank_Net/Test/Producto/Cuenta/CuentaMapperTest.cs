@@ -2,7 +2,6 @@
 using Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Mappers;
 using Vives_Bank_Net.Utils.Generators;
-using Vives_Banks_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Test.Producto.Cuenta;
 

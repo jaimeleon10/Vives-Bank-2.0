@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Numerics;
 using Vives_Bank_Net.Rest.Producto.Base.Models;
-using Vives_Banks_Net.Rest.Cliente;
 
 namespace Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 
