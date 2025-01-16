@@ -1,4 +1,5 @@
 using StackExchange.Redis;
+using Vives_Bank_Net.Frankfurter.Services;
 using Vives_Bank_Net.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ string redisConnectionString = "localhost:6379,password=password123,abortConnect
 // Registrar los servicios
 builder.Services.AddSingleton(typeof(IStorageJson), typeof(StorageJson));
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+builder.Services.AddHttpClient<IDivisasService, DivisasService>();
 
 // Añadimos Redis al contenedor de dependencias con manejo de excepciones
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>

@@ -46,22 +46,79 @@ public class StorageProductosTest
             }
         };
 
-        //creamos el FileInfo
         var file = new FileInfo("productos.csv");
-
-        //lanzamos la exportación
         _storageProductos.ExportProductosFromCsv(file, productos);
 
-        //comprobamos que se ha creado el fichero
         Assert.That(file.Exists, Is.True);
-        
-        //comprobamos que el contenido del fichero es correcto
         var lines = File.ReadAllLines(file.FullName);
         Assert.That(lines[0], Is.EqualTo("id,guid,nombre,descripcion,tae,createdAt,updatedAt,isDeleted"));
         Assert.That(lines[1], Is.EqualTo("4,4d56e890-12f3-45g6-7890-1b2c34d56789,CaixaBank Star,Cuenta con ventajas para jóvenes,1,2025-01-15T12:00:00.0000000,2025-01-15T12:00:00.0000000,False"));
-        Assert.That(lines[2],
-            Is.EqualTo(
-                "5,5d67e890-12f3-45g6-7890-1b2c34d56789,CaixaBank Gold,Cuenta con ventajas para adultos,1.2,2025-01-15T12:00:00.0000000,2025-01-15T12:00:00.0000000,False"));
+        Assert.That(lines[2], Is.EqualTo("5,5d67e890-12f3-45g6-7890-1b2c34d56789,CaixaBank Gold,Cuenta con ventajas para adultos,1.2,2025-01-15T12:00:00.0000000,2025-01-15T12:00:00.0000000,False"));
     }
+    
+    [Test]
+    public void ImportarProductosDesdeCsv()
+    {
+        var csvContent = new[]
+        {
+            "id,guid,nombre,descripcion,tae,createdAt,updatedAt,isDeleted",
+            "4,4d56e890-12f3-45g6-7890-1b2c34d56789,CaixaBank Star,Cuenta con ventajas para jóvenes,1,2025-01-15T12:00:00.0000000,2025-01-15T12:00:00.0000000,False",
+            "5,5d67e890-12f3-45g6-7890-1b2c34d56789,CaixaBank Gold,Cuenta con ventajas para adultos,1.2,2025-01-15T12:00:00.0000000,2025-01-15T12:00:00.0000000,False"
+        };
 
+        var file = new FileInfo("productos_import.csv");
+        File.WriteAllLines(file.FullName, csvContent);
+
+        var productos = _storageProductos.ImportProductosFromCsv(file);
+
+        Assert.That(productos, Is.Not.Null);
+        Assert.That(productos.Count, Is.EqualTo(2));
+        Assert.That(productos[0].Id, Is.TypeOf<long>());
+        Assert.That(productos[1].Id, Is.TypeOf<long>());
+        Assert.That(productos[0].Nombre, Is.EqualTo("CaixaBank Star"));
+        Assert.That(productos[0].Nombre, Is.TypeOf<String>());
+        Assert.That(productos[0].Descripcion, Is.EqualTo("Cuenta con ventajas para jóvenes"));
+        Assert.That(productos[0].Descripcion, Is.TypeOf<String>());
+        Assert.That(productos[0].Tae, Is.EqualTo(1m));
+        Assert.That(productos[0].Tae, Is.TypeOf<double>());
+        Assert.That(productos[0].IsDeleted, Is.False);
+        Assert.That(productos[0].IsDeleted, Is.TypeOf<bool>());
+        Assert.That(productos[0].UpdatedAt, Is.TypeOf<DateTime>());
+        Assert.That(productos[0].CreatedAt, Is.TypeOf<DateTime>());
+        Assert.That(productos[1].Nombre, Is.EqualTo("CaixaBank Gold"));
+        Assert.That(productos[1].Nombre, Is.TypeOf<String>());
+        Assert.That(productos[1].Descripcion, Is.EqualTo("Cuenta con ventajas para adultos"));
+        Assert.That(productos[1].Descripcion, Is.TypeOf<String>());
+        Assert.That(productos[1].Tae, Is.EqualTo(1.2m));
+        Assert.That(productos[1].Tae, Is.TypeOf<double>());
+        Assert.That(productos[1].IsDeleted, Is.False);
+        Assert.That(productos[1].IsDeleted, Is.TypeOf<bool>());
+        Assert.That(productos[1].UpdatedAt, Is.TypeOf<DateTime>());
+        Assert.That(productos[1].CreatedAt, Is.TypeOf<DateTime>());
+    }
+    [Test]
+    public void ExportarProductos_ListaVacia()
+    {
+        var file = new FileInfo("productos_vacios.csv");
+        _storageProductos.ExportProductosFromCsv(file, new List<BaseModel>());
+
+        Assert.That(file.Exists, Is.True);
+
+        var lines = File.ReadAllLines(file.FullName);
+        Assert.That(lines.Length, Is.EqualTo(1));
+        Assert.That(lines[0], Is.EqualTo("id,guid,nombre,descripcion,tae,createdAt,updatedAt,isDeleted"));
+    }
+    
+    [Test]
+    public void ImportarProductosArchivoVacio()
+    {
+        var csvContent = new[] { "id,guid,nombre,descripcion,tae,createdAt,updatedAt,isDeleted" };
+        var file = new FileInfo("productos_vacios_import.csv");
+        File.WriteAllLines(file.FullName, csvContent);
+
+        var productos = _storageProductos.ImportProductosFromCsv(file);
+
+        Assert.That(productos, Is.Not.Null);
+        Assert.That(productos.Count, Is.EqualTo(0));
+    }
 }
