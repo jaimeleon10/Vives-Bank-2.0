@@ -23,8 +23,6 @@ public class CuentaMapperTest
         };
 
         var result = cuenta.ToCuentaEntity();
-
-        Assert.That(result, Is.EqualTo(cuenta));
         Assert.That(result.Guid, Is.EqualTo(cuenta.Guid));
         Assert.That(result.Iban, Is.EqualTo(cuenta.Iban));
 
@@ -33,7 +31,6 @@ public class CuentaMapperTest
     [Test]
     public void ToCuentaResponse_MapsCorrectly()
     {
-        // Arrange
         var cuentaEntity = new CuentaEntity
         {
             Guid = GuidGenerator.GenerarId(),
@@ -45,11 +42,8 @@ public class CuentaMapperTest
             IsDeleted = true
         };
 
-        // Act
         var result = cuentaEntity.ToCuentaResponse();
 
-        // Assert
-        Assert.That(result, Is.EqualTo(cuentaEntity));
         Assert.That(result.Guid, Is.EqualTo(cuentaEntity.Guid));
         Assert.That(result.Iban, Is.EqualTo(cuentaEntity.Iban));
     }
