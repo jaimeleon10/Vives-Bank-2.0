@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 using Vives_Banks_Net.Utils.Generators;
 
-namespace Vives_Banks_Net.Rest.User;
+namespace Vives_Bank_Net.Rest.User;
 
-public class User : IdentityUser
+public class User 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -16,11 +15,11 @@ public class User : IdentityUser
     
     [Required]
     [Column(TypeName = "nvarchar(100)")]
-    public override string UserName { get; set; }
+    public  string UserName { get; set; }
     
     [Required]
     [MinLength(5, ErrorMessage = "Password debe tener al menos 5 caracteres")]
-    public override string PasswordHash { get; set; }
+    public  string PasswordHash { get; set; }
     
     [Required]
     public Role Role { get; set; }
