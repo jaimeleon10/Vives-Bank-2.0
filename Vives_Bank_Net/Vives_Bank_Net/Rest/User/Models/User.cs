@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Vives_Banks_Net.Utils.Generators;
+using Microsoft.AspNetCore.Identity;
+using Vives_Bank_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.User;
 
