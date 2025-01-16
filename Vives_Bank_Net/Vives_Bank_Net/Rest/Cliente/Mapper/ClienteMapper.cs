@@ -3,7 +3,7 @@ using NSubstitute.ClearExtensions;
 using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Dtos;
 using Vives_Bank_Net.Rest.Cliente.Models;
-using Vives_Banks_Net.Utils.Generators;
+using Vives_Bank_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.Cliente.Mapper;
 

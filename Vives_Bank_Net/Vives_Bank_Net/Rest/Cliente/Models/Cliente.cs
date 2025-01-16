@@ -45,7 +45,7 @@ public class Cliente
     [JsonPropertyName("fotoDni")]
     public string FotoDni { get; set; }
 
-    public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
+    public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
 
     [JsonPropertyName("usuario")]
     public User.User User { get; set; }

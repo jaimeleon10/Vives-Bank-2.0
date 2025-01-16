@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Vives_Bank_Net.Rest.Cliente.Models;
-using Vives_Banks_Net.Rest.User;
+using Vives_Bank_Net.Rest.User;
 
 namespace Vives_Bank_Net.Rest.Cliente.Database;
 
@@ -41,7 +41,6 @@ public class ClienteEntity
 
 
    // public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
-
    
     //[Column("user_id")]
     // o al reves [ForeignKey("User")
