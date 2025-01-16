@@ -12,6 +12,7 @@ using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
 using StackExchange.Redis;
+using Vives_Bank_Net.Frankfurter.Services;
 using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Mapper;
 using Vives_Bank_Net.Rest.Cliente.Services;
@@ -99,6 +100,11 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddSingleton<UserMapper>();
     myBuilder.Services.AddScoped<IClienteService, ClienteService>();
     myBuilder.Services.AddSingleton<ClienteMapper>();
+    
+    // Api FrankFurter de cambio de divisas
+    myBuilder.Services.AddHttpClient();
+    myBuilder.Services.AddScoped<IDivisasService, DivisasService>();
+
 
     // Base de datos en PostgreSQL
     myBuilder.Services.AddDbContext<GeneralDbContext>(options =>
