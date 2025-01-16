@@ -8,31 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="64e7e91d-5056-4972-9ea1-784287332d82" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/aws.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/indexLayout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/material_theme_project_new.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/aws.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/material_theme_project_new.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/indexLayout.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/indexLayout.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.AssemblyInfoInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.GeneratedMSBuildEditorConfig.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.GeneratedMSBuildEditorConfig.editorconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.assets.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.csproj.AssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Debug/net8.0/Vives_Bank_Net.csproj.AssemblyReference.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.dgspec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.props" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/Vives_Bank_Net.csproj.nuget.g.targets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.assets.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.nuget.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/project.packagespec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.model.nuget.info" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/obj/rider.project.restore.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Services/BaseService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Services/BaseService.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,16 +41,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;.NET Launch Settings Profile.Vives_Bank_Net: https.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;com.codeium.enabled&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Launch Settings Profile.Vives_Bank_Net: https.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.codeium.enabled": "true",
+    "git-widget-placeholder": "develop",
+    "ignore.virus.scanning.warn.message": "true",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected=".NET Launch Settings Profile.Vives_Bank_Net: http">
     <configuration name="Vives_Bank_Net: IIS Express" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Vives_Bank_Net/Vives_Bank_Net.csproj" />
@@ -147,6 +127,7 @@
       <option name="presentableId" value="Default" />
       <updated>1736889637604</updated>
       <workItem from="1736889656321" duration="241000" />
+      <workItem from="1737042049955" duration="296000" />
     </task>
     <servers />
   </component>
