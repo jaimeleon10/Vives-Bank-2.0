@@ -1,0 +1,16 @@
+﻿version: '3.8'
+services:
+  redis:
+    image: 'bitnami/redis:latest'
+    container_name: redis_cache
+    ports:
+      - "6379:6379"  
+    environment:
+      - REDIS_PASSWORD=password123  
+    volumes:
+      - redis_data:/bitnami/redis  
+    restart: unless-stopped  
+
+volumes:
+    redis_data:
+      driver: local
