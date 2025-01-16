@@ -11,10 +11,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="64e7e91d-5056-4972-9ea1-784287332d82" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/indexLayout.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/indexLayout.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Vives_Bank_Net/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Cliente/Models/Cliente.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Cliente/Models/Cliente.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Cuenta/Models/Cuenta.cs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Cuenta/Mappers/CuentaMapper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Cuenta/Mappers/CuentaMapper.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Services/BaseService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Vives_Bank_Net/Rest/Producto/Base/Services/BaseService.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,6 +58,8 @@
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
+    "git-widget-placeholder": "develop",
+    "ignore.virus.scanning.warn.message": "true",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
   }
@@ -135,6 +139,7 @@
       <updated>1736889637604</updated>
       <workItem from="1736889656321" duration="241000" />
       <workItem from="1736967236720" duration="1019000" />
+      <workItem from="1737042049955" duration="296000" />
     </task>
     <servers />
   </component>

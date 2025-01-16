@@ -38,15 +38,8 @@ public class StorageFileTest
         var mockFile = new Mock<IFormFile>();
         var fileName = "test.png";
         var content = "Test content";
-        var contentBytes = System.Text.Encoding.UTF8.GetBytes(content);
-        var memoryStream = new MemoryStream(contentBytes);
 
         mockFile.Setup(f => f.FileName).Returns(fileName);
-        mockFile.Setup(f => f.Length).Returns(contentBytes.Length);
-        mockFile.Setup(f => f.OpenReadStream()).Returns(memoryStream);
-        mockFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), default))
-            .Callback<Stream, CancellationToken>((stream, _) => memoryStream.CopyTo(stream))
-            .Returns(Task.CompletedTask);
 
         var result = await _storageService.SaveFileAsync(mockFile.Object);
 
@@ -60,7 +53,6 @@ public class StorageFileTest
     public void SaveFileAsyncFicheroGrande()
     {
         var mockFile = new Mock<IFormFile>();
-        mockFile.Setup(f => f.FileName).Returns("largefile.png");
         mockFile.Setup(f => f.Length).Returns(_storageConfig.Object.Value.MaxFileSize + 1);
 
         var exception = Assert.ThrowsAsync<FileStorageException>(() => _storageService.SaveFileAsync(mockFile.Object));
@@ -72,7 +64,6 @@ public class StorageFileTest
     {
         var mockFile = new Mock<IFormFile>();
         mockFile.Setup(f => f.FileName).Returns("file.exe");
-        mockFile.Setup(f => f.Length).Returns(1024);
 
         var exception = Assert.ThrowsAsync<FileStorageException>(() => _storageService.SaveFileAsync(mockFile.Object));
         Assert.That(exception.Message, Is.EqualTo("Tipo de fichero no permitido."));
@@ -100,7 +91,7 @@ public class StorageFileTest
     [Test]
     public void GetFileAsyncFileNotFound()
     {
-        var fileName = "nonexistent.txt";
+        var fileName = "nonexistent.png";
 
         var exception = Assert.ThrowsAsync<FileStorageNotFoundException>(() => _storageService.GetFileAsync(fileName));
 
@@ -110,10 +101,10 @@ public class StorageFileTest
     [Test]
     public async Task DeleteFileAsync()
     {
-        var fileName = "existentfile.txt";
+        var fileName = "existentfile.png";
         var filePath = Path.Combine(_storageConfig.Object.Value.UploadDirectory, fileName);
 
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "Uploads"));
+        Directory.CreateDirectory(_storageConfig.Object.Value.UploadDirectory);
         File.WriteAllText(filePath, "Test content");
         
         var result = await _storageService.DeleteFileAsync(fileName);
@@ -130,15 +121,5 @@ public class StorageFileTest
         
         var exception = Assert.ThrowsAsync<FileStorageNotFoundException>(() => _storageService.DeleteFileAsync(fileName));
         Assert.That(exception.Message, Is.EqualTo($"File not found: {fileName}") );
-    }
-    
-    [Test]
-    public async Task DeleteFileAsyncFileStorageException()
-    {
-        var fileName = "nonexistentfile.txt";
-
-        var exception = Assert.ThrowsAsync<FileStorageNotFoundException>(() => _storageService.DeleteFileAsync(fileName));
-
-        Assert.That(exception.Message, Is.EqualTo($"File not found: {fileName}"));
     }
 }
