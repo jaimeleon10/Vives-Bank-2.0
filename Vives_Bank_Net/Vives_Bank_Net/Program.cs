@@ -10,6 +10,8 @@ using Serilog.Core;
 using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
+using StackExchange.Redis;
+using Vives_Bank_Net.Storage;
 
 var environment = InitLocalEnvironment();
 
@@ -33,6 +35,9 @@ if (app.Environment.IsDevelopment())
 
 // Habilita redirección HTTPS si está habilitado
 app.UseHttpsRedirection();
+
+// Añadir para la autorización
+app.UseAuthorization();
 
 // Añadir esto si utilizas MVC para definir rutas, decimos que activamos el uso de rutas
 app.UseRouting();
@@ -75,7 +80,9 @@ WebApplicationBuilder InitServices()
     TryConnectionDataBase();
     
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
-    
+    myBuilder.Services.AddSingleton<IStorageJson, StorageJson>();
+    myBuilder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+
     // GraphQL
     myBuilder.Services.AddSingleton<MovimientoQuery>();
     myBuilder.Services.AddSingleton<MovimientoSchema>();
@@ -108,6 +115,24 @@ WebApplicationBuilder InitServices()
             }
         });
     });
+
+    // redis 
+    string redisConnectionString = "localhost:6379,password=password123,abortConnect=false";
+
+    // Añadimos Redis al contenedor de dependencias con manejo de excepciones
+    myBuilder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    {
+        try
+        {
+            return ConnectionMultiplexer.Connect(redisConnectionString);
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "🔴 Error connecting to Redis");
+            throw new InvalidOperationException("Failed to connect to Redis", ex);
+        }
+    });
+
     return myBuilder;
 }
 

@@ -175,10 +175,10 @@ public class CuentaService : ICuentaService
         
     }
 
-    private Cuenta crearCuenta(long idProducto, long idCliente)
+    private Models.Cuenta crearCuenta(long idProducto, long idCliente)
     {
      
-        return new Cuenta
+        return new Models.Cuenta
         {
             ProductoId = idProducto,
             ClienteId = idCliente

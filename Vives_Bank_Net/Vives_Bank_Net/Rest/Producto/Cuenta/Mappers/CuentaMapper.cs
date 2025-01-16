@@ -6,7 +6,7 @@ namespace Vives_Bank_Net.Rest.Producto.Cuenta.Mappers;
 
 public static class CuentaMapper
 {
-    public static CuentaEntity ToCuentaEntity(this Cuenta cuenta)
+    public static CuentaEntity ToCuentaEntity(this Models.Cuenta cuenta)
     {
         return new CuentaEntity
         {
