@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Text;
 using GraphiQl;
 using GraphQL;
@@ -11,10 +12,14 @@ using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
 using StackExchange.Redis;
+using Vives_Bank_Net.Rest.Cliente.Mapper;
+using Vives_Bank_Net.Rest.Cliente.Services;
+using Vives_Bank_Net.Rest.User.Mapper;
 using Vives_Bank_Net.Rest.User.Service;
 using Vives_Bank_Net.Storage;
 using Vives_Bank_Net.Storage.Files.Service;
 using Vives_Bank_Net.Storage.Json.Service;
+using Vives_Bank_Net.Utils.Exceptions;
 
 var environment = InitLocalEnvironment();
 
@@ -44,6 +49,8 @@ app.UseAuthorization();
 
 // Añadir esto si utilizas MVC para definir rutas, decimos que activamos el uso de rutas
 app.UseRouting();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
@@ -85,8 +92,10 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
     myBuilder.Services.AddSingleton<IStorageJson, StorageJson>();
     myBuilder.Services.AddSingleton<IFileStorageService, FileStorageService>();
-    myBuilder.Services.AddScoped<IUserService, UserService>();
-
+    myBuilder.Services.AddSingleton<IUserService, UserService>();
+    myBuilder.Services.AddSingleton<UserMapper>();
+    myBuilder.Services.AddSingleton<IClienteService, ClienteService>();
+    myBuilder.Services.AddSingleton<ClienteMapper>();
 
     // GraphQL
     myBuilder.Services.AddSingleton<MovimientoQuery>();
