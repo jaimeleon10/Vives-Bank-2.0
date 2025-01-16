@@ -2,10 +2,6 @@
 
 public sealed class JsonNotFoundException : JsonStorageException
 {
-    public JsonNotFoundException(string message) : base(message)
-    {
-    }
-
     public JsonNotFoundException(string message, Exception innerException) : base(message, innerException)
     {
     }
