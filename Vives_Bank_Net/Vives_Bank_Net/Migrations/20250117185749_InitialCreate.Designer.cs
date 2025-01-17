@@ -13,7 +13,7 @@ using Vives_Bank_Net.Rest.Database;
 namespace Vives_Bank_Net.Migrations
 {
     [DbContext(typeof(GeneralDbContext))]
-    [Migration("20250117175949_InitialCreate")]
+    [Migration("20250117185749_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
