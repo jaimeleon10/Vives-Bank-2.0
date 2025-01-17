@@ -26,10 +26,10 @@ namespace Vives_Bank_Net.Rest.User.Database
         public string Role { get; set; } = null!;
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [Required]
         public bool IsDeleted { get; set; } = false;

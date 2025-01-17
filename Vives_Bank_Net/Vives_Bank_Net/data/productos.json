@@ -1,0 +1,52 @@
+﻿[
+    {
+        "id": 1,
+        "guid": "1d23a567-89b0-12d3-4567-8e9f01a23456",
+        "nombre": "Santander 123",
+        "descripcion": "Cuenta corriente con beneficios para clientes frecuentes",
+        "tae": 1.2,
+        "createdAt": "2025-01-15T12:00:00",
+        "updatedAt": "2025-01-15T12:00:00",
+        "isDeleted": false
+    },
+    {
+        "id": 2,
+        "guid": "2b34c678-90d1-23e4-5678-9f0a12b34567",
+        "nombre": "BBVA Online",
+        "descripcion": "Cuenta digital sin comisiones",
+        "tae": 1.5,
+        "createdAt": "2025-01-15T12:00:00",
+        "updatedAt": "2025-01-15T12:00:00",
+        "isDeleted": false
+    },
+    {
+        "id": 3,
+        "guid": "3c45d789-01e2-34f5-6789-0a1b23c45678",
+        "nombre": "ING Naranja",
+        "descripcion": "Cuenta sin comisiones ni condiciones",
+        "tae": 0.8,
+        "createdAt": "2025-01-15T12:00:00",
+        "updatedAt": "2025-01-15T12:00:00",
+        "isDeleted": false
+    },
+    {
+        "id": 4,
+        "guid": "4d56e890-12f3-45g6-7890-1b2c34d56789",
+        "nombre": "CaixaBank Star",
+        "descripcion": "Cuenta con ventajas para jóvenes",
+        "tae": 1.0,
+        "createdAt": "2025-01-15T12:00:00",
+        "updatedAt": "2025-01-15T12:00:00",
+        "isDeleted": false
+    },
+    {
+        "id": 5,
+        "guid": "5e67f901-23g4-56h7-8901-2c3d45e67890",
+        "nombre": "Openbank Everyday",
+        "descripcion": "Cuenta flexible y fácil de gestionar",
+        "tae": 1.3,
+        "createdAt": "2025-01-15T12:00:00",
+        "updatedAt": "2025-01-15T12:00:00",
+        "isDeleted": false
+    }
+]

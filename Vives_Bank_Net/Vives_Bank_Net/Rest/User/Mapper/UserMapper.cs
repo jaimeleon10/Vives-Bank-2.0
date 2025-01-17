@@ -1,5 +1,6 @@
 ﻿using Vives_Bank_Net.Rest.User.Database;
-using Vives_Bank_Net.Rest.User.Dtos;
+using Vives_Bank_Net.Rest.User.Dto;
+using Vives_Bank_Net.Rest.User.Models;
 
 namespace Vives_Bank_Net.Rest.User.Mapper
 {
@@ -13,15 +14,15 @@ namespace Vives_Bank_Net.Rest.User.Mapper
                 PasswordHash = userDto.PasswordHash,
                 Role = Enum.GetName(typeof(Role), userDto.Role),
                 IsDeleted = userDto.IsDeleted,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
         }
 
 
-        public static User ToModelFromEntity(UserEntity userEntity)
+        public static Models.User ToModelFromEntity(UserEntity userEntity)
         {
-            return new User
+            return new Models.User
             {
                 Id = userEntity.Id,
                 Guid = userEntity.Guid,

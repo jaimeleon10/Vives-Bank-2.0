@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Vives_Bank_Net.Rest.Database;
 using Vives_Bank_Net.Rest.Producto.Tarjeta.Database;
 using Vives_Bank_Net.Rest.Producto.Tarjeta.Dto;
 using Vives_Bank_Net.Rest.Producto.Tarjeta.Mappers;
@@ -12,27 +13,24 @@ namespace Vives_Bank_Net.Rest.Producto.Tarjeta.Services;
 public class TarjetaService : ITarjetaService
 {
 
-    private const string CacheKeyPrefix = "Tarjeta_";
-    private readonly TarjetaDbContext _context;
+    private readonly GeneralDbContext _context;
     private readonly ILogger<TarjetaService> _logger;
-    private readonly IMemoryCache _cache;
     private readonly TarjetaGenerator _tarjetaGenerator;
     private readonly CvvGenerator _cvvGenerator;
     private readonly ExpDateGenerator _expDateGenerator;
     private readonly CardLimitValidators _cardLimitValidators;
     
 
-    public TarjetaService(TarjetaDbContext context, ILogger<TarjetaService> logger, IMemoryCache cache)
+    public TarjetaService(GeneralDbContext context, ILogger<TarjetaService> logger)
     {
         _context = context;
         _logger = logger;
-        _cache = cache;
         _tarjetaGenerator = new TarjetaGenerator();
         _cvvGenerator = new CvvGenerator();
         _expDateGenerator = new ExpDateGenerator();
         _cardLimitValidators = new CardLimitValidators();
     }
-    public async Task<List<TarjetaModel>> GetAllAsync()
+    public async Task<List<Models.Tarjeta>> GetAllAsync()
     {
        _logger.LogDebug("Obteniendo todas las tarjetas");
        List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
@@ -42,13 +40,13 @@ public class TarjetaService : ITarjetaService
     public async Task<TarjetaResponseDto> GetByGuidAsync(string id)
     {
         _logger.LogDebug($"Obteniendo tarjeta con id: {id}");
-        var cacheKey = CacheKeyPrefix + id;
-
-        if (_cache.TryGetValue(cacheKey, out TarjetaModel? cachedTarjeta))
+        
+        /*var cacheKey = CacheKeyPrefix + id;
+        if (_cache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
         {
             _logger.LogDebug("Tarjeta obtenida de cache");
             return cachedTarjeta.ToResponseFromModel();
-        }
+        }*/
         
         _logger.LogDebug("Buscando tarjeta en la base de datos");
         var tarjeta = await _context.Tarjetas.FindAsync(id);
@@ -59,7 +57,9 @@ public class TarjetaService : ITarjetaService
         }
         
         _logger.LogDebug("Tarjeta obtenida de la base de datos");
+        /*
         _cache.Set(cacheKey, tarjeta.ToModelFromEntity());
+        */
         return tarjeta.ToModelFromEntity().ToResponseFromModel();
     }
 
@@ -84,7 +84,7 @@ public class TarjetaService : ITarjetaService
         _context.Tarjetas.Add(tarjetaEntity);
         await _context.SaveChangesAsync();
         
-        _logger.LogDebug("Tarjeta creada correctamente con id: {tarjetaEntity.Id}");
+        _logger.LogDebug($"Tarjeta creada correctamente con id: {tarjetaEntity.Id}");
 
         return tarjetaEntity.ToResponseFromEntity();
     }
@@ -115,7 +115,7 @@ public class TarjetaService : ITarjetaService
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();
 
-        _logger.LogDebug("Tarjeta actualizada correctamente con id: {id}");
+        _logger.LogDebug($"Tarjeta actualizada correctamente con id: {id}");
         return tarjeta.ToResponseFromEntity();
     }
 
@@ -136,7 +136,7 @@ public class TarjetaService : ITarjetaService
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();
 
-        _logger.LogDebug("Tarjeta eliminada correctamente con id: {id}");
+        _logger.LogDebug($"Tarjeta eliminada correctamente con id: {id}");
         return tarjeta.ToResponseFromEntity();
     }
 }

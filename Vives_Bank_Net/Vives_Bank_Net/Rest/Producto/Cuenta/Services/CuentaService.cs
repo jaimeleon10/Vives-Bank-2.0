@@ -1,5 +1,8 @@
 ﻿using System.Numerics;
 using Microsoft.EntityFrameworkCore;
+using Vives_Bank_Net.Rest.Database;
+using Vives_Bank_Net.Rest.Producto.Base.Exceptions;
+using Vives_Bank_Net.Rest.Producto.Base.Services;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Database;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Exceptions;
@@ -11,13 +14,15 @@ namespace Vives_Bank_Net.Rest.Producto.Cuenta.Services;
 public class CuentaService : ICuentaService
 {
     
-    private readonly CuentaDbContext _context;
+    private readonly GeneralDbContext _context;
+    private readonly IBaseService _baseService;
     private readonly ILogger<CuentaService> _logger;
 
-    public CuentaService(CuentaDbContext context, ILogger<CuentaService> logger)
+    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService)
     {
         _context = context;
         _logger = logger;
+        _baseService = baseService;
     }
 
     public async Task<PageResponse<CuentaResponse>> GetAll(
@@ -43,14 +48,13 @@ public class CuentaService : ICuentaService
             _logger.LogInformation($"Filtrando por Saldo Minimo: {saldoMax}");
             query = query.Where(c => c.Saldo >= saldoMin.Value);
         }
-        //TODO
-        /*
+        
         if (!string.IsNullOrEmpty(tipoCuenta))
         {
             _logger.LogInformation($"Filtrando por Tipo de cuenta: {tipoCuenta}");
             query = query.Where(c => c.Producto.Nombre.ToString().Contains(tipoCuenta));
         }
-        */
+        
         if (!string.IsNullOrEmpty(pageRequest.SortBy))
         {
             query = pageRequest.Direction.ToUpper() == "ASC"
@@ -154,13 +158,19 @@ public class CuentaService : ICuentaService
 
     public async Task<CuentaResponse> save(string guid,CuentaRequest cuentaRequest)
     {
-        
         _logger.LogInformation($"Creando cuenta nueva");
+        var tipoCuenta = _baseService.GetByTipoAsync(cuentaRequest.TipoCuenta);
+        
+        if (tipoCuenta == null)
+        {
+            _logger.LogError($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
+            throw new BaseDontExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
+            
+        }
         //TODO
-        //Comprobar que el tipo de cuenta existe y pasarselo
         //buscar el cliente y pasarle el id
         //Pasarle el clienteid
-        var cuenta =crearCuenta(0,0);
+        var cuenta =crearCuenta(tipoCuenta.Id,0);
         
         var cuentaEntity = cuenta.ToCuentaEntity();
 
