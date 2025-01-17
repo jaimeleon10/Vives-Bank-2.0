@@ -43,8 +43,8 @@ public static class BaseMappers
             Nombre = dto.Nombre,
             Descripcion = dto.Descripcion,
             Tae = dto.Tae,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
     }
