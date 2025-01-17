@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Controllers;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Services;
-using VivesBankProject.Utils.Pagination;
+using Vives_Bank_Net.Utils.Pagination;
 
 namespace Vives_Bank_Net.Test.Rest.Producto.Cuenta.Controller;
 
@@ -26,7 +26,7 @@ public class CuentaAdminControllerTests
     }
     
     [Test]
-    public async Task GetAll_ReturnsOkResult_WithValidData()
+    public async Task GetAll()
     {
         var pageResponse = new PageResponse<CuentaResponse>
         {
@@ -55,7 +55,7 @@ public class CuentaAdminControllerTests
     }
 
     [Test]
-    public async Task GetAllByClientGuid_ReturnsOkResult_WithValidData()
+    public async Task GetAllByClientGuid()
     {
         var cuenta = new CuentaResponse
         {
@@ -71,14 +71,17 @@ public class CuentaAdminControllerTests
             .ReturnsAsync(cuentas);
 
         var result = await _cuentaController.GetAllByClientGuid("123456789012");
-
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        Assert.That(result.Value, Is.TypeOf<List<CuentaResponse>>());
-        Assert.That(result, Is.EqualTo(cuentas));
+
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.TypeOf<List<CuentaResponse>>());
+
+        var cuentasResult = okResult.Value as List<CuentaResponse>;
+        Assert.That(cuentasResult, Is.EqualTo(cuentas));
     }
 
     [Test]
-    public async Task GetByGuid_ReturnsOkResult_WithValidData()
+    public async Task GetByGuid()
     {
         var cuenta = new CuentaResponse
         {
@@ -93,14 +96,17 @@ public class CuentaAdminControllerTests
             .ReturnsAsync(cuenta);
 
         var result = await _cuentaController.GetByGuid("123456789012");
-
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        Assert.That(result.Value, Is.TypeOf<CuentaResponse>());
-        Assert.That(result, Is.EqualTo(cuenta));
+        
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.TypeOf<CuentaResponse>());
+        
+        var cuentaResult = okResult.Value as CuentaResponse;
+        Assert.That(cuentaResult, Is.EqualTo(cuenta));
     }
 
     [Test]
-    public async Task GetByIban_ReturnsOkResult_WithValidData()
+    public async Task GetByIban()
     {
         var cuenta = new CuentaResponse
         {
@@ -115,15 +121,18 @@ public class CuentaAdminControllerTests
             .ReturnsAsync(cuenta);
 
         var result = await _cuentaController.GetByIban("ES12345678901234567890123456");
-
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        Assert.That(result.Value, Is.TypeOf<CuentaResponse>());
-        Assert.That(result, Is.EqualTo(cuenta));
+        
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.TypeOf<CuentaResponse>());
+        
+        var cuentaResult = okResult.Value as CuentaResponse;
+        Assert.That(cuentaResult, Is.EqualTo(cuenta));
     }
 
     /*
     [Test]
-    public async Task GetAll_Returns500_OnException()
+    public async Task GetAll500()
     {
         _cuentaService.Setup(service => service.GetAll(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ThrowsAsync(new Exception("Test Exception"));
