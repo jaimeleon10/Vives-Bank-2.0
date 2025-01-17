@@ -5,7 +5,7 @@ public class ExpDateGenerator
     public string GenerarExpDate()
     {
         // Fecha actual
-        DateTime hoy = DateTime.Now;
+        DateTime hoy = DateTime.UtcNow;
 
         // Rango de caducidad: entre 1 y 5 años
         Random random = new Random();

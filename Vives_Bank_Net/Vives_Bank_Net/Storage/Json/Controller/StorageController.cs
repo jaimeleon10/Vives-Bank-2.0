@@ -32,10 +32,10 @@ public class StorageController : ControllerBase
                     Id = 1,
                     Guid = Guid.NewGuid().ToString(),
                     UserName = "Usuario1",
-                    PasswordHash = "Password123",
+                    Password = "Password123",
                     Role = Role.ADMIN,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false
                 },
                 new User
@@ -43,10 +43,10 @@ public class StorageController : ControllerBase
                     Id = 2,
                     Guid = Guid.NewGuid().ToString(),
                     UserName = "Usuario2",
-                    PasswordHash = "Password456",
+                    Password = "Password456",
                     Role = Role.USER,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false
                 }
             };
@@ -114,10 +114,10 @@ public class StorageController : ControllerBase
                         Id = 1,
                         Guid = Guid.NewGuid().ToString(),
                         UserName = "Usuario1",
-                        PasswordHash = "Password123",
+                        Password = "Password123",
                         Role = Role.ADMIN,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
                         IsDeleted = false
                     }
                 },
@@ -142,10 +142,10 @@ public class StorageController : ControllerBase
                         Id = 1,
                         Guid = Guid.NewGuid().ToString(),
                         UserName = "Usuario1",
-                        PasswordHash = "Password123",
+                        Password = "Password123",
                         Role = Role.ADMIN,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
                         IsDeleted = false
                     }
                 }

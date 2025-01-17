@@ -5,6 +5,7 @@ using Vives_Bank_Net.Rest.User.Database;
 using Vives_Bank_Net.Rest.User.Dto;
 using Vives_Bank_Net.Rest.User.Exceptions;
 using Vives_Bank_Net.Rest.User.Mapper;
+using Vives_Bank_Net.Rest.User.Models;
 
 namespace Vives_Bank_Net.Rest.User.Service
 {
@@ -13,27 +14,27 @@ namespace Vives_Bank_Net.Rest.User.Service
         private const string CacheKeyPrefix = "User_";
         private readonly GeneralDbContext _context;
         private readonly ILogger<UserService> _logger;
-        private readonly UserMapper _userMapper;
         
-        public UserService(GeneralDbContext context, ILogger<UserService> logger, UserMapper userMapper)
+        public UserService(GeneralDbContext context, ILogger<UserService> logger)
         {
             _context = context;
             _logger = logger;
-            _userMapper = userMapper;
         }
         
-        public async Task<List<Models.User>> GetAllAsync()
+        public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
             _logger.LogInformation("Obteniendo todos los usuarios");
             try
             {
-                var userEntities = await _context.Usuarios.ToListAsync();
-                if (userEntities == null || !userEntities.Any())
+                var userEntityList = await _context.Usuarios.ToListAsync();
+                if (userEntityList == null || userEntityList.Count == 0)
                 {
                     throw new UserNotFoundException("No se han encontrado usuarios");
                 }
                 _logger.LogInformation("Usuarios obtenidos con éxito");
-                return userEntities.Select(UserMapper.ToModelFromEntity).ToList();
+                var userModelList = UserMapper.ToModelListFromEntityList(userEntityList);
+
+                return UserMapper.ToResponseListFromModelList(userModelList);
             }
             catch (UserNotFoundException e)
             {
@@ -47,10 +48,10 @@ namespace Vives_Bank_Net.Rest.User.Service
             }
         }
 
-        public async Task<Models.User?> GetByIdAsync(string id)
+        public async Task<UserResponse?> GetByGuidAsync(string guid)
         {
-            _logger.LogInformation($"Buscando Usuario con id: {id}");
-            var cacheKey = CacheKeyPrefix + id;
+            _logger.LogInformation($"Buscando Usuario con guid: {guid}");
+            var cacheKey = CacheKeyPrefix + guid;
 
             /*if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
             {
@@ -58,26 +59,21 @@ namespace Vives_Bank_Net.Rest.User.Service
                 return cachedUser;
             }*/
 
-            if (!long.TryParse(id, out long userId))
-            {
-                _logger.LogWarning($"Id con formato inválido: {id}");
-                return null;
-            }
-
-            var userEntity = await _context.Usuarios.FindAsync(userId);
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid.ToLower() == guid.ToLower());
             if (userEntity != null)
             {
                 /*cachedUser = UserMapper.ToModelFromEntity(userEntity);
                 _memoryCache.Set(cacheKey, cachedUser, TimeSpan.FromMinutes(30));
                 return cachedUser;*/
                 
-                return UserMapper.ToModelFromEntity(userEntity);
+                var userModel = UserMapper.ToModelFromEntity(userEntity);
+                return UserMapper.ToResponseFromModel(userModel);
             }
 
             return null;
         }
 
-        public async Task<Models.User?> GetByUsernameAsync(string username)
+        public async Task<UserResponse?> GetByUsernameAsync(string username)
         {
             _logger.LogInformation($"Buscando Usuario con username: {username}");
             var cacheKey = CacheKeyPrefix + username;
@@ -95,23 +91,25 @@ namespace Vives_Bank_Net.Rest.User.Service
                 _memoryCache.Set(cacheKey, cachedUser, TimeSpan.FromMinutes(30));
                 return cachedUser;*/
                 
-                return UserMapper.ToModelFromEntity(userEntity);
+                var userModel = UserMapper.ToModelFromEntity(userEntity);
+                return UserMapper.ToResponseFromModel(userModel);
             }
 
             return null;
         }
 
-        public async Task<UserResponse> CreateAsync(UserEntity userEntity)
+        public async Task<UserResponse> CreateAsync(UserRequest userRequest)
         {
             _logger.LogInformation("Creando Usuario");
 
-            if (await _context.Usuarios.AnyAsync(u => u.UserName.ToLower() == userEntity.UserName.ToLower()))
+            if (await _context.Usuarios.AnyAsync(u => u.UserName.ToLower() == userRequest.Username.ToLower()))
             {
-                _logger.LogWarning($"Ya existe un Usuario con el nombre: {userEntity.UserName}");
-                throw new UserExistByUsername($"Ya existe un Usuario con el nombre: {userEntity.UserName}");
+                _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequest.Username}");
+                throw new UserExistByUsername($"Ya existe un Usuario con el nombre: {userRequest.Username}");
             }
 
-            _context.Usuarios.Add(userEntity);
+            var userModelRequest = UserMapper.ToModelFromRequest(userRequest);
+            _context.Usuarios.Add(UserMapper.ToEntityFromModel(userModelRequest));
             await _context.SaveChangesAsync();
 
             /*
@@ -120,38 +118,34 @@ namespace Vives_Bank_Net.Rest.User.Service
             */
 
             _logger.LogInformation("Usuario creado con éxito");
-            return UserMapper.ToUserResponseFromEntity(userEntity);
+            return UserMapper.ToResponseFromModel(userModelRequest);
         }
 
 
-        public async Task<UserResponse?> UpdateAsync(string id, UserRequestDto userRequest)
+        public async Task<UserResponse?> UpdateAsync(string guid, UserRequest userRequest)
         {
-            _logger.LogInformation($"Actualizando Usuario con id: {id}");
-            if (!long.TryParse(id, out var userId))
+            _logger.LogInformation($"Actualizando Usuario con guid: {guid}");
+            
+            var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid.ToLower() == guid.ToLower());
+            if (userEntityExistente == null)
             {
-                _logger.LogWarning($"Id con formato inválido: {id}");
+                _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
                 return null;
             }
 
-            var userExistente = await _context.Usuarios.FindAsync(userId);
-            if (userExistente == null)
-            {
-                _logger.LogWarning($"Usuario no encontrado con id: {id}");
-                return null;
-            }
-
-            if (userRequest.Username != userExistente.UserName && await _context.Usuarios.AnyAsync(u => u.UserName.ToLower() == userRequest.Username.ToLower()))
+            if (userRequest.Username != userEntityExistente.UserName && await _context.Usuarios.AnyAsync(u => u.UserName.ToLower() == userRequest.Username.ToLower()))
             {
                 _logger.LogWarning($"Ya existe un Usuario con el nombre: {userRequest.Username}");
                 throw new UserExistByUsername($"Ya existe un Usuario con el nombre: {userRequest.Username}");
             }
 
-            userExistente.UserName = userRequest.Username;
-            userExistente.PasswordHash = userRequest.PasswordHash;
-            userExistente.UpdatedAt = DateTime.Now;
-            userExistente.IsDeleted = userRequest.IsDeleted;
+            userEntityExistente.UserName = userRequest.Username;
+            userEntityExistente.Password = userRequest.Password;
+            userEntityExistente.Role = Enum.Parse<Role>(userRequest.Role, true);
+            userEntityExistente.UpdatedAt = DateTime.UtcNow;
+            userEntityExistente.IsDeleted = userRequest.IsDeleted;
 
-            _context.Usuarios.Update(userExistente);
+            _context.Usuarios.Update(userEntityExistente);
             await _context.SaveChangesAsync();
             
             /*
@@ -159,28 +153,24 @@ namespace Vives_Bank_Net.Rest.User.Service
             _memoryCache.Remove(cacheKey);
             */
             
-            _logger.LogInformation($"Usuario actualizado con id: {id}");
-            return UserMapper.ToUserResponseFromEntity(userExistente);
+            _logger.LogInformation($"Usuario actualizado con guid: {guid}");
+            var userModel = UserMapper.ToModelFromEntity(userEntityExistente);
+            return UserMapper.ToResponseFromModel(userModel);
         }
 
-        public async Task<UserResponse?> DeleteByIdAsync(string id)
+        public async Task<UserResponse?> DeleteByIdAsync(string guid)
         {
-            _logger.LogInformation($"Borrando Usuario con id: {id}");
-            if (!long.TryParse(id, out var userId))
-            {
-                _logger.LogWarning($"Id con formato inválido: {id}");
-                return null;
-            }
-
-            var userEntity = await _context.Usuarios.FindAsync(userId);
+            _logger.LogInformation($"Borrando Usuario con guid: {guid}");
+            
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid.ToLower() == guid.ToLower());
             if (userEntity == null)
             {
-                _logger.LogWarning($"Usuario no encontrado con id: {id}");
+                _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
                 return null;
             }
 
             userEntity.IsDeleted = true;
-            userEntity.UpdatedAt = DateTime.Now;
+            userEntity.UpdatedAt = DateTime.UtcNow;
 
             _context.Usuarios.Update(userEntity);
             await _context.SaveChangesAsync();
@@ -190,8 +180,9 @@ namespace Vives_Bank_Net.Rest.User.Service
             _memoryCache.Remove(cacheKey);
             */
 
-            _logger.LogInformation($"Usuario borrado (desactivado) con id: {id}");
-            return UserMapper.ToUserResponseFromEntity(userEntity);
+            _logger.LogInformation($"Usuario borrado (desactivado) con id: {guid}");
+            var userModel = UserMapper.ToModelFromEntity(userEntity);
+            return UserMapper.ToResponseFromModel(userModel);
         }
     }
 }
