@@ -8,7 +8,6 @@ using Vives_Bank_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.Cliente.Models;
 
-[Table("Clientes")]
 public class Cliente
 {
     [Key]
@@ -29,8 +28,8 @@ public class Cliente
     public string Apellidos { get; set; }
 
     [Required]
-    public Direccion Direccion { get; set; }
-
+    public Direccion Direccion { get; set; } = new Direccion();
+    
     [Required]
     [EmailAddress]
     public string Email { get; set; }

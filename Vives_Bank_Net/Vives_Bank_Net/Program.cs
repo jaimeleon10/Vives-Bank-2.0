@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Text;
 using GraphiQl;
 using GraphQL;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
@@ -17,6 +18,7 @@ using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Mapper;
 using Vives_Bank_Net.Rest.Cliente.Services;
 using Vives_Bank_Net.Rest.Database;
+using Vives_Bank_Net.Rest.Producto.Base.Services;
 using Vives_Bank_Net.Rest.User.Mapper;
 using Vives_Bank_Net.Rest.User.Service;
 using Vives_Bank_Net.Storage;
@@ -94,17 +96,24 @@ WebApplicationBuilder InitServices()
     
     // Services
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
-    myBuilder.Services.AddSingleton<IStorageJson, StorageJson>();
-    myBuilder.Services.AddSingleton<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IUserService, UserService>();
     myBuilder.Services.AddSingleton<UserMapper>();
     myBuilder.Services.AddScoped<IClienteService, ClienteService>();
     myBuilder.Services.AddSingleton<ClienteMapper>();
+    myBuilder.Services.AddScoped<IBaseService, BaseService>();
     
     // Api FrankFurter de cambio de divisas
     myBuilder.Services.AddHttpClient();
     myBuilder.Services.AddScoped<IDivisasService, DivisasService>();
-
+    
+    // Storage
+    myBuilder.Services.AddSingleton<IStorageJson, StorageJson>();
+    myBuilder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+    
+    myBuilder.Services.Configure<FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = 104857600;
+    });
 
     // Base de datos en PostgreSQL
     myBuilder.Services.AddDbContext<GeneralDbContext>(options =>

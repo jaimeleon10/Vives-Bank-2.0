@@ -5,7 +5,7 @@ using Vives_Bank_Net.Rest.User;
 using Vives_Bank_Net.Rest.User.Models;
 
 namespace Vives_Bank_Net.Storage.Json.Controller;
-
+/*
 // Este controller solo es de prueba, las funciones definitivas estaran dentro de cada uno de sus 
 [ApiController]
 [Route("api/[controller]")]
@@ -162,4 +162,4 @@ public class StorageController : ControllerBase
             return StatusCode(500, "Error interno del servidor");
         }
     }
-}
+}*/

@@ -13,7 +13,10 @@
         
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
         
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
         
@@ -25,15 +28,13 @@
         
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
         
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
         
         <!-- Coverage -->
         <PackageReference Include="coverlet.msbuild" Version="6.0.3">
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
         
         <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
         
@@ -68,7 +69,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
         <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
         <PackageReference Include="IronZIP" Version="2025.1.1" />
-        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
         
         <!-- Mongo -->
         <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
@@ -77,8 +78,7 @@
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
 
     </ItemGroup>
-
-
+    
     <ItemGroup>
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
