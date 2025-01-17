@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Vives_Bank_Net.Rest.Cliente.Models;
 
+[Owned]
 public class Direccion
 {
     [Required(ErrorMessage = "La calle no puede estar vacia")]
