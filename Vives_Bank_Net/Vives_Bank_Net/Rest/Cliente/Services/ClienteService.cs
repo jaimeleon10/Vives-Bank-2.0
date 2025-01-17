@@ -94,7 +94,7 @@ public class ClienteService : IClienteService
         entityCliente.FotoPerfil= "null";
         entityCliente.FotoDni = "null";
         entityCliente.IsDeleted = true;
-        entityCliente.UpdatedAt = DateTime.Now;
+        entityCliente.UpdatedAt = DateTime.UtcNow;
         //antes de borrar los urls borrar en volumen los recursos con el servicio de storage
 
         return entityCliente;

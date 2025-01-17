@@ -190,7 +190,7 @@ public class ClienteMapper
       {
          oldCliente.Telefono = updateDto.Telefono;
       }
-      oldCliente.UpdatedAt=DateTime.Now;
+      oldCliente.UpdatedAt=DateTime.UtcNow;
       return oldCliente;
    }
    

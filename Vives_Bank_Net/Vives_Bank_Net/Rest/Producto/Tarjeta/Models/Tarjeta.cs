@@ -35,10 +35,10 @@ public class Tarjeta
     public double LimiteMensual { get; set; }
     
     [JsonPropertyName("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     [JsonPropertyName("updatedAt")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     [JsonPropertyName("is_deleted")]
     public bool IsDeleted { get; set; }

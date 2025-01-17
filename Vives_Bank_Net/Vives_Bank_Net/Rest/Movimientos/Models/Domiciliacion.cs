@@ -32,7 +32,7 @@ public abstract class Domiciliacion
     public required string Acreedor { get; set; }
     
     [JsonPropertyName("fechaInicio")]
-    public DateTime FechaInicio { get; set; } = DateTime.Now;
+    public DateTime FechaInicio { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("periodicidad")]
     public Periodicidad Periodicidad { get; set; } = Periodicidad.Mensual;
@@ -41,5 +41,5 @@ public abstract class Domiciliacion
     public bool Activa { get; set; } = true;
     
     [JsonPropertyName("ultimaEjecucion")]
-    public DateTime UltimaEjecucion { get; set; } = DateTime.Now;
+    public DateTime UltimaEjecucion { get; set; } = DateTime.UtcNow;
 }

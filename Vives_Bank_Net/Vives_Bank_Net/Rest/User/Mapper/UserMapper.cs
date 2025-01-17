@@ -6,16 +6,14 @@ namespace Vives_Bank_Net.Rest.User.Mapper
 {
     public class UserMapper
     {
-        public static UserEntity ToEntity(UserRequestDto userDto)
+        public static Models.User ToModelFromRequest(UserRequest userRequest)
         {
-            return new UserEntity
+            return new Models.User
             {
-                UserName = userDto.Username,
-                PasswordHash = userDto.PasswordHash,
-                Role = Enum.GetName(typeof(Role), userDto.Role),
-                IsDeleted = userDto.IsDeleted,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                UserName = userRequest.Username,
+                Password = userRequest.Password,
+                Role = (Role)Enum.Parse(typeof(Role), userRequest.Role),
+                IsDeleted = userRequest.IsDeleted
             };
         }
 
@@ -27,24 +25,50 @@ namespace Vives_Bank_Net.Rest.User.Mapper
                 Id = userEntity.Id,
                 Guid = userEntity.Guid,
                 UserName = userEntity.UserName,
-                PasswordHash = userEntity.PasswordHash,
-                Role = (Role)Enum.Parse(typeof(Role), userEntity.Role),
+                Password = userEntity.Password,
+                Role = userEntity.Role,
                 IsDeleted = userEntity.IsDeleted,
                 CreatedAt = userEntity.CreatedAt,
                 UpdatedAt = userEntity.UpdatedAt
             };
         }
+        
+        public static UserEntity ToEntityFromModel(Models.User user)
+        {
+            return new UserEntity
+            {
+                Id = user.Id,
+                Guid = user.Guid,
+                UserName = user.UserName,
+                Password = user.Password,
+                Role = user.Role,
+                IsDeleted = user.IsDeleted,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
+        }
 
-        public static UserResponse ToUserResponseFromEntity(UserEntity userEntity)
+        public static UserResponse ToResponseFromModel(Models.User user)
         {
             return new UserResponse
             {
-                Username = userEntity.UserName,
-                Role = userEntity.Role,
-                CreatedAt = userEntity.CreatedAt,
-                UpdatedAt = userEntity.UpdatedAt,
-                IsDeleted = userEntity.IsDeleted
+                Guid = user.Guid,
+                Username = user.UserName,
+                Role = user.Role.ToString(),
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                IsDeleted = user.IsDeleted
             };
+        }
+        
+        public static IEnumerable<Models.User> ToModelListFromEntityList(IEnumerable<UserEntity> userEntityList)
+        {
+            return userEntityList.Select(userEntity => ToModelFromEntity(userEntity));
+        }
+        
+        public static IEnumerable<UserResponse> ToResponseListFromModelList(IEnumerable<Models.User> userList)
+        {
+            return userList.Select(user => ToResponseFromModel(user));
         }
     }
 

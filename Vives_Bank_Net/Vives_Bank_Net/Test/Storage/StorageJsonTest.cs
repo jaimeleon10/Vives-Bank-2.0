@@ -41,7 +41,7 @@ public class StorageJsonTest
             Id = 1L,
             Guid = "guid",
             UserName = "username",
-            PasswordHash = "password",
+            Password = "password",
             Role = Role.USER,
             CreatedAt = DateTime.Parse("2025-01-14 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-14 10:30:00"),
@@ -53,7 +53,7 @@ public class StorageJsonTest
             Id = 2L,
             Guid = "guid2",
             UserName = "username2",
-            PasswordHash = "password2",
+            Password = "password2",
             Role = Role.USER,
             CreatedAt = DateTime.Parse("2025-01-13 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-13 10:30:00"),
@@ -77,7 +77,7 @@ public class StorageJsonTest
             Assert.That(contentDeserializado[i].Id, Is.EqualTo(data[i].Id));
             Assert.That(contentDeserializado[i].Guid, Is.EqualTo(data[i].Guid));
             Assert.That(contentDeserializado[i].UserName, Is.EqualTo(data[i].UserName));
-            Assert.That(contentDeserializado[i].PasswordHash, Is.EqualTo(data[i].PasswordHash));
+            Assert.That(contentDeserializado[i].Password, Is.EqualTo(data[i].Password));
             Assert.That(contentDeserializado[i].Role, Is.EqualTo(data[i].Role));
             Assert.That(contentDeserializado[i].CreatedAt, Is.EqualTo(data[i].CreatedAt));
             Assert.That(contentDeserializado[i].UpdatedAt, Is.EqualTo(data[i].UpdatedAt));
@@ -119,7 +119,7 @@ public class StorageJsonTest
             Id = 1L,
             Guid = "guid",
             UserName = "username",
-            PasswordHash = "password",
+            Password = "password",
             Role = Role.USER,
             CreatedAt = DateTime.Parse("2025-01-14 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-14 10:30:00"),
@@ -131,7 +131,7 @@ public class StorageJsonTest
             Id = 2L,
             Guid = "guid2",
             UserName = "username2",
-            PasswordHash = "password2",
+            Password = "password2",
             Role = Role.USER,
             CreatedAt = DateTime.Parse("2025-01-13 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-13 10:30:00"),
