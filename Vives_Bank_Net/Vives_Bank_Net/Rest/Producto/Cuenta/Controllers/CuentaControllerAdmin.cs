@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Dto;
+using Vives_Bank_Net.Rest.Producto.Cuenta.Exceptions;
 using Vives_Bank_Net.Rest.Producto.Cuenta.Services;
 using Vives_Bank_Net.Utils.Pagination;
 
@@ -60,6 +61,12 @@ public class CuentaControllerAdmin : ControllerBase
 
             return Ok(pageResult);
         }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado ninguna cuenta.");
+            return StatusCode(404, new { message = "No se han encontrado las cuentas.", details = e.Message });
+
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error al obtener las cuentas.");
@@ -95,6 +102,12 @@ public class CuentaControllerAdmin : ControllerBase
             var cuentas = await _cuentaService.getByGuid(guid);
             return Ok(cuentas);
         }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado la cuenta con guid {guid}.", guid);
+            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
+
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error al obtener la cuenta {guid}.", guid);
@@ -112,6 +125,12 @@ public class CuentaControllerAdmin : ControllerBase
         {
             var cuentas = await _cuentaService.getByIban(iban);
             return Ok(cuentas);
+        }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado la cuenta con iban {iban}.", iban);
+            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
+
         }
         catch (Exception e)
         {
