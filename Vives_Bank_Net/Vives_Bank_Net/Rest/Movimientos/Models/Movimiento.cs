@@ -34,5 +34,5 @@ public class Movimiento
     public bool IsDeleted { get; set; } = false;
     
     [JsonPropertyName("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

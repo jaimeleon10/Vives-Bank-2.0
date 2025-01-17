@@ -2,17 +2,21 @@
 using Vives_Bank_Net.Rest.Cliente.Dtos;
 using Vives_Bank_Net.Rest.Cliente.Exceptions;
 using Vives_Bank_Net.Rest.Cliente.Services;
+using ILogger = DnsClient.Internal.ILogger;
 
 namespace Vives_Bank_Net.Rest.Cliente.Controller;
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/clientes")]
 public class ClienteController : ControllerBase
 {
     private readonly IClienteService _clienteService;
+    private readonly ILogger<ClienteController> _logger;
 
-    public ClienteController(IClienteService clienteService)
+
+    public ClienteController(IClienteService clienteService, ILogger<ClienteController> logger)
     {
         _clienteService = clienteService;
+        _logger = logger;
     }
     
     [HttpGet]

@@ -8,7 +8,6 @@ using Vives_Bank_Net.Utils.Generators;
 
 namespace Vives_Bank_Net.Rest.Cliente.Models;
 
-[Table("Clientes")]
 public class Cliente
 {
     [Key]
@@ -28,7 +27,7 @@ public class Cliente
     [Required]
     public string Apellidos { get; set; }
 
-    [Required]
+    [NotMapped]
     public Direccion Direccion { get; set; }
 
     [Required]
@@ -51,10 +50,10 @@ public class Cliente
     public User.Models.User User { get; set; }
 
     [JsonPropertyName("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     [JsonPropertyName("updatedAt")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("isDeleted")]
     public bool IsDeleted { get; set; } = false;
