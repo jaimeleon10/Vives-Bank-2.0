@@ -11,7 +11,7 @@ public class CuentaMapperTest
     [Test]
     public void ToCuentaEntity()
     {
-        var cuenta = new Rest.Producto.Cuenta.Models.Cuenta()
+        var cuenta = new Vives_Bank_Net.Rest.Producto.Cuenta.Models.Cuenta()
         {
             Guid = GuidGenerator.GenerarId(),
             Iban = IbanGenerator.GenerateIban(),
