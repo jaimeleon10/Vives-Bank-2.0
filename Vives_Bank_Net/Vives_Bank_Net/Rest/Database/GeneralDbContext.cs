@@ -16,21 +16,20 @@ public class GeneralDbContext : DbContext
     
     public DbSet<UserEntity> Usuarios { get; set; }
     public DbSet<ClienteEntity> Clientes { get; set; }
-    public DbSet<BaseEntity> Bases { get; set; }
+    public DbSet<BaseEntity> ProductoBase { get; set; }
     public DbSet<CuentaEntity> Cuentas { get; set; }
     public DbSet<TarjetaEntity> Tarjetas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<UserEntity>().ToTable("Usuarios");
-        modelBuilder.Entity<ClienteEntity>().ToTable("Clientes");
-        modelBuilder.Entity<BaseEntity>().ToTable("ProductosBase");
-        modelBuilder.Entity<CuentaEntity>().ToTable("Cuentas");
-        modelBuilder.Entity<TarjetaEntity>().ToTable("Tarjetas");
-
-        // User Entity
+        
+        modelBuilder.Ignore<User.Models.User>();
+        modelBuilder.Ignore<Cliente.Models.Cliente>();
+        modelBuilder.Ignore<BaseModel>();
+        modelBuilder.Ignore<Cuenta>();
+        modelBuilder.Ignore<Tarjeta>();
+        
+        /*// User Entity
         modelBuilder.Entity<UserEntity>(entity =>
         {
             entity.Property(e => e.CreatedAt).IsRequired().ValueGeneratedOnAdd();
@@ -74,7 +73,7 @@ public class GeneralDbContext : DbContext
             .WithOne()
             .HasForeignKey(c => c.TarjetaId)
             .IsRequired(false);
-        */
+        #1#
         
         modelBuilder.Entity<CuentaEntity>()
             .HasOne(c => c.Producto) 
@@ -87,6 +86,6 @@ public class GeneralDbContext : DbContext
         {
             entity.Property(e => e.CreatedAt).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
-        });
+        });*/
     }
 }

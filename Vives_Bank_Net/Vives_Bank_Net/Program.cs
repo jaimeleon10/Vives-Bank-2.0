@@ -1,4 +1,3 @@
-using System.Drawing;
 using System.Text;
 using GraphiQl;
 using GraphQL;
@@ -12,16 +11,15 @@ using Vives_Bank_Net.GraphQL;
 using Vives_Bank_Net.Rest.Movimientos.Database;
 using Vives_Bank_Net.Rest.Movimientos.Services;
 using StackExchange.Redis;
-using Vives_Bank_Net.Rest.Cliente.Database;
 using Vives_Bank_Net.Rest.Cliente.Mapper;
 using Vives_Bank_Net.Rest.Cliente.Services;
 using Vives_Bank_Net.Rest.Database;
+using Vives_Bank_Net.Rest.Producto.Base.Services;
+using Vives_Bank_Net.Rest.Producto.Tarjeta.Services;
 using Vives_Bank_Net.Rest.User.Mapper;
 using Vives_Bank_Net.Rest.User.Service;
-using Vives_Bank_Net.Storage;
 using Vives_Bank_Net.Storage.Files.Service;
 using Vives_Bank_Net.Storage.Json.Service;
-using Vives_Bank_Net.Utils.Exceptions;
 
 var environment = InitLocalEnvironment();
 
@@ -52,7 +50,7 @@ app.UseAuthorization();
 // Añadir esto si utilizas MVC para definir rutas, decimos que activamos el uso de rutas
 app.UseRouting();
 
-app.UseMiddleware<ExceptionMiddleware>();
+//app.UseMiddleware<ExceptionMiddleware>();
 
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
@@ -99,10 +97,12 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddSingleton<UserMapper>();
     myBuilder.Services.AddScoped<IClienteService, ClienteService>();
     myBuilder.Services.AddSingleton<ClienteMapper>();
+    myBuilder.Services.AddScoped<IBaseService, BaseService>();
+    myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
 
     // Base de datos en PostgreSQL
     myBuilder.Services.AddDbContext<GeneralDbContext>(options =>
-        options.UseNpgsql(myBuilder.Configuration.GetConnectionString("PostgreSqlDatabase")));
+        options.UseNpgsql(myBuilder.Configuration.GetConnectionString("DefaultConnection")));
     
     // GraphQL
     myBuilder.Services.AddSingleton<MovimientoQuery>();
