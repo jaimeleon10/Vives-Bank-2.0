@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\anasm\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj": {}
+    "C:\\Users\\jleon\\RiderProjects\\Proyectos\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj": {}
   },
   "projects": {
-    "C:\\Users\\anasm\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj": {
+    "C:\\Users\\jleon\\RiderProjects\\Proyectos\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\anasm\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj",
+        "projectUniqueName": "C:\\Users\\jleon\\RiderProjects\\Proyectos\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj",
         "projectName": "Vives_Bank_Net",
-        "projectPath": "C:\\Users\\anasm\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj",
-        "packagesPath": "C:\\Users\\anasm\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\anasm\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\obj\\",
+        "projectPath": "C:\\Users\\jleon\\RiderProjects\\Proyectos\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\Vives_Bank_Net.csproj",
+        "packagesPath": "C:\\Users\\jleon\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\jleon\\RiderProjects\\Proyectos\\Vives-Bank-2.0\\Vives_Bank_Net\\Vives_Bank_Net\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\anasm\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\jleon\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -45,7 +45,7 @@
           "dependencies": {
             "CacheManager.Core": {
               "target": "Package",
-              "version": "[2.0.0-beta-1629, )"
+              "version": "[1.2.0, )"
             },
             "CacheMeIfYouCan.Redis": {
               "target": "Package",
@@ -53,7 +53,7 @@
             },
             "GraphQL": {
               "target": "Package",
-              "version": "[8.2.1, )"
+              "version": "[8.3.0, )"
             },
             "GraphQL.AspNet.TestFramework": {
               "target": "Package",
@@ -69,11 +69,7 @@
             },
             "GraphQL.SystemTextJson": {
               "target": "Package",
-              "version": "[8.2.1, )"
-            },
-            "GraphiQL": {
-              "target": "Package",
-              "version": "[2.0.0, )"
+              "version": "[8.3.0, )"
             },
             "IronZIP": {
               "target": "Package",
@@ -81,15 +77,21 @@
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[8.0.8, )"
+              "version": "[8.0.12, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.0, )"
+              "version": "[8.0.12, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.12, )"
             },
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
-              "version": "[17.5.0, )"
+              "version": "[17.12.0, )"
             },
             "MongoDB.Driver": {
               "target": "Package",
@@ -111,9 +113,13 @@
               "target": "Package",
               "version": "[13.0.3, )"
             },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
             "Serilog": {
               "target": "Package",
-              "version": "[4.2.1-dev-02337, )"
+              "version": "[4.2.0, )"
             },
             "Serilog.Extensions": {
               "target": "Package",
@@ -121,7 +127,7 @@
             },
             "Serilog.Extensions.Logging": {
               "target": "Package",
-              "version": "[8.0.0, )"
+              "version": "[9.0.0, )"
             },
             "Serilog.Sinks.Console": {
               "target": "Package",
@@ -137,7 +143,7 @@
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[6.6.2, )"
+              "version": "[7.2.0, )"
             },
             "Swashbuckle.AspNetCore.Annotations": {
               "target": "Package",
@@ -147,15 +153,17 @@
               "target": "Package",
               "version": "[8.0.2, )"
             },
-            "System.IO.Compression.ZipFile": {
+            "Testcontainers.MongoDb": {
               "target": "Package",
-              "version": "[4.3.0, )"
+              "version": "[4.1.0, )"
             },
-            "coverlet.msbuild": {
-              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
-              "suppressParent": "All",
+            "Testcontainers.PostgreSql": {
               "target": "Package",
-              "version": "[6.0.3, )"
+              "version": "[4.1.0, )"
+            },
+            "graphiql": {
+              "target": "Package",
+              "version": "[2.0.0, )"
             }
           },
           "imports": [
