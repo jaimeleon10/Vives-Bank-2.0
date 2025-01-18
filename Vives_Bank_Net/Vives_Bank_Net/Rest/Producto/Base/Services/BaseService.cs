@@ -24,7 +24,7 @@ public class BaseService : IBaseService
     public async Task<List<BaseModel>> GetAllAsync()
     {
         _logger.LogDebug("Obteniendo todos los productos");
-        List<BaseEntity> bases = await _context.Bases.ToListAsync();
+        List<BaseEntity> bases = await _context.ProductoBase.ToListAsync();
         return bases.ToModelList();
     }
 
@@ -40,7 +40,7 @@ public class BaseService : IBaseService
         }*/
         
         _logger.LogDebug("Buscando producto en la base de datos");
-        var model = await _context.Bases.FindAsync(id);
+        var model = await _context.ProductoBase.FindAsync(id);
 
         if (model == null)
         {
@@ -57,7 +57,7 @@ public class BaseService : IBaseService
     {
         _logger.LogDebug($"Buscando producto por tipo: {tipo}");
 
-        var product = await _context.Bases.FindAsync(tipo);
+        var product = await _context.ProductoBase.FindAsync(tipo);
 
         if (product == null)
         {
@@ -74,13 +74,13 @@ public class BaseService : IBaseService
     {
         _logger.LogDebug("Creando un nuevo producto base");
 
-        if (await _context.Bases.AnyAsync(b => b.Nombre.ToLower() == baseRequest.Nombre.ToLower()))
+        if (await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == baseRequest.Nombre.ToLower()))
         {
             _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
             throw new BaseExistByNameException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
         }
         
-        if (await _context.Bases.AnyAsync(b => b.TipoProducto.ToLower() == baseRequest.TipoProducto.ToLower()))
+        if (await _context.ProductoBase.AnyAsync(b => b.TipoProducto.ToLower() == baseRequest.TipoProducto.ToLower()))
         {
             _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
             throw new BaseDuplicateException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
@@ -88,10 +88,10 @@ public class BaseService : IBaseService
 
         var modelEntity = baseRequest.ToEntityFromRequest();
         
-        modelEntity.CreatedAt= DateTime.Now;
-        modelEntity.UpdatedAt= DateTime.Now;
+        modelEntity.CreatedAt= DateTime.UtcNow;
+        modelEntity.UpdatedAt= DateTime.UtcNow;
         
-        _context.Bases.Add(modelEntity);
+        _context.ProductoBase.Add(modelEntity);
         await _context.SaveChangesAsync();
         
         _logger.LogDebug($"Producto creado correctamente con id: {modelEntity.Id}");
@@ -103,7 +103,7 @@ public class BaseService : IBaseService
     public async Task<BaseResponseDto> UpdateAsync(string id, BaseUpdateDto baseUpdate)
     {
         _logger.LogDebug($"Actualizando producto con id: {id}");
-        var model = await _context.Bases.FindAsync(id);
+        var model = await _context.ProductoBase.FindAsync(id);
 
         if (model == null)
         {
@@ -112,7 +112,7 @@ public class BaseService : IBaseService
         }
     
         _logger.LogDebug("Validando nombre único");
-         if (await _context.Bases.AnyAsync(b => b.Nombre.ToLower() == baseUpdate.Nombre.ToLower() && b.Guid!= id))
+         if (await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == baseUpdate.Nombre.ToLower() && b.Guid!= id))
         {
             _logger.LogWarning($"Ya existe un producto con el nombre: {baseUpdate.Nombre}");
             throw new BaseExistByNameException($"Ya existe un producto con el nombre: {baseUpdate.Nombre}");
@@ -120,9 +120,9 @@ public class BaseService : IBaseService
         _logger.LogDebug("Actualizando producto");
         model.Nombre = baseUpdate.Nombre;
         model.Descripcion = baseUpdate.Descripcion;
-        model.UpdatedAt = DateTime.Now;
+        model.UpdatedAt = DateTime.UtcNow;
 
-        _context.Bases.Update(model);
+        _context.ProductoBase.Update(model);
         await _context.SaveChangesAsync();
 
         _logger.LogDebug($"Producto actualizado correctamente con id: {id}");
@@ -132,7 +132,7 @@ public class BaseService : IBaseService
     public async Task<BaseResponseDto> DeleteAsync(string id)
     {
         _logger.LogDebug($"Aplicando borrado logico a producto con id: {id}");
-        var model = await _context.Bases.FindAsync(id);
+        var model = await _context.ProductoBase.FindAsync(id);
         if (model == null)
         {
             _logger.LogWarning($"Producto con id: {id} no encontrado");
@@ -141,8 +141,8 @@ public class BaseService : IBaseService
 
         _logger.LogDebug("Actualizando isDeleted a true");
         model.IsDeleted = true;
-        model.UpdatedAt = DateTime.Now;
-        _context.Bases.Update(model);
+        model.UpdatedAt = DateTime.UtcNow;
+        _context.ProductoBase.Update(model);
         await _context.SaveChangesAsync();
 
         _logger.LogDebug($"Producto borrado logico correctamente con id: {id}");

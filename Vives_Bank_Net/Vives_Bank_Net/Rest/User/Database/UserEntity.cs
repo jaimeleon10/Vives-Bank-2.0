@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Vives_Bank_Net.Rest.User.Models;
 
 namespace Vives_Bank_Net.Rest.User.Database
 {
@@ -16,22 +18,20 @@ namespace Vives_Bank_Net.Rest.User.Database
         public string Guid { get; set; } = null!;
 
         [Required]
-        [Column(TypeName = "nvarchar(100)")]
         public string UserName { get; set; } = null!;
 
         [Required]
-        public string PasswordHash { get; set; } = null!;
+        public string Password { get; set; } = null!;
 
         [Required]
-        public string Role { get; set; } = null!;
+        public Role Role { get; set; } = Role.USER;
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
+        [DefaultValue(false)]
         public bool IsDeleted { get; set; } = false;
     }
 }

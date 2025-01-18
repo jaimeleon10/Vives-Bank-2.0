@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Vives_Bank_Net.Utils.Generators;
@@ -14,22 +15,20 @@ public class User
     public string Guid { get; set; } = GuidGenerator.GenerarId();
     
     [Required]
-    [Column(TypeName = "nvarchar(100)")]
     public  string UserName { get; set; }
     
     [Required]
     [MinLength(5, ErrorMessage = "Password debe tener al menos 5 caracteres")]
-    public  string PasswordHash { get; set; }
+    public  string Password { get; set; }
     
     [Required]
     public Role Role { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     [Required]
+    [DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 }

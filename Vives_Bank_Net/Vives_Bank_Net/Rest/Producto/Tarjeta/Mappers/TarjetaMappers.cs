@@ -35,8 +35,8 @@ public static class TarjetaMappers
             LimiteDiario = dto.LimiteDiario,
             LimiteSemanal = dto.LimiteSemanal,
             LimiteMensual = dto.LimiteMensual,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
     }

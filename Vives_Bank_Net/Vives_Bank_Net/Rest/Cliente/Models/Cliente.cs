@@ -27,9 +27,9 @@ public class Cliente
     [Required]
     public string Apellidos { get; set; }
 
-    [Required]
-    public Direccion Direccion { get; set; } = new Direccion();
-    
+    [NotMapped]
+    public Direccion Direccion { get; set; }
+
     [Required]
     [EmailAddress]
     public string Email { get; set; }
@@ -50,10 +50,10 @@ public class Cliente
     public User.Models.User User { get; set; }
 
     [JsonPropertyName("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     [JsonPropertyName("updatedAt")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("isDeleted")]
     public bool IsDeleted { get; set; } = false;
