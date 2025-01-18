@@ -49,9 +49,7 @@ public class CuentaEntity
     [DefaultValue(false)]
     public bool IsDeleted { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTime CreatedAt { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime UpdatedAt { get; set; }
 }
