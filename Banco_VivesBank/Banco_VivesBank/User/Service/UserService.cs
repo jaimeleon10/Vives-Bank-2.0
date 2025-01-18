@@ -9,7 +9,7 @@ namespace Banco_VivesBank.User.Service
 {
     public class UserService : IUserService 
     {    
-        private const string CacheKeyPrefix = "User_";
+        //private const string CacheKeyPrefix = "User_";
         private readonly GeneralDbContext _context;
         private readonly ILogger<UserService> _logger;
         
@@ -28,7 +28,7 @@ namespace Banco_VivesBank.User.Service
 
         public async Task<UserResponse?> GetByGuidAsync(string guid)
         {
-            _logger.LogInformation($"Buscando Usuario con guid: {guid}");
+            _logger.LogInformation($"Buscando usuario con guid: {guid}");
             
             /*
             var cacheKey = CacheKeyPrefix + guid;
@@ -39,22 +39,24 @@ namespace Banco_VivesBank.User.Service
             }
             */
 
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid.ToLower() == guid.ToLower());
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             if (userEntity != null)
             {
                 /*cachedUser = UserMapper.ToModelFromEntity(userEntity);
                 _memoryCache.Set(cacheKey, cachedUser, TimeSpan.FromMinutes(30));
                 return cachedUser;*/
 
+                _logger.LogInformation($"Usuario encontrado con guid: {guid}");
                 return UserMapper.ToResponseFromEntity(userEntity);
             }
 
+            _logger.LogInformation($"Usuario no encontrado con guid: {guid}");
             return null;
         }
 
         public async Task<UserResponse?> GetByUsernameAsync(string username)
         {
-            _logger.LogInformation($"Buscando Usuario con username: {username}");
+            _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
             
             /*
             var cacheKey = CacheKeyPrefix + username;
@@ -66,17 +68,18 @@ namespace Banco_VivesBank.User.Service
             }
             */
 
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == username);
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
             if (userEntity != null)
             {
                 /*cachedUser = UserMapper.ToModelFromEntity(userEntity);
                 _memoryCache.Set(cacheKey, cachedUser, TimeSpan.FromMinutes(30));
                 return cachedUser;*/
                 
-                var userModel = UserMapper.ToModelFromEntity(userEntity);
-                return UserMapper.ToResponseFromModel(userModel);
+                _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
+                return UserMapper.ToResponseFromEntity(userEntity);
             }
 
+            _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
             return null;
         }
 
@@ -90,8 +93,8 @@ namespace Banco_VivesBank.User.Service
                 throw new UserExistException($"Ya existe un Usuario con el nombre: {userRequest.Username}");
             }
 
-            var userModelRequest = UserMapper.ToModelFromRequest(userRequest);
-            _context.Usuarios.Add(UserMapper.ToEntityFromModel(userModelRequest));
+            var userModel = UserMapper.ToModelFromRequest(userRequest);
+            _context.Usuarios.Add(UserMapper.ToEntityFromModel(userModel));
             await _context.SaveChangesAsync();
 
             /*
@@ -100,7 +103,7 @@ namespace Banco_VivesBank.User.Service
             */
 
             _logger.LogInformation("Usuario creado con éxito");
-            return UserMapper.ToResponseFromModel(userModelRequest);
+            return UserMapper.ToResponseFromModel(userModel);
         }
 
 
@@ -108,7 +111,7 @@ namespace Banco_VivesBank.User.Service
         {
             _logger.LogInformation($"Actualizando usuario con guid: {guid}");
             
-            var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid.ToLower() == guid.ToLower());
+            var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             if (userEntityExistente == null)
             {
                 _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
@@ -139,21 +142,21 @@ namespace Banco_VivesBank.User.Service
             return UserMapper.ToResponseFromEntity(userEntityExistente);
         }
 
-        public async Task<UserResponse?> DeleteByIdAsync(string guid)
+        public async Task<UserResponse?> DeleteByGuidAsync(string guid)
         {
             _logger.LogInformation($"Borrando Usuario con guid: {guid}");
             
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid.ToLower() == guid.ToLower());
-            if (userEntity == null)
+            var userExistenteEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
+            if (userExistenteEntity == null)
             {
                 _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
                 return null;
             }
 
-            userEntity.IsDeleted = true;
-            userEntity.UpdatedAt = DateTime.UtcNow;
+            userExistenteEntity.IsDeleted = true;
+            userExistenteEntity.UpdatedAt = DateTime.UtcNow;
 
-            _context.Usuarios.Update(userEntity);
+            _context.Usuarios.Update(userExistenteEntity);
             await _context.SaveChangesAsync();
 
             /*
@@ -162,7 +165,37 @@ namespace Banco_VivesBank.User.Service
             */
 
             _logger.LogInformation($"Usuario borrado (desactivado) con id: {guid}");
-            return UserMapper.ToResponseFromEntity(userEntity);
+            return UserMapper.ToResponseFromEntity(userExistenteEntity);
+        }
+
+        public async Task<Models.User?> GetUserModelByGuid(string guid)
+        {
+            _logger.LogInformation($"Buscando usuario con guid: {guid}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con guid: {guid}");
+                return UserMapper.ToModelFromEntity(userEntity);
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con guid: {guid}");
+            return null;
+        }
+        
+        public async Task<Models.User?> GetUserModelById(long id)
+        {
+            _logger.LogInformation($"Buscando usuario con id: {id}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con id: {id}");
+                return UserMapper.ToModelFromEntity(userEntity);
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con id: {id}");
+            return null;
         }
     }
 }

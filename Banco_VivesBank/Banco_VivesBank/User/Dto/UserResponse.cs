@@ -2,15 +2,15 @@
 
 public class UserResponse
 {
-    public string Guid { get; set; } = null!;
+    public string Guid { get; set; }
     
-    public string Username { get; set; } = null!;
+    public string Username { get; set; }
     
-    public string Role { get; set; } = null!;
+    public string Role { get; set; }
     
-    public DateTime CreatedAt { get; set; }
+    public string CreatedAt { get; set; }
     
-    public DateTime UpdatedAt { get; set; }
+    public string UpdatedAt { get; set; }
     
     public bool IsDeleted { get; set; }
 }

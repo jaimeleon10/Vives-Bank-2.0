@@ -25,7 +25,6 @@ public class CuentaEntity
     [Required]
     public BigInteger Saldo { get; set; }
     
-    
     [ForeignKey("Tarjeta")] 
     [Column("tarjeta_id")]
     public long? TarjetaId { get; set; }
