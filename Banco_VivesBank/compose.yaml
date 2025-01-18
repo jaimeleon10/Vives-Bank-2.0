@@ -1,0 +1,6 @@
+services:
+  vives_bank_net:
+    image: banco_vivesbank
+    build:
+      context: .
+      dockerfile: Banco_Vivesbank/Dockerfile
