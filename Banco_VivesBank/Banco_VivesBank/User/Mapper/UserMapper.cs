@@ -27,9 +27,9 @@ namespace Banco_VivesBank.User.Mapper
                 Username = userEntity.Username,
                 Password = userEntity.Password,
                 Role = userEntity.Role,
-                IsDeleted = userEntity.IsDeleted,
                 CreatedAt = userEntity.CreatedAt,
-                UpdatedAt = userEntity.UpdatedAt
+                UpdatedAt = userEntity.UpdatedAt,
+                IsDeleted = userEntity.IsDeleted
             };
         }
         
@@ -42,9 +42,9 @@ namespace Banco_VivesBank.User.Mapper
                 Username = usuario.Username,
                 Password = usuario.Password,
                 Role = usuario.Role,
-                IsDeleted = usuario.IsDeleted,
                 CreatedAt = usuario.CreatedAt,
-                UpdatedAt = usuario.UpdatedAt
+                UpdatedAt = usuario.UpdatedAt,
+                IsDeleted = usuario.IsDeleted
             };
         }
 
@@ -55,8 +55,8 @@ namespace Banco_VivesBank.User.Mapper
                 Guid = usuario.Guid,
                 Username = usuario.Username,
                 Role = usuario.Role.ToString(),
-                CreatedAt = usuario.CreatedAt,
-                UpdatedAt = usuario.UpdatedAt,
+                CreatedAt = usuario.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+                UpdatedAt = usuario.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
                 IsDeleted = usuario.IsDeleted
             };
         }
@@ -68,8 +68,8 @@ namespace Banco_VivesBank.User.Mapper
                 Guid = userEntity.Guid,
                 Username = userEntity.Username,
                 Role = userEntity.Role.ToString(),
-                CreatedAt = userEntity.CreatedAt,
-                UpdatedAt = userEntity.UpdatedAt,
+                CreatedAt = userEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+                UpdatedAt = userEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
                 IsDeleted = userEntity.IsDeleted
             };
         }
@@ -79,5 +79,4 @@ namespace Banco_VivesBank.User.Mapper
             return userEntityList.Select(userEntity => ToResponseFromEntity(userEntity));
         }
     }
-
 }

@@ -10,22 +10,20 @@ namespace Banco_VivesBank.User.Controller;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly ILogger<UserController> _logger;
 
-    public UserController(IUserService userService, ILogger<UserController> logger)
+    public UserController(IUserService userService)
     {
         _userService = userService;
-        _logger = logger;
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<UserResponse>>> GetAll()
     {
         return Ok(await _userService.GetAllAsync());
     }
 
     [HttpGet("{guid}")]
-    public async Task<ActionResult<UserResponse>> GetById(string guid)
+    public async Task<ActionResult<UserResponse>> GetByGuid(string guid)
     {
         var user = await _userService.GetByGuidAsync(guid);
 
@@ -44,7 +42,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<ActionResult<UserResponse>> CreateAsync([FromBody] UserRequest userRequest)
+    public async Task<ActionResult<UserResponse>> Create([FromBody] UserRequest userRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -62,17 +60,22 @@ public class UserController : ControllerBase
     }
     
     [HttpPut("{guid}")]
-    public async Task<ActionResult<UserResponse>> UpdateAsync(string guid, UserRequest userRequest)
+    public async Task<ActionResult<UserResponse>> Update(string guid, [FromBody] UserRequest userRequest)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        
         var userResponse = await _userService.UpdateAsync(guid, userRequest);
-        if (userResponse is null) return NotFound($"No ha podido actualizar el usuario con guid: {guid}"); 
+        if (userResponse is null) return NotFound($"No se ha podido actualizar el usuario con guid: {guid}"); 
         return Ok(userResponse);
     }
     
     [HttpDelete("{guid}")]
-    public async Task<ActionResult<UserResponse>> DeleteByIdAsync(string guid)
+    public async Task<ActionResult<UserResponse>> DeleteByGuid(string guid)
     {
-        var userResponse = await _userService.DeleteByIdAsync(guid);
+        var userResponse = await _userService.DeleteByGuidAsync(guid);
         if (userResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
         return Ok(userResponse);
     }
