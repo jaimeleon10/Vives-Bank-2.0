@@ -4,9 +4,9 @@ namespace Banco_VivesBank.Cliente.Services;
 
 public interface IClienteService
 {
-    public Task<List<ClienteResponse>> GetAllClientesAsync();
-    public Task<ClienteResponse> GetClienteByIdAsync(string id);
-    public Task<ClienteResponse> CreateClienteAsync(ClienteRequestSave requestSave);
-    public Task<ClienteResponse> UpdateClienteAsync(string id, ClienteRequestUpdate requestUpdate);
-    public Task<ClienteResponse> DeleteClienteAsync(string id);
+    public Task<IEnumerable<ClienteResponse>> GetAllAsync();
+    public Task<ClienteResponse?> GetByGuidAsync(string guid);
+    public Task<ClienteResponse> CreateAsync(ClienteRequest request);
+    public Task<ClienteResponse?> UpdateAsync(string guid, ClienteRequestUpdate requestUpdate);
+    public Task<ClienteResponse?> DeleteByGuidAsync(string guid);
 }

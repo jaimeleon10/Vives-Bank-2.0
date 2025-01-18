@@ -10,57 +10,66 @@ namespace Banco_VivesBank.Cliente.Controller;
 public class ClienteController : ControllerBase
 {
     private readonly IClienteService _clienteService;
-    private readonly ILogger<ClienteController> _logger;
 
 
-    public ClienteController(IClienteService clienteService, ILogger<ClienteController> logger)
+    public ClienteController(IClienteService clienteService)
     {
         _clienteService = clienteService;
-        _logger = logger;
     }
     
     [HttpGet]
-    public async Task<ActionResult<List<ClienteResponse>>> GetAllClientes()
+    public async Task<ActionResult<List<ClienteResponse>>> GetAll()
     {
-        return Ok(await _clienteService.GetAllClientesAsync());
+        return Ok(await _clienteService.GetAllAsync());
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ClienteResponse>> GetClienteById(string id)
+    [HttpGet("{guid}")]
+    public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {
-        var cliente = await _clienteService.GetClienteByIdAsync(id);
+        var cliente = await _clienteService.GetByGuidAsync(guid);
      
+        if (cliente is null) return NotFound($"No se ha encontrado cliente con guid: {guid}");
+        
         return Ok(cliente);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ClienteResponse>> SaveCliente([FromBody] ClienteRequestSave createDto)
+    public async Task<ActionResult<ClienteResponse>> Create([FromBody] ClienteRequest clienteRequest)
     {
 
-        if(!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            throw new ClienteBadRequest("Los datos del cliente que intenta guardar son inválidos.");
+            return BadRequest(ModelState);
         }
-        var createdCliente = await _clienteService.CreateClienteAsync(createDto);
-        return CreatedAtAction(nameof(GetClienteById), new { id = createdCliente.Id }, createdCliente);
+        
+        try
+        {
+            return Ok(await _clienteService.CreateAsync(clienteRequest));
+        }
+        catch (ClienteException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
     
-    [HttpPut("{id}")]
-    public async Task<ActionResult<ClienteResponse>> UpdateCliente(string id, [FromBody]ClienteRequestUpdate updateDto)
+    [HttpPut("{guid}")]
+    public async Task<ActionResult<ClienteResponse>> UpdateCliente(string guid, [FromBody] ClienteRequestUpdate clienteRequestUpdate)
     {
-        if(!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            throw new ClienteBadRequest("Los datos del cliente que intenta actualizar son inválidos.");
+            return BadRequest(ModelState);
         }
-        var clienteResponse = await _clienteService.UpdateClienteAsync(id, updateDto);
-            return Ok(clienteResponse);
         
+        var clienteResponse = await _clienteService.UpdateAsync(guid, clienteRequestUpdate);
+        if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente con guid: {guid}"); 
+        return Ok(clienteResponse);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<ClienteResponse>> DeleteCliente(string id)
+    [HttpDelete("{guid}")]
+    public async Task<ActionResult<ClienteResponse>> DeleteByGuid(string guid)
     {
-        var deletedCliente = await _clienteService.DeleteClienteAsync(id);
-        return Ok(deletedCliente);
+        var clienteResponse = await _clienteService.DeleteByGuidAsync(guid);
+        if (clienteResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
+        return Ok(clienteResponse);
     }
 }
