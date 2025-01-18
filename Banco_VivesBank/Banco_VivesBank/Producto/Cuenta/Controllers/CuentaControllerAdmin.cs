@@ -60,6 +60,12 @@ public class CuentaControllerAdmin : ControllerBase
 
             return Ok(pageResult);
         }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado ninguna cuenta.");
+            return StatusCode(404, new { message = "No se han encontrado las cuentas.", details = e.Message });
+
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error al obtener las cuentas.");
@@ -78,12 +84,22 @@ public class CuentaControllerAdmin : ControllerBase
 
             return Ok(cuentas);
         }
+        catch (CuentaInvalidaException e)
+        {
+            _logger.LogError(e, "Cuentas no encontradas por guid del cliente invalido.");
+            return StatusCode(400, new { message = "Cuentas no encontradas por guid del cliente invalido.", details = e.Message });
+
+        }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado ninguna cuenta del cliente con guid {guid}.", guid);
+            return StatusCode(404, new { message = "No se han encontrado las cuentas del cliente.", details = e.Message });
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error al obtener las cuentas del cliente {guid}.", guid);
             return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
         }
-
     }
 
     [HttpGet("{guid:length(12)}")]
@@ -95,13 +111,24 @@ public class CuentaControllerAdmin : ControllerBase
             var cuentas = await _cuentaService.getByGuid(guid);
             return Ok(cuentas);
         }
+        catch (CuentaInvalidaException e)
+        {
+            _logger.LogError(e, "Cuenta no encontrada por guid invalido.");
+            return StatusCode(400, new { message = "Cuenta no encontrada por guid invalido.", details = e.Message });
+
+        }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado la cuenta con guid {guid}.", guid);
+            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
+
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error al obtener la cuenta {guid}.", guid);
             return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
 
         }
-
     }
     
     [HttpGet("iban/{iban:length(34)}")]
@@ -113,13 +140,24 @@ public class CuentaControllerAdmin : ControllerBase
             var cuentas = await _cuentaService.getByIban(iban);
             return Ok(cuentas);
         }
+        catch (CuentaInvalidaException e)
+        {
+            _logger.LogError(e, "Cuenta no encontrada por iban invalido.");
+            return StatusCode(400, new { message = "Cuenta no encontrada por iban invalido.", details = e.Message });
+
+        }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado la cuenta con iban {iban}.", iban);
+            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
+
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error al obtener la cuenta {iban}.", iban);
             return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
 
         }
-
     }
     
     [HttpDelete("{guid:length(12)}")]
