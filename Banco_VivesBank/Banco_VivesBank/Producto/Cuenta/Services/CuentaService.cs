@@ -271,7 +271,7 @@ public class CuentaService : ICuentaService
         return cuentaResponse;
     }
     
-    public async Task<CuentaResponse> deleteAdmin(string guidClient,string guid)
+    public async Task<CuentaResponse> deleteAdmin(string guid)
     {
         _logger.LogInformation($"Eliminando cuenta {guid}");
         var cuenta = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
@@ -284,12 +284,6 @@ public class CuentaService : ICuentaService
             throw new SaldoInsuficienteException($"La cuenta con el GUID {guid} no existe.");
         }
         
-        if (cuenta.Cliente.Guid != guidClient)
-        {
-            _logger.LogError($"Cuenta con IBAN: {cuenta.Iban}  no le pertenece");
-            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {cuenta.Iban}  no le pertenece");
-            
-        }
 
         cuenta.IsDeleted = true;
 
