@@ -131,7 +131,7 @@ public class CuentaServiceTests
     public async Task GetByClientGuid()
     {
         var clientGuid = "cliente123";
-        var cliente = new Cliente.Models.Cliente { Guid = clientGuid, Nombre = "Cliente Test", Id = 1 };
+        var cliente = new Cliente.Models.Cliente { Guid = clientGuid, Nombre = "Cliente Test", Apellidos = "apellidos", Email = "email", Telefono = "telefono", Dni = "dni", Id = 1 };
         var producto = new BaseModel { Id = 1, Nombre = "Cuenta Ahorro" };
 
         var cuenta1 = new CuentaEntity
@@ -214,8 +214,6 @@ public class CuentaServiceTests
         Assert.That(ex.Message, Is.EqualTo("Cuenta con IBAN ES0000000000000000000000 no encontrada."));
     }
 
-    
-
     /*[Test]
     public async Task Save()
     {
@@ -260,16 +258,23 @@ public class CuentaServiceTests
         [Test]
         public async Task Update()
         {
-            var cuentaRequest = new CuentaUpdateRequest { Dinero = "500" };
-            
-            var result = await _cuentaService.update("12345", "abc123", cuentaRequest);
-            
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Saldo, Is.EqualTo(500));
-            Assert.That(result.Guid, Is.EqualTo("abc123"));
-        }
-    
+            var cuentaUpdateRequest = new CuentaUpdateRequest { Dinero = "500" };
+            var cuentaRequest = new CuentaRequest { TipoCuenta = "Ahorro" };
 
+            await _cuentaService.save("abc123", cuentaRequest);
+    
+            var savedCuenta = await _dbContext.Cuentas.FirstOrDefaultAsync(c => c.Guid == "abc123");
+    
+            Assert.That(savedCuenta, Is.Not.Null, "La cuenta no fue guardada correctamente.");
+            Assert.That(savedCuenta.Guid, Is.EqualTo("abc123"));
+    
+            var resultUpdate = await _cuentaService.update("12345", "abc123", cuentaUpdateRequest);
+    
+            Assert.That(resultUpdate, Is.Not.Null);
+            Assert.That(resultUpdate.Saldo, Is.EqualTo(500));
+            Assert.That(resultUpdate.Guid, Is.EqualTo("abc123"));
+        }
+        
         [Test]
         public void Update_NotFound()
         {
@@ -329,6 +334,4 @@ public class CuentaServiceTests
             Assert.That(ex, Is.Not.Null);
             Assert.That(ex.Message, Is.EqualTo($"Cuenta con IBAN: null  no le pertenece"));
         }
-
-        
 }
