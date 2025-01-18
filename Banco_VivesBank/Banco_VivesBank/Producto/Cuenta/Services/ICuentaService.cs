@@ -25,4 +25,6 @@ public interface ICuentaService
     public Task<CuentaResponse> update(string guidClient,string guid, CuentaUpdateRequest cuentaRequest);
     
     public Task<CuentaResponse> delete(string guidClient,string guid);
+    
+    public Task<CuentaResponse> deleteAdmin(string guid);
 }
