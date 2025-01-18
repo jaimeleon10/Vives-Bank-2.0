@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Mappers;
@@ -186,6 +186,7 @@ public class CuentaServiceTests
     {
         var cuentaGuid = Guid.NewGuid().ToString();
         var cuenta = new CuentaEntity { Guid = cuentaGuid, Iban = "ES9876543210987654321098", Saldo = 300, Cliente = new Cliente.Models.Cliente { Guid = "client1" } };
+
         _dbContext.Cuentas.Add(cuenta);
         await _dbContext.SaveChangesAsync();
 
