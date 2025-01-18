@@ -275,4 +275,58 @@ public class CuentaAdminControllerTests
         var objectResult = result.Result as ObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
+    
+    [Test]
+    public async Task Delete()
+    {
+        var guid = "123456789012";
+        var expectedResponse = new CuentaResponse
+        {
+            Guid = guid,
+            Iban = "ES12345678901234567890",
+            Saldo = 1000,
+            TarjetaId = 1,
+            ClienteId = 1,
+            ProductoId = 1
+        };
+
+        _cuentaService.Setup(service => service.deleteAdmin(guid))
+            .ReturnsAsync(expectedResponse);
+
+        var result = await _cuentaController.Delete(guid);
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        var cuentaResponse = okResult.Value as CuentaResponse;
+
+        Assert.That(cuentaResponse, Is.Not.Null);
+        Assert.That(cuentaResponse.Guid, Is.EqualTo(expectedResponse.Guid));
+        Assert.That(cuentaResponse.Iban, Is.EqualTo(expectedResponse.Iban));
+    }
+    
+    [Test]
+    public async Task DeleteNotFound()
+    {
+        _cuentaService.Setup(service => service.deleteAdmin("guid"))
+            .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
+
+        var result = await _cuentaController.Delete("guid");
+        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        
+        var objectResult = result.Result as ObjectResult;
+        Assert.That(objectResult.StatusCode, Is.EqualTo(404));
+    }
+    
+    [Test]
+    public async Task Delete500()
+    {
+        _cuentaService.Setup(service => service.deleteAdmin("guid"))
+            .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
+
+        var result = await _cuentaController.Delete("guid");
+        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        
+        var objectResult = result.Result as ObjectResult;
+        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+    }
 }
