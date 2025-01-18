@@ -210,7 +210,7 @@ public class CuentaServiceTests
     public async Task GetByGuid()
     {
         var cuentaGuid = Guid.NewGuid().ToString();
-        var cuenta = new CuentaEntity { Guid = cuentaGuid, Saldo = 300, Cliente = new Cliente.Models.Cliente { Guid = "client1" } };
+        var cuenta = new CuentaEntity { Guid = cuentaGuid, Saldo = 300, Cliente = new Banco_VivesBank.Cliente.Models.Cliente { Guid = "client1" } };
         _dbContext.Cuentas.Add(cuenta);
         await _dbContext.SaveChangesAsync();
 
