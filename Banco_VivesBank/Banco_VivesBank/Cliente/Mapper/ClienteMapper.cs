@@ -42,7 +42,7 @@ public class ClienteMapper
             Telefono = cliente.Telefono,
             FotoPerfil = cliente.FotoPerfil,
             FotoDni = cliente.FotoDni,
-            UserId = cliente.User.Id,
+            UserId = cliente.User?.Id ?? 0,
             CreatedAt = cliente.CreatedAt,
             UpdatedAt = cliente.UpdatedAt,
             IsDeleted = cliente.IsDeleted

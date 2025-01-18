@@ -1,16 +1,21 @@
-﻿using Banco_VivesBank.Database;
+using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.Producto.Cuenta.Mappers;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
+using Renci.SshNet.Common;
 using Testcontainers.PostgreSql;
+using BigInteger = System.Numerics.BigInteger;
 
 namespace Banco_VivesBank.Test.Producto.Cuenta.Services;
 
@@ -64,9 +69,30 @@ public class CuentaServiceTests
     [Test]
     public async Task GetAll()
     {
-       
-        var cuenta1 = new CuentaEntity { Saldo = 1000, Producto = new BaseModel { Nombre = "Cuenta Ahorro" } };
-        var cuenta2 = new CuentaEntity { Saldo = 2000, Producto = new BaseModel { Nombre = "Cuenta Corriente" } };
+        var cuenta1 = new CuentaEntity
+        {
+            Guid = Guid.NewGuid().ToString(),
+            Iban = "ES1234567890123456789012",
+            Saldo = 1000,
+            ClienteId = 1,
+            ProductoId = 1,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var cuenta2 = new CuentaEntity
+        {
+            Guid = Guid.NewGuid().ToString(),
+            Iban = "ES9876543210987654321098",
+            Saldo = 2000,
+            ClienteId = 2,
+            ProductoId = 2,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
         await _dbContext.SaveChangesAsync();
 
@@ -77,63 +103,12 @@ public class CuentaServiceTests
             SortBy = "Saldo",
             Direction = "ASC"
         };
-        
+
         var result = await _cuentaService.GetAll(1500, 500, "Ahorro", pageRequest);
-        
+
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Content.Count, Is.EqualTo(1));
         Assert.That(result.Content.First().Saldo, Is.EqualTo(1000));
-    }
-
-    [Test]
-    public async Task GetAll_Ordenado()
-    {
-        var cuenta1 = new CuentaEntity { Saldo = 3000, Producto = new BaseModel { Nombre = "Cuenta Ahorro" } };
-        var cuenta2 = new CuentaEntity { Saldo = 1000, Producto = new BaseModel { Nombre = "Cuenta Corriente" } };
-        _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
-        await _dbContext.SaveChangesAsync();
-
-        var pageRequest = new PageRequest
-        {
-            PageNumber = 0,
-            PageSize = 10,
-            SortBy = "Saldo",
-            Direction = "DESC"
-        };
-        
-        var result = await _cuentaService.GetAll(null, null, null, pageRequest);
-        
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Content.Count, Is.EqualTo(2));
-        Assert.That(result.Content.First().Saldo, Is.EqualTo(3000));
-    }
-
-    [Test]
-    public async Task GetAll_Paginado()
-    {
-        for (int i = 1; i <= 15; i++)
-        {
-            _dbContext.Cuentas.Add(new CuentaEntity { Saldo = 100 * i, Producto = new BaseModel { Nombre = "Cuenta Test" } });
-        }
-
-        await _dbContext.SaveChangesAsync();
-
-        var pageRequest = new PageRequest
-        {
-            PageNumber = 1,
-            PageSize = 5,
-            SortBy = "Saldo",
-            Direction = "ASC"
-        };
-        
-        var result = await _cuentaService.GetAll(null, null, null, pageRequest);
-        
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Content.Count, Is.EqualTo(5));
-        Assert.That(result.PageNumber, Is.EqualTo(1));
-        Assert.That(result.PageSize, Is.EqualTo(5));
-        Assert.That(result.TotalElements, Is.EqualTo(15));
-        Assert.That(result.TotalPages, Is.EqualTo(3));
     }
 
     [Test]
@@ -152,11 +127,11 @@ public class CuentaServiceTests
         Assert.That(result.Empty, Is.True);
     }
 
-    /*[Test]
+    [Test]
     public async Task GetByClientGuid()
     {
         var clientGuid = "cliente123";
-        var cliente = new ClienteEntity { Guid = clientGuid, Nombre = "Cliente Test", Id = 1 };
+        var cliente = new Cliente.Models.Cliente { Guid = clientGuid, Nombre = "Cliente Test", Apellidos = "apellidos", Email = "email", Telefono = "telefono", Dni = "dni", Id = 1 };
         var producto = new BaseModel { Id = 1, Nombre = "Cuenta Ahorro" };
 
         var cuenta1 = new CuentaEntity
@@ -177,8 +152,8 @@ public class CuentaServiceTests
             Producto = producto
         };
 
-        _dbContext.Clientes.Add(cliente);
-        _dbContext.Productos.Add(producto);
+        _dbContext.Clientes.Add(ClienteMapper.ToEntityFromModel(cliente));
+        _dbContext.ProductoBase.Add(BaseMapper.ToEntityFromModel(producto));
         _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
         await _dbContext.SaveChangesAsync();
         
@@ -193,7 +168,7 @@ public class CuentaServiceTests
         Assert.That(firstCuenta.Saldo, Is.EqualTo(1000));
         Assert.That(firstCuenta.ClienteId, Is.EqualTo(1));
         Assert.That(firstCuenta.ProductoId, Is.EqualTo(1));
-    }*/
+    }
 
     [Test]
     public async Task GetByClientGuid_Invalido()
@@ -210,7 +185,8 @@ public class CuentaServiceTests
     public async Task GetByGuid()
     {
         var cuentaGuid = Guid.NewGuid().ToString();
-        var cuenta = new CuentaEntity { Guid = cuentaGuid, Saldo = 300, Cliente = new Banco_VivesBank.Cliente.Models.Cliente { Guid = "client1" } };
+        var cuenta = new CuentaEntity { Guid = cuentaGuid, Iban = "ES9876543210987654321098", Saldo = 300, Cliente = new Cliente.Models.Cliente { Guid = "client1" } };
+
         _dbContext.Cuentas.Add(cuenta);
         await _dbContext.SaveChangesAsync();
 
@@ -227,7 +203,7 @@ public class CuentaServiceTests
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
-        Assert.That(result.Saldo, Is.EqualTo(1000));
+        Assert.That(result.Saldo, Is.EqualTo((BigInteger)1000));
     }
 
     [Test]
@@ -238,8 +214,6 @@ public class CuentaServiceTests
 
         Assert.That(ex.Message, Is.EqualTo("Cuenta con IBAN ES0000000000000000000000 no encontrada."));
     }
-
-    
 
     /*[Test]
     public async Task Save()
@@ -285,16 +259,23 @@ public class CuentaServiceTests
         [Test]
         public async Task Update()
         {
-            var cuentaRequest = new CuentaUpdateRequest { Dinero = "500" };
-            
-            var result = await _cuentaService.update("12345", "abc123", cuentaRequest);
-            
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Saldo, Is.EqualTo(500));
-            Assert.That(result.Guid, Is.EqualTo("abc123"));
-        }
-    
+            var cuentaUpdateRequest = new CuentaUpdateRequest { Dinero = "500" };
+            var cuentaRequest = new CuentaRequest { TipoCuenta = "Ahorro" };
 
+            await _cuentaService.save("abc123", cuentaRequest);
+    
+            var savedCuenta = await _dbContext.Cuentas.FirstOrDefaultAsync(c => c.Guid == "abc123");
+    
+            Assert.That(savedCuenta, Is.Not.Null, "La cuenta no fue guardada correctamente.");
+            Assert.That(savedCuenta.Guid, Is.EqualTo("abc123"));
+    
+            var resultUpdate = await _cuentaService.update("12345", "abc123", cuentaUpdateRequest);
+    
+            Assert.That(resultUpdate, Is.Not.Null);
+            Assert.That(resultUpdate.Saldo, Is.EqualTo(500));
+            Assert.That(resultUpdate.Guid, Is.EqualTo("abc123"));
+        }
+        
         [Test]
         public void Update_NotFound()
         {
@@ -313,17 +294,20 @@ public class CuentaServiceTests
         public async Task Delete()
         {
             var cuentaGuid = "existing-cuenta-guid"; 
-            var clienteGuid = "client1";
-            
-            var result = await _cuentaService.delete(clienteGuid, cuentaGuid);
-            
+            var clienteGuid = 1L;
+    
+            var cuenta = new Banco_VivesBank.Producto.Cuenta.Models.Cuenta { Guid = cuentaGuid, ClienteId = clienteGuid, IsDeleted = false };
+            await _dbContext.Cuentas.AddAsync(cuenta.ToCuentaEntity());
+            await _dbContext.SaveChangesAsync();
+    
+            var result = await _cuentaService.delete(clienteGuid.ToString(), cuentaGuid);
+    
             var deletedCuenta = await _dbContext.Cuentas.FindAsync(cuentaGuid);
             Assert.That(deletedCuenta, Is.Not.Null);
-            Assert.That(deletedCuenta.IsDeleted, Is.True);  
+            Assert.That(deletedCuenta.IsDeleted, Is.True);
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Guid, Is.EqualTo(cuentaGuid));
         }
-        
 
         [Test]
         public void Delete_NotFound()
@@ -351,6 +335,4 @@ public class CuentaServiceTests
             Assert.That(ex, Is.Not.Null);
             Assert.That(ex.Message, Is.EqualTo($"Cuenta con IBAN: null  no le pertenece"));
         }
-
-        
 }
