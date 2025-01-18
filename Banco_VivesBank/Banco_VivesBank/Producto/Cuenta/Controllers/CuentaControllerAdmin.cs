@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
@@ -119,5 +120,28 @@ public class CuentaControllerAdmin : ControllerBase
 
         }
 
+    }
+    
+    [HttpDelete("{guid:length(12)}")]
+    public async Task<ActionResult<CuentaResponse>> Delete(string guid)
+    {
+        _logger.LogInformation($"Eliminando cuenta {guid}",guid);
+        try
+        {
+
+            var cuenta = await _cuentaService.deleteAdmin(guid);
+            return Ok(cuenta);
+        }
+        catch (CuentaNoEncontradaException e)
+        {
+            _logger.LogError(e, "No se ha encontrado la cuenta con guid {guid}.", guid);
+            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
+
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error al borrar la cuenta {guid}.", guid);
+            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
+        }
     }
 }
