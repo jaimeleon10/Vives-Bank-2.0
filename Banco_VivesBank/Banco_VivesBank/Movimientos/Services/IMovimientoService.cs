@@ -1,6 +1,6 @@
 ﻿using Banco_VivesBank.Movimientos.Models;
 
-namespace Vives_Bank_Net.Rest.Movimientos.Services;
+namespace Banco_VivesBank.Movimientos.Services;
 
 public interface IMovimientoService
 {

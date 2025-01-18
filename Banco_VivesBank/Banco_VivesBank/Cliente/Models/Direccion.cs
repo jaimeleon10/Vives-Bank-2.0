@@ -7,11 +7,13 @@ namespace Banco_VivesBank.Cliente.Models;
 [NotMapped] 
 public class Direccion
 {
-    [Required(ErrorMessage = "La calle no puede estar vacia")]
+    [Required(ErrorMessage = "La calle no puede estar vacía")]
+    [MaxLength(150, ErrorMessage = "La calle debe tener como máximo 150 caracteres")]
     [JsonPropertyName("calle")]
     public string Calle { get; set; }
 
-    [Required(ErrorMessage = "El número no puede estar vacio")]
+    [Required(ErrorMessage = "El número de calle no puede estar vacio")]
+    [MaxLength(5, ErrorMessage = "El numero de la direccion debe tener como máximo 4 caracteres")]
     [JsonPropertyName("numero")]
     public string Numero { get; set; }
 
@@ -21,10 +23,12 @@ public class Direccion
     public string CodigoPostal { get; set; }
 
     [Required(ErrorMessage = "El piso no puede estar vacio")]
+    [MaxLength(3, ErrorMessage = "El piso debe tener como máximo 3 caracteres")]
     [JsonPropertyName("piso")]
     public string Piso { get; set; }
 
     [Required(ErrorMessage = "La letra no puede estar vacia")]
+    [MaxLength(2, ErrorMessage = "La letra de la direccion debe tener como máximo 2 caracteres")]
     [JsonPropertyName("letra")]
     public string Letra { get; set; }
 }

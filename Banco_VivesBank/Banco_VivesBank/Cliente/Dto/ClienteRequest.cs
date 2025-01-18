@@ -2,7 +2,7 @@
 
 namespace Banco_VivesBank.Cliente.Dto;
 
-public class ClienteRequestUpdate
+public class ClienteRequest
 {
     [Required(ErrorMessage = "El DNI es obligatorio")]
     [RegularExpression(@"^\d{8}[TRWAGMYFPDXBNJZSQVHLCKE]$", ErrorMessage = "El DNI debe tener 8 números seguidos de una letra en mayúsculas")]
@@ -43,6 +43,9 @@ public class ClienteRequestUpdate
     [Required(ErrorMessage = "El telefono es obligatorio")]
     [RegularExpression(@"^[679]\d{8}$", ErrorMessage = "Debe ingresar un teléfono válido.")]
     public string Telefono { get; set; }
+    
+    [Required(ErrorMessage = "El guid del usuario es obligatorio")]
+    public string UserGuid { get; set; }
     
     public bool IsDeleted { get; set; } = false;
 }

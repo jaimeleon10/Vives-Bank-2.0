@@ -4,7 +4,9 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
+using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Base.Services;
+using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
@@ -17,7 +19,6 @@ using MongoDB.Driver;
 using Serilog;
 using Serilog.Core;
 using StackExchange.Redis;
-using Vives_Bank_Net.Rest.Movimientos.Services;
 
 var environment = InitLocalEnvironment();
 
@@ -90,11 +91,10 @@ WebApplicationBuilder InitServices()
     // Services
     myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
     myBuilder.Services.AddScoped<IUserService, UserService>();
-    myBuilder.Services.AddSingleton<UserMapper>();
     myBuilder.Services.AddScoped<IClienteService, ClienteService>();
-    myBuilder.Services.AddSingleton<ClienteMapper>();
     myBuilder.Services.AddScoped<IBaseService, BaseService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
+    myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
 
     // Base de datos en PostgreSQL
     myBuilder.Services.AddDbContext<GeneralDbContext>(options =>

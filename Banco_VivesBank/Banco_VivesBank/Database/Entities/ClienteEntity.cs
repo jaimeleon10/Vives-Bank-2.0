@@ -2,13 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Banco_VivesBank.Cliente.Models;
+using Banco_VivesBank.Producto.Cuenta.Models;
 
 namespace Banco_VivesBank.Database.Entities;
 
 [Table("Clientes") ]
 public class ClienteEntity
 {
-
     public const long NewId = 0; 
     
     [Key]
@@ -23,20 +23,22 @@ public class ClienteEntity
     public string Dni { get; set; }
     
     [Required]
-    [MaxLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres")]
+    [MaxLength(50, ErrorMessage = "El nombre debe tener como máximo 50 caracteres")]
     public string Nombre { get; set; }
 
     [Required]
-    [MaxLength(100, ErrorMessage = "Los apellidos no pueden exceder los 100 caracteres")]
+    [MaxLength(50, ErrorMessage = "Los apellidos debe tener como máximo 50 caracteres")]
     public string Apellidos { get; set; }
 
     [Required]
-    public Direccion Direccion { get; set; }
+    public Direccion Direccion { get; set; } // TODO -> NO SE AÑADE A LA BBDD PORQUE ES UN CAMPO COMPLEJO, INVESTIGAR !!!
     
     [Required]
+    [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "El email debe ser válido")]
     public string Email { get; set; }
     
     [Required]
+    [RegularExpression(@"^[679]\d{8}$", ErrorMessage = "Debe ingresar un teléfono válido.")]
     public string Telefono { get; set; }
     
     [DefaultValue("https://example.com/fotoPerfil.jpg")]
@@ -45,11 +47,11 @@ public class ClienteEntity
     [DefaultValue("https://example.com/fotoDni.jpg")]
     public string FotoDni { get; set; } = "https://example.com/fotoDni.jpg";
     
-   // public ICollection<Cuenta.Models.Cuenta> Cuentas { get; set; } = new HashSet<Cuenta.Models.Cuenta>();
+    public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
    
-    //[Column("user_id")]
-    // o al reves [ForeignKey("User")
-   // public User User { get; set; }
+    [ForeignKey("User")]
+    [Column("user_id")]
+    public long UserId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Vives_Bank_Net.Rest.Movimientos.Services;
+namespace Banco_VivesBank.Movimientos.Services;
 
 public class MovimientoService : IMovimientoService
 {

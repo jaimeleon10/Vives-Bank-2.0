@@ -1,6 +1,6 @@
-﻿using GraphQL;
+﻿using Banco_VivesBank.Movimientos.Services;
+using GraphQL;
 using GraphQL.Types;
-using Vives_Bank_Net.Rest.Movimientos.Services;
 
 namespace Banco_VivesBank.GraphQL;
 
