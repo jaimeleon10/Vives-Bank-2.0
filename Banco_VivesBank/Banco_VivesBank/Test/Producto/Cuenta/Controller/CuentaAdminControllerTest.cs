@@ -26,35 +26,31 @@ public class CuentaAdminControllerTests
         _cuentaController = new CuentaControllerAdmin(_cuentaService.Object, _paginationLinks.Object, _mockLogger.Object);
     }
     
-     [Test]
+    [Test]
     public async Task GetAll()
     {
-        var pageResponse = new PageResponse<CuentaResponse>
+        var expectedResponse = new PageResponse<CuentaResponse>
         {
-            Content = new List<CuentaResponse>(),
-            TotalElements = 10,
-            TotalPages = 1,
             PageNumber = 0,
-            PageSize = 10
+            PageSize = 10,
+            SortBy = "id",
+            Direction = "asc",
         };
 
-        _cuentaService.Setup(service => service.GetAll(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
-            .ReturnsAsync(pageResponse);
+        _cuentaService
+            .Setup(service => service.GetAll(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+            .ReturnsAsync(expectedResponse);
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Scheme = "http";
-        httpContext.Request.Host = new HostString("localhost");
-        _cuentaController.ControllerContext.HttpContext = httpContext;
+        var baseUri = new Uri("https://localhost");
+        _paginationLinks
+            .Setup(utils => utils.CreateLinkHeader(It.IsAny<PageResponse<CuentaResponse>>(), baseUri))
+            .Returns("link-header");
 
-        var mockPaginationLinks = new Mock<PaginationLinksUtils>();
+        _cuentaController.ControllerContext.HttpContext = new DefaultHttpContext();
 
-        _cuentaController = new CuentaControllerAdmin(_cuentaService.Object, mockPaginationLinks.Object, _mockLogger.Object);
+        var result = await _cuentaController.Getall(saldoMax: null, saldoMin: null, tipoCuenta: null, page: 0, size: 10, sortBy: "id", direction: "asc");
 
-        var result = await _cuentaController.Getall();
-
-        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        Assert.That(result.Value, Is.TypeOf<PageResponse<CuentaResponse>>());
-        Assert.That(result.Value, Is.EqualTo(pageResponse));
+        Assert.That(result, Is.TypeOf<ActionResult<PageResponse<CuentaResponse>>>());
     }
     
     [Test]
