@@ -55,7 +55,7 @@ public class StorageJson : IStorageJson
             _logger.LogError(fnfEx, "Archivo no encontrado");
             throw new JsonNotFoundException($"No se encontró el archivo para leer los datos de {typeof(T).Name}.", fnfEx);
         }
-        catch (JsonException jsonEx)
+        catch (JsonReaderException jsonEx)
         {
             _logger.LogError(jsonEx, "Error al leer el archivo");
             throw new JsonReadException($"Error al procesar el archivo JSON de {typeof(T).Name}.", jsonEx);

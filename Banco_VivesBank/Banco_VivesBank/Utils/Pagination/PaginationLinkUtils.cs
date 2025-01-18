@@ -5,7 +5,7 @@ namespace Banco_VivesBank.Utils.Pagination;
 
 public class PaginationLinksUtils
 {
-    public string CreateLinkHeader<T>(PageResponse<T> page, Uri baseUri)
+    public virtual string CreateLinkHeader<T>(PageResponse<T> page, Uri baseUri)
     {
         var linkHeader = new StringBuilder();
 
