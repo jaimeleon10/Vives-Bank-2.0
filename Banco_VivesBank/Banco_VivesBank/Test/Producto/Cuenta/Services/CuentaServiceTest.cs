@@ -1,5 +1,7 @@
-﻿using Banco_VivesBank.Database;
+﻿using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
@@ -11,7 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
+using Renci.SshNet.Common;
 using Testcontainers.PostgreSql;
+using BigInteger = System.Numerics.BigInteger;
 
 namespace Banco_VivesBank.Test.Producto.Cuenta.Services;
 
@@ -123,11 +127,11 @@ public class CuentaServiceTests
         Assert.That(result.Empty, Is.True);
     }
 
-    /*[Test]
+    [Test]
     public async Task GetByClientGuid()
     {
         var clientGuid = "cliente123";
-        var cliente = new ClienteEntity { Guid = clientGuid, Nombre = "Cliente Test", Id = 1 };
+        var cliente = new Cliente.Models.Cliente { Guid = clientGuid, Nombre = "Cliente Test", Id = 1 };
         var producto = new BaseModel { Id = 1, Nombre = "Cuenta Ahorro" };
 
         var cuenta1 = new CuentaEntity
@@ -148,8 +152,8 @@ public class CuentaServiceTests
             Producto = producto
         };
 
-        _dbContext.Clientes.Add(cliente);
-        _dbContext.Productos.Add(producto);
+        _dbContext.Clientes.Add(ClienteMapper.ToEntityFromModel(cliente));
+        _dbContext.ProductoBase.Add(BaseMapper.ToEntityFromModel(producto));
         _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
         await _dbContext.SaveChangesAsync();
         
@@ -164,7 +168,7 @@ public class CuentaServiceTests
         Assert.That(firstCuenta.Saldo, Is.EqualTo(1000));
         Assert.That(firstCuenta.ClienteId, Is.EqualTo(1));
         Assert.That(firstCuenta.ProductoId, Is.EqualTo(1));
-    }*/
+    }
 
     [Test]
     public async Task GetByClientGuid_Invalido()
@@ -198,7 +202,7 @@ public class CuentaServiceTests
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
-        Assert.That(result.Saldo, Is.EqualTo(1000));
+        Assert.That(result.Saldo, Is.EqualTo((BigInteger)1000));
     }
 
     [Test]
