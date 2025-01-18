@@ -21,15 +21,7 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllAsync()
     {
-        try
-        { 
-            return Ok(await _userService.GetAllAsync());
-        }
-        catch (UserNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "No se han encontrado usuarios");
-            return NotFound(ex.Message);
-        }
+        return Ok(await _userService.GetAllAsync());
     }
 
     [HttpGet("{guid}")]
@@ -81,7 +73,7 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> DeleteByIdAsync(string guid)
     {
         var userResponse = await _userService.DeleteByIdAsync(guid);
-        if (userResponse is null) return NotFound($"No se ha podido actualizar el usuario con guid: {guid}"); 
+        if (userResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
         return Ok(userResponse);
     }
 }

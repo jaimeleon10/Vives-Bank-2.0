@@ -7,7 +7,7 @@ namespace Banco_VivesBank.Producto.Base.Controllers;
 
 
 [ApiController]
-[Route("api/productoBase")]
+[Route("api/productosBase")]
 public class BaseController : ControllerBase
 {
     private readonly IBaseService _baseService;

@@ -24,7 +24,7 @@ namespace Banco_VivesBank.User.Mapper
             {
                 Id = userEntity.Id,
                 Guid = userEntity.Guid,
-                Username = userEntity.UserName,
+                Username = userEntity.Username,
                 Password = userEntity.Password,
                 Role = userEntity.Role,
                 IsDeleted = userEntity.IsDeleted,
@@ -39,7 +39,7 @@ namespace Banco_VivesBank.User.Mapper
             {
                 Id = usuario.Id,
                 Guid = usuario.Guid,
-                UserName = usuario.Username,
+                Username = usuario.Username,
                 Password = usuario.Password,
                 Role = usuario.Role,
                 IsDeleted = usuario.IsDeleted,
@@ -61,14 +61,22 @@ namespace Banco_VivesBank.User.Mapper
             };
         }
         
-        public static IEnumerable<Models.User> ToModelListFromEntityList(IEnumerable<UserEntity> userEntityList)
+        public static UserResponse ToResponseFromEntity(UserEntity userEntity)
         {
-            return userEntityList.Select(userEntity => ToModelFromEntity(userEntity));
+            return new UserResponse
+            {
+                Guid = userEntity.Guid,
+                Username = userEntity.Username,
+                Role = userEntity.Role.ToString(),
+                CreatedAt = userEntity.CreatedAt,
+                UpdatedAt = userEntity.UpdatedAt,
+                IsDeleted = userEntity.IsDeleted
+            };
         }
         
-        public static IEnumerable<UserResponse> ToResponseListFromModelList(IEnumerable<Models.User> userList)
+        public static IEnumerable<UserResponse> ToResponseListFromEntityList(IEnumerable<UserEntity> userEntityList)
         {
-            return userList.Select(user => ToResponseFromModel(user));
+            return userEntityList.Select(userEntity => ToResponseFromEntity(userEntity));
         }
     }
 

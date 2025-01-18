@@ -6,7 +6,7 @@ namespace Banco_VivesBank.Producto.Tarjeta.Controllers;
 
 
 [ApiController]
-[Route ("api/tarjeta")]
+[Route ("api/tarjetas")]
 public class TarjetaController : ControllerBase
 {
     private readonly ITarjetaService _tarjetaService;

@@ -18,7 +18,7 @@ namespace Banco_VivesBank.Database.Entities
         public string Guid { get; set; } = null!;
 
         [Required]
-        public string UserName { get; set; } = null!;
+        public string Username { get; set; } = null!;
 
         [Required]
         public string Password { get; set; } = null!;
