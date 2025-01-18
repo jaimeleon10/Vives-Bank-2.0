@@ -1,8 +1,8 @@
 ﻿namespace Banco_VivesBank.Producto.Base.Dto;
 
-public class BaseResponseDto
+public class BaseResponse
 {
-    public long Id { get; set; }
+    public string Guid { get; set; }
     public string Nombre { get; set; }
     public string Descripcion { get; set; }
     public string TipoProducto { get; set; }
