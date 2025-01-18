@@ -1,97 +1,356 @@
-﻿using Banco_VivesBank.Producto.Cuenta.Exceptions;
+﻿using Banco_VivesBank.Database;
+using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Producto.Base.Services;
+using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
+using Testcontainers.PostgreSql;
 
 namespace Banco_VivesBank.Test.Producto.Cuenta.Services;
-/*
+
 [TestFixture]
+[TestOf(typeof(CuentaService))]
 public class CuentaServiceTests
 {
-    private Mock<CuentaDbContext> _mockDbContext;
-    private Mock<ILogger<CuentaService>> _mockLogger;
+    private PostgreSqlContainer _postgreSqlContainer;
+    private GeneralDbContext _dbContext;
     private CuentaService _cuentaService;
 
-    [SetUp]
-    public void SetUp()
+    [OneTimeSetUp]
+    public async Task Setup()
     {
-        _mockDbContext = new Mock<CuentaDbContext>();
-        _mockLogger = new Mock<ILogger<CuentaService>>();
-        _cuentaService = new CuentaService(_mockDbContext.Object, _mockLogger.Object);
+        _postgreSqlContainer = new PostgreSqlBuilder()
+            .WithImage("postgres:15-alpine")
+            .WithDatabase("testdb")
+            .WithUsername("testuser")
+            .WithPassword("testpassword")
+            .WithPortBinding(5432, true)
+            .Build();
+
+        await _postgreSqlContainer.StartAsync();
+
+        var options = new DbContextOptionsBuilder<GeneralDbContext>()
+            .UseNpgsql(_postgreSqlContainer.GetConnectionString())
+            .Options;
+
+        _dbContext = new GeneralDbContext(options);
+        await _dbContext.Database.EnsureCreatedAsync();
+
+        var baseService = new Mock<IBaseService>().Object;
+        _cuentaService = new CuentaService(_dbContext, NullLogger<CuentaService>.Instance, new Mock<IBaseService>().Object);
+    }
+
+    [OneTimeTearDown]
+    public async Task Teardown()
+    {
+        if (_dbContext != null)
+        {
+            await _dbContext.DisposeAsync();
+        }
+
+        if (_postgreSqlContainer != null)
+        {
+            await _postgreSqlContainer.StopAsync();
+            await _postgreSqlContainer.DisposeAsync();
+        }
     }
 
     [Test]
-    public async Task GetByGuid_CuentaExiste_RetornaCuentaResponse()
+    public async Task GetAll()
     {
-        // Arrange
-        var guid = "test-guid";
-        var mockCuenta = new Banco_VivesBank.Producto.Cuenta.Models.Cuenta { Guid = guid };
-        var mockDbSet = CreateMockDbSet(new List<Banco_VivesBank.Producto.Cuenta.Models.Cuenta> { mockCuenta });
-        _mockDbContext.Setup(x => x.Cuentas).Returns(mockDbSet.Object);
+       
+        var cuenta1 = new CuentaEntity { Saldo = 1000, Producto = new BaseModel { Nombre = "Cuenta Ahorro" } };
+        var cuenta2 = new CuentaEntity { Saldo = 2000, Producto = new BaseModel { Nombre = "Cuenta Corriente" } };
+        _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
+        await _dbContext.SaveChangesAsync();
 
-        // Act
-        var result = await _cuentaService.getByGuid(guid);
-
-        // Assert
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "Saldo",
+            Direction = "ASC"
+        };
+        
+        var result = await _cuentaService.GetAll(1500, 500, "Ahorro", pageRequest);
+        
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.EqualTo(guid));
+        Assert.That(result.Content.Count, Is.EqualTo(1));
+        Assert.That(result.Content.First().Saldo, Is.EqualTo(1000));
     }
 
     [Test]
-    public async Task GetByGuid_CuentaNoExiste_LanzaExcepcion()
+    public async Task GetAll_Ordenado()
     {
-        // Arrange
-        var guid = "test-guid";
-        var mockDbSet = CreateMockDbSet(new List<Cuenta>());
-        _mockDbContext.Setup(x => x.Cuentas).Returns(mockDbSet.Object);
+        var cuenta1 = new CuentaEntity { Saldo = 3000, Producto = new BaseModel { Nombre = "Cuenta Ahorro" } };
+        var cuenta2 = new CuentaEntity { Saldo = 1000, Producto = new BaseModel { Nombre = "Cuenta Corriente" } };
+        _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
+        await _dbContext.SaveChangesAsync();
 
-        // Act & Assert
-        Assert.ThrowsAsync<CuentaNoEncontradaException>(async () => await _cuentaService.getByGuid(guid));
-      
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "Saldo",
+            Direction = "DESC"
+        };
+        
+        var result = await _cuentaService.GetAll(null, null, null, pageRequest);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Content.Count, Is.EqualTo(2));
+        Assert.That(result.Content.First().Saldo, Is.EqualTo(3000));
     }
 
     [Test]
-    public async Task GetByIban_CuentaExiste_RetornaCuentaResponse()
+    public async Task GetAll_Paginado()
     {
-        // Arrange
-        var iban = "test-iban";
-        var mockCuenta = new Cuenta { Iban = iban };
-        var mockDbSet = CreateMockDbSet(new List<Cuenta> { mockCuenta });
-        _mockDbContext.Setup(x => x.Cuentas).Returns(mockDbSet.Object);
+        for (int i = 1; i <= 15; i++)
+        {
+            _dbContext.Cuentas.Add(new CuentaEntity { Saldo = 100 * i, Producto = new BaseModel { Nombre = "Cuenta Test" } });
+        }
 
-        // Act
-        var result = await _cuentaService.getByIban(iban);
+        await _dbContext.SaveChangesAsync();
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.AreEqual(iban, result.Iban);
-        _mockLogger.Verify(x => x.LogInformation(It.IsAny<string>()), Times.Once);
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 1,
+            PageSize = 5,
+            SortBy = "Saldo",
+            Direction = "ASC"
+        };
+        
+        var result = await _cuentaService.GetAll(null, null, null, pageRequest);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Content.Count, Is.EqualTo(5));
+        Assert.That(result.PageNumber, Is.EqualTo(1));
+        Assert.That(result.PageSize, Is.EqualTo(5));
+        Assert.That(result.TotalElements, Is.EqualTo(15));
+        Assert.That(result.TotalPages, Is.EqualTo(3));
     }
 
     [Test]
-    public async Task GetByIban_CuentaNoExiste_LanzaExcepcion()
+    public async Task GetAll_NoExisteTipoCuenta()
     {
-        // Arrange
-        var iban = "test-iban";
-        var mockDbSet = CreateMockDbSet(new List<Cuenta>());
-        _mockDbContext.Setup(x => x.Cuentas).Returns(mockDbSet.Object);
-
-        // Act & Assert
-        Assert.ThrowsAsync<CuentaNoEncontradaException>(async () => await _cuentaService.getByIban(iban));
-        _mockLogger.Verify(x => x.LogError(It.IsAny<string>()), Times.Once);
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10
+        };
+        
+        var result = await _cuentaService.GetAll(5000, 4000, "NoExistente", pageRequest);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Content.Count, Is.EqualTo(0));
+        Assert.That(result.Empty, Is.True);
     }
 
-    private Mock<DbSet<T>> CreateMockDbSet<T>(List<T> data) where T : class
+    /*[Test]
+    public async Task GetByClientGuid()
     {
-        var queryableData = data.AsQueryable();
-        var mockDbSet = new Mock<DbSet<T>>();
+        var clientGuid = "cliente123";
+        var cliente = new ClienteEntity { Guid = clientGuid, Nombre = "Cliente Test", Id = 1 };
+        var producto = new BaseModel { Id = 1, Nombre = "Cuenta Ahorro" };
 
-        mockDbSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryableData.Provider);
-        mockDbSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryableData.Expression);
-        mockDbSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryableData.ElementType);
-        mockDbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(queryableData.GetEnumerator());
+        var cuenta1 = new CuentaEntity
+        {
+            Guid = "cuenta1",
+            Iban = "IBAN001",
+            Saldo = 1000,
+            Cliente = cliente,
+            Producto = producto
+        };
 
-        return mockDbSet;
+        var cuenta2 = new CuentaEntity
+        {
+            Guid = "cuenta2",
+            Iban = "IBAN002",
+            Saldo = 2000,
+            Cliente = cliente,
+            Producto = producto
+        };
+
+        _dbContext.Clientes.Add(cliente);
+        _dbContext.Productos.Add(producto);
+        _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _cuentaService.getByClientGuid(clientGuid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(2));
+
+        var firstCuenta = result.First();
+        Assert.That(firstCuenta.Guid, Is.EqualTo("cuenta1"));
+        Assert.That(firstCuenta.Iban, Is.EqualTo("IBAN001"));
+        Assert.That(firstCuenta.Saldo, Is.EqualTo(1000));
+        Assert.That(firstCuenta.ClienteId, Is.EqualTo(1));
+        Assert.That(firstCuenta.ProductoId, Is.EqualTo(1));
+    }*/
+
+    [Test]
+    public async Task GetByClientGuid_Invalido()
+    {
+        var invalidGuid = "noexiste";
+        
+        var result = await _cuentaService.getByClientGuid(invalidGuid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(0));
     }
-}*/
+
+    [Test]
+    public async Task GetByGuid()
+    {
+        var cuentaGuid = Guid.NewGuid().ToString();
+        var cuenta = new CuentaEntity { Guid = cuentaGuid, Saldo = 300, Cliente = new Cliente.Models.Cliente { Guid = "client1" } };
+        _dbContext.Cuentas.Add(cuenta);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _cuentaService.getByGuid(cuentaGuid);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(cuentaGuid));
+    }
+    
+    [Test]
+    public async Task GetByIban()
+    {
+        var result = await _cuentaService.getByIban("ES1234567890123456789012");
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
+        Assert.That(result.Saldo, Is.EqualTo(1000));
+    }
+
+    [Test]
+    public async Task GetByIban_CuentaNotExits()
+    {
+        var ex = Assert.ThrowsAsync<CuentaNoEncontradaException>(async () =>
+            await _cuentaService.getByIban("ES0000000000000000000000"));
+
+        Assert.That(ex.Message, Is.EqualTo("Cuenta con IBAN ES0000000000000000000000 no encontrada."));
+    }
+
+    
+
+    /*[Test]
+    public async Task Save()
+    {
+        var cuentaRequest = new CuentaRequest { TipoCuenta = "Ahorro" };
+        var clientGuid = "client1";
+        var result = await _cuentaService.save(clientGuid, cuentaRequest);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.TipoCuenta, Is.EqualTo("Ahorro"));
+    }*/
+
+    [Test]
+        public async Task Update_SaldoInsuficienteException()
+        {
+            
+            var ex = Assert.ThrowsAsync<SaldoInsuficienteException>(async () =>
+                await _cuentaService.update("12345", "nonexistent-guid", new CuentaUpdateRequest { Dinero = "500" }));
+
+            Assert.That(ex.Message, Is.EqualTo("La cuenta con el GUID nonexistent-guid no existe."));
+        }
+
+        [Test]
+        public async Task Update_CuentaNoPertenecienteAlUsuarioException()
+        {
+            var ex = Assert.ThrowsAsync<CuentaNoPertenecienteAlUsuarioException>(async () =>
+                await _cuentaService.update("wrong-guid", "abc123", new CuentaUpdateRequest { Dinero = "500" }));
+
+            Assert.That(ex.Message, Is.EqualTo("Cuenta con IBAN: ES1234567890123456789012 no le pertenece"));
+        }
+
+        [Test]
+        public async Task Update_SaldoInvalidoException()
+        {
+            var ex = Assert.ThrowsAsync<SaldoInvalidoException>(async () =>
+                await _cuentaService.update("12345", "abc123", new CuentaUpdateRequest { Dinero = "invalidSaldo" }));
+
+            Assert.That(ex.Message, Is.EqualTo("El saldo proporcionado no es válido."));
+        }
+
+        
+
+        [Test]
+        public async Task Update()
+        {
+            var cuentaRequest = new CuentaUpdateRequest { Dinero = "500" };
+            
+            var result = await _cuentaService.update("12345", "abc123", cuentaRequest);
+            
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Saldo, Is.EqualTo(500));
+            Assert.That(result.Guid, Is.EqualTo("abc123"));
+        }
+    
+
+        [Test]
+        public void Update_NotFound()
+        {
+            var nonExistingCuentaGuid = "CuentaNoExiste";
+            var updateRequest = new CuentaUpdateRequest { Dinero = "400" };
+
+            var ex = Assert.ThrowsAsync<CuentaNoEncontradaException>(async () =>
+                await _cuentaService.update("client1", nonExistingCuentaGuid, updateRequest)
+            );
+
+            Assert.That(ex, Is.Not.Null);
+            Assert.That(ex.Message, Is.EqualTo($"Cuenta with GUID {nonExistingCuentaGuid} not found"));
+        }
+        
+        [Test]
+        public async Task Delete()
+        {
+            var cuentaGuid = "existing-cuenta-guid"; 
+            var clienteGuid = "client1";
+            
+            var result = await _cuentaService.delete(clienteGuid, cuentaGuid);
+            
+            var deletedCuenta = await _dbContext.Cuentas.FindAsync(cuentaGuid);
+            Assert.That(deletedCuenta, Is.Not.Null);
+            Assert.That(deletedCuenta.IsDeleted, Is.True);  
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Guid, Is.EqualTo(cuentaGuid));
+        }
+        
+
+        [Test]
+        public void Delete_NotFound()
+        {
+            var nonExistingCuentaGuid = "CuentaNoExiste";
+
+            var ex = Assert.ThrowsAsync<SaldoInsuficienteException>(async () =>
+                await _cuentaService.delete("client1", nonExistingCuentaGuid)
+            );
+
+            Assert.That(ex, Is.Not.Null);
+            Assert.That(ex.Message, Is.EqualTo($"La cuenta con el GUID {nonExistingCuentaGuid} no existe."));
+        }
+
+        [Test]
+        public void Delete_CuentaNoPertenecienteAlUsuarioException()
+        {
+            var cuentaGuid = "existing-cuenta-guid"; 
+            var wrongClientGuid = "wrong-client-guid"; 
+
+            var ex = Assert.ThrowsAsync<CuentaNoPertenecienteAlUsuarioException>(async () =>
+                await _cuentaService.delete(wrongClientGuid, cuentaGuid)
+            );
+
+            Assert.That(ex, Is.Not.Null);
+            Assert.That(ex.Message, Is.EqualTo($"Cuenta con IBAN: null  no le pertenece"));
+        }
+
+        
+}
