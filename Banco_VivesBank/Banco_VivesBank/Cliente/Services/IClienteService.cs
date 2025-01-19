@@ -9,4 +9,6 @@ public interface IClienteService
     public Task<ClienteResponse> CreateAsync(ClienteRequest request);
     public Task<ClienteResponse?> UpdateAsync(string guid, ClienteRequestUpdate requestUpdate);
     public Task<ClienteResponse?> DeleteByGuidAsync(string guid);
+    public Task<Models.Cliente?> GetClienteModelByGuid(string guid);
+    public Task<Models.Cliente?> GetClienteModelById(long id);
 }
