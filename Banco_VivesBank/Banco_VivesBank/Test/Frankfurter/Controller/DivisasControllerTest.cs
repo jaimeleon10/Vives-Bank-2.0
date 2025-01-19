@@ -1,11 +1,10 @@
 ﻿using Banco_VivesBank.Frankfurter.Controller;
+using Banco_VivesBank.Frankfurter.Model;
 using Banco_VivesBank.Frankfurter.Services;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Frankfurter.Controller;
-
-[TestFixture]
 public class DivisasControllerTest
 {
     private Mock<ILogger<DivisasController>> _logger;
@@ -21,8 +20,43 @@ public class DivisasControllerTest
     }
 
     [Test]
-    public void ObtenerDivisasTest()
+    public void ObtenerCambio()
     {
-        //
+        var expectedResponse = new FrankFurterResponse 
+        { 
+            Amount = 1,
+            Base = "EUR",
+            Rates = new Dictionary<string, decimal> { { "USD", 1.13m } }
+        };
+    
+        _divisasService
+            .Setup(x => x.ObtenerUltimasTasas(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(expectedResponse);
+
+        var result = _controller.GetLatestRates("1", "EUR", "USD");
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.EqualTo(expectedResponse));
+    }
+
+    [Test]
+    public void ObtenerCambios()
+    {
+        var expectedResponse = new FrankFurterResponse
+        {
+            Amount = 1,
+            Base = "EUR",
+            Rates = new Dictionary<string, decimal> { { "USD", 1.13m } }
+        };
+
+        _divisasService
+            .Setup(x => x.ObtenerUltimasTasas("EUR", null, "1"))
+            .Returns(expectedResponse);
+
+        var result = _controller.GetLatestRates();
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        _divisasService.Verify(x => x.ObtenerUltimasTasas("EUR", null, "1"), Times.Once);
     }
 }
