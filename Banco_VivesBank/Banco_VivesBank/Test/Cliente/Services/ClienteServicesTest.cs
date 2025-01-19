@@ -199,7 +199,6 @@ public class ClienteServiceTests
             Apellidos = "Lopez",
             Email = "juanito@example.com",
             Telefono = "600111222",
-            IsDeleted = false,
             Calle = "Calle Falsa",
             Numero = "123",
             CodigoPostal = "28000",
@@ -265,8 +264,7 @@ public class ClienteServiceTests
             Numero = "1",
             CodigoPostal = "12345",
             Piso = "2",
-            Letra = "B",
-            IsDeleted = false
+            Letra = "B"
         };
         
         var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>

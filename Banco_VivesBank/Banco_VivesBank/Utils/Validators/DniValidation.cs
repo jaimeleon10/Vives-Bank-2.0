@@ -9,8 +9,12 @@ public class DniValidation : ValidationAttribute
     private const string LetrasValidas = "TRWAGMYFPDXBNJZSQVHLCKE";
 
 
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
+        if (value == null)
+        {
+            return ValidationResult.Success!;
+        }
         var dni = value.ToString().ToUpper();
         
         if (!Regex.IsMatch(dni, DniPattern))
@@ -26,6 +30,6 @@ public class DniValidation : ValidationAttribute
             return new ValidationResult("La letra del DNI no es correcta");
         }
 
-        return ValidationResult.Success;
+        return ValidationResult.Success!;
     }
 }
