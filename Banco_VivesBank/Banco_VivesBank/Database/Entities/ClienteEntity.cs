@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Producto.Cuenta.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Banco_VivesBank.Database.Entities;
 

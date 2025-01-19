@@ -2,6 +2,7 @@
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
+using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.EntityFrameworkCore;
@@ -132,6 +133,49 @@ public class ClienteService : IClienteService
         _logger.LogInformation($"Cliente borrado (desactivado) con guid: {guid}");
         return ClienteMapper.ToResponseFromEntity(clienteExistenteEntity, user!);
     }
+
+    public async Task<string> DerechoAlOlvido(string userGuid)
+    {
+        _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
+        
+        var user = await _userService.GetUserModelByGuid(userGuid);
+        if (user == null)
+        {
+            _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
+            throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+        }
+
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
+        
+        cliente = DeleteData(cliente!);
+        _context.Clientes.Update(cliente);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation($"Cliente y datos del usuario con guid: {userGuid} borrados (desactivados)");
+        return "Clientes borrados (desactivados) con éxito";
+    }
+    
+    public ClienteEntity DeleteData(ClienteEntity entityCliente)
+    {
+        entityCliente.Dni = "";
+        entityCliente.Nombre = "";
+        entityCliente.Apellidos = "";
+        entityCliente.Direccion.Calle = "";
+        entityCliente.Direccion.Numero = "";
+        entityCliente.Direccion.CodigoPostal = "";
+        entityCliente.Direccion.Piso = "";
+        entityCliente.Direccion.Letra = "";
+        entityCliente.Email = "";
+        entityCliente.Telefono = "";
+        entityCliente.FotoPerfil= "";
+        entityCliente.FotoDni = "";
+        entityCliente.IsDeleted = true;
+        entityCliente.UpdatedAt = DateTime.Now;
+        //antes de borrar los urls borrar en volumen los recursos con el servicio de storage
+
+        return entityCliente;
+    }
+    
     
     private void ValidateDniExistente(string dni)
     {
@@ -160,4 +204,6 @@ public class ClienteService : IClienteService
             throw new ClienteExistsException($"Ya existe un cliente con el teléfono: {telefono}");
         }
     }
+    
+    
 }
