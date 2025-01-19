@@ -4,7 +4,7 @@ using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Storage;
 using NUnit.Framework;
 
-namespace Banco_VivesBank.Tests;
+namespace Banco_VivesBank.Test.Producto.Base;
 
 public class StorageProductosTests
 {

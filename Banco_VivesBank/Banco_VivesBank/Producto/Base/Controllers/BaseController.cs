@@ -174,6 +174,5 @@ public class BaseController : ControllerBase
             return StatusCode(500, $"Error al exportar los productos: {ex.Message}");
         }
     }
-
-
+    
 }
