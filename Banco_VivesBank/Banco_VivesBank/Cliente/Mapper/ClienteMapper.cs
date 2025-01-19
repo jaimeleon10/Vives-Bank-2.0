@@ -6,16 +6,38 @@ namespace Banco_VivesBank.Cliente.Mapper;
 
 public class ClienteMapper
 {
+    public static Models.Cliente ToModelFromEntity(ClienteEntity entity, User.Models.User user)
+    {
+        return new Models.Cliente
+        {
+            Dni = entity.Dni,
+            Nombre = entity.Nombre,
+            Apellidos = entity.Apellidos,
+            Direccion = new Direccion
+            {
+                Calle = entity.Direccion.Calle,
+                Numero = entity.Direccion.Numero,
+                CodigoPostal = entity.Direccion.CodigoPostal,
+                Piso = entity.Direccion.Piso,
+                Letra = entity.Direccion.Letra,
+            },
+            Email = entity.Email,
+            Telefono = entity.Telefono,
+            User = user,
+            IsDeleted = entity.IsDeleted
+        };
+    }
+    
     public static Models.Cliente ToModelFromRequest(ClienteRequest userRequest, User.Models.User user)
     {
         return new Models.Cliente
         {
             Dni = userRequest.Dni,
-            Nombre = userRequest.Nombre,
-            Apellidos = userRequest.Apellidos,
+            Nombre = userRequest.Nombre.Trim(),
+            Apellidos = userRequest.Apellidos.Trim(),
             Direccion = new Direccion
             {
-                Calle = userRequest.Calle,
+                Calle = userRequest.Calle.Trim(),
                 Numero = userRequest.Numero,
                 CodigoPostal = userRequest.CodigoPostal,
                 Piso = userRequest.Piso,
@@ -87,5 +109,59 @@ public class ClienteMapper
             UpdatedAt = clienteEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = clienteEntity.IsDeleted
         };
+    }
+    
+    public static ClienteEntity ToModelFromRequestUpdate(ClienteEntity oldCliente, ClienteRequestUpdate updateDto)
+    {
+        if (!string.IsNullOrWhiteSpace(updateDto.Dni))
+        {
+            oldCliente.Dni = updateDto.Dni;
+        }
+        if (!string.IsNullOrWhiteSpace(updateDto.Nombre))
+        {
+            oldCliente.Nombre = updateDto.Nombre.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Apellidos))
+        {
+            oldCliente.Apellidos = updateDto.Apellidos.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Calle))
+        {
+            oldCliente.Direccion.Calle = updateDto.Calle.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Numero))
+        {
+            oldCliente.Direccion.Numero = updateDto.Numero;
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.CodigoPostal))
+        {
+            oldCliente.Direccion.CodigoPostal = updateDto.CodigoPostal;
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Piso))
+        {
+            oldCliente.Direccion.Piso = updateDto.Piso;
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Letra))
+        {
+            oldCliente.Direccion.Letra = updateDto.Letra;
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Email))
+        {
+            oldCliente.Email = updateDto.Email;
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateDto.Telefono))
+        {
+            oldCliente.Telefono = updateDto.Telefono;
+        }
+        oldCliente.UpdatedAt=DateTime.UtcNow;
+        return oldCliente;
     }
 }

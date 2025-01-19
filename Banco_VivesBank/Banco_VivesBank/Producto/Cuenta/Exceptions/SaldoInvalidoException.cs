@@ -1,3 +1,3 @@
 ﻿namespace Banco_VivesBank.Producto.Cuenta.Exceptions;
 
-public class SaldoInvalidoException(string message): Exception(message){}
+public class SaldoInvalidoException(string message): CuentaException(message){}

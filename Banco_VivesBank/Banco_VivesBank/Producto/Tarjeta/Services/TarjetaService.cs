@@ -137,4 +137,34 @@ public class TarjetaService : ITarjetaService
         _logger.LogDebug($"Tarjeta eliminada correctamente con id: {id}");
         return tarjeta.ToResponseFromEntity();
     }
+    
+    public async Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid)
+    {
+        _logger.LogInformation($"Buscando Tarjeta con guid: {guid}");
+
+        var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
+        if (tarjetaEntity != null)
+        {
+            _logger.LogInformation($"Tarjeta encontrada con guid: {guid}");
+            return TarjetaMappers.ToModelFromEntity(tarjetaEntity);
+        }
+
+        _logger.LogInformation($"Tarjeta no encontrada con guid: {guid}");
+        return null;
+    }
+        
+    public async Task<Models.Tarjeta?> GetTarjetaModelById(long id)
+    {
+        _logger.LogInformation($"Buscando Tarjeta con id: {id}");
+
+        var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == id);
+        if (tarjetaEntity != null)
+        {
+            _logger.LogInformation($"Tarjeta encontrada con id: {id}");
+            return TarjetaMappers.ToModelFromEntity(tarjetaEntity);
+        }
+
+        _logger.LogInformation($"Tarjeta no encontrada con id: {id}");
+        return null;
+    }
 }

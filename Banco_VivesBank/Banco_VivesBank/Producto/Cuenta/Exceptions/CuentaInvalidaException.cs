@@ -1,3 +1,3 @@
 ﻿namespace Banco_VivesBank.Producto.Cuenta.Exceptions;
 
-public class CuentaInvalidaException(string message): Exception(message){}
+public class CuentaInvalidaException(string message): CuentaException(message){}
