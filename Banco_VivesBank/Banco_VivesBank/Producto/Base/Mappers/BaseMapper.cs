@@ -55,8 +55,8 @@ public class BaseMapper
             Nombre = model.Nombre,
             Descripcion = model.Descripcion,
             Tae = model.Tae,
-            CreatedAt = model.CreatedAt,
-            UpdatedAt = model.UpdatedAt,
+            CreatedAt = model.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            UpdatedAt = model.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = model.IsDeleted
         };
     }
@@ -68,8 +68,8 @@ public class BaseMapper
             Nombre = entity.Nombre,
             Descripcion = entity.Descripcion,
             Tae = entity.Tae,
-            CreatedAt = entity.CreatedAt,
-            UpdatedAt = entity.UpdatedAt,
+            CreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            UpdatedAt = entity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = entity.IsDeleted
         };
     }
