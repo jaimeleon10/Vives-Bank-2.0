@@ -6,25 +6,27 @@ namespace Banco_VivesBank.Producto.Cuenta.Services;
 
 public interface ICuentaService
 {
-    public Task<PageResponse<CuentaResponse>> GetAll(
+    public Task<PageResponse<CuentaResponse>> GetAllAsync(
         BigInteger? saldoMax, 
         BigInteger? saldoMin,
         String? tipoCuenta, 
         PageRequest pageRequest);
     
-    public Task<List<CuentaResponse>> getByClientGuid(string guid);
+    public Task<IEnumerable<CuentaResponse>> GetByClientGuidAsync(string guid);
 
-    public Task<CuentaResponse> getByGuid(string guid);
+    public Task<CuentaResponse?> GetByGuidAsync(string guid);
     
-    public Task<CuentaResponse> getByIban(string iban);
+    public Task<CuentaResponse?> GetByIbanAsync(string iban);
 
-    public Task<CuentaResponse> getMeByIban(string guid, string iban);
+    public Task<CuentaResponse?> GetMeByIbanAsync(string guid, string iban);
+    public Task<Models.Cuenta?> GetCuentaModelByGuid(string guid);
+    public Task<Models.Cuenta?> GetCuentaModelById(long id);
     
-    public Task<CuentaResponse> save(string guid,CuentaRequest cuentaRequest);
+    public Task<CuentaResponse> CreateAsync(string guid,CuentaRequest cuentaRequest);
     
-    public Task<CuentaResponse> update(string guidClient,string guid, CuentaUpdateRequest cuentaRequest);
+    public Task<CuentaResponse?> UpdateAsync(string guidClient,string guid, CuentaUpdateRequest cuentaRequest);
     
-    public Task<CuentaResponse> delete(string guidClient,string guid);
+    public Task<CuentaResponse?> DeleteAsync(string guidClient,string guid);
     
-    public Task<CuentaResponse> deleteAdmin(string guid);
+    public Task<CuentaResponse?> DeleteAdminAsync(string guid);
 }
