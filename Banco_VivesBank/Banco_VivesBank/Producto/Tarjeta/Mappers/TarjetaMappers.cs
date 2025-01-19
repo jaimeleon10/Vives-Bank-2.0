@@ -25,7 +25,7 @@ public static class TarjetaMappers
         };
     }
 
-    public static Models.Tarjeta ToModelFromRequest(this TarjetaRequestDto dto)
+    public static Models.Tarjeta ToModelFromRequest(this TarjetaRequest dto)
     {
         return new Models.Tarjeta
         {
@@ -59,9 +59,9 @@ public static class TarjetaMappers
         };
     }
 
-    public static TarjetaResponseDto ToResponseFromEntity(this TarjetaEntity entity)
+    public static TarjetaResponse ToResponseFromEntity(this TarjetaEntity entity)
     {
-        return new TarjetaResponseDto
+        return new TarjetaResponse
         {
             Id = entity.Id,
             Guid = entity.Guid,
@@ -79,9 +79,9 @@ public static class TarjetaMappers
         };
     }
 
-    public static TarjetaResponseDto ToResponseFromModel(this Models.Tarjeta model)
+    public static TarjetaResponse ToResponseFromModel(this Models.Tarjeta model)
     {
-        return new TarjetaResponseDto
+        return new TarjetaResponse
         {
             Id = model.Id,
             Guid = model.Guid,

@@ -35,7 +35,7 @@ public class TarjetaService : ITarjetaService
        return tarjetas.ToModelList();
     }
 
-    public async Task<TarjetaResponseDto> GetByGuidAsync(string id)
+    public async Task<TarjetaResponse> GetByGuidAsync(string id)
     {
         _logger.LogDebug($"Obteniendo tarjeta con id: {id}");
         
@@ -61,7 +61,7 @@ public class TarjetaService : ITarjetaService
         return tarjeta.ToModelFromEntity().ToResponseFromModel();
     }
 
-    public async Task<TarjetaResponseDto> CreateAsync(TarjetaRequestDto dto)
+    public async Task<TarjetaResponse> CreateAsync(TarjetaRequest dto)
     {
         _logger.LogDebug("Creando una nueva tarjeta");
 
@@ -87,7 +87,7 @@ public class TarjetaService : ITarjetaService
         return tarjetaEntity.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponseDto> UpdateAsync(string id, TarjetaRequestDto dto)
+    public async Task<TarjetaResponse> UpdateAsync(string id, TarjetaRequest dto)
     {
         _logger.LogDebug($"Actualizando tarjeta con id: {id}");
         var tarjeta = await _context.Tarjetas.FindAsync(id);
@@ -117,7 +117,7 @@ public class TarjetaService : ITarjetaService
         return tarjeta.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponseDto> DeleteAsync(string id)
+    public async Task<TarjetaResponse> DeleteAsync(string id)
     {
         _logger.LogDebug($"Eliminando tarjeta con id: {id}");
         var tarjeta = await _context.Tarjetas.FindAsync(id);

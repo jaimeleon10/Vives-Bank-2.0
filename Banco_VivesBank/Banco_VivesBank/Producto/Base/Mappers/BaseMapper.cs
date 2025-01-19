@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Models;
 
@@ -59,8 +59,8 @@ public class BaseMapper
             Descripcion = model.Descripcion,
             Tae = model.Tae,
             TipoProducto = model.TipoProducto,
-            CreatedAt = model.CreatedAt,
-            UpdatedAt = model.UpdatedAt,
+            CreatedAt = model.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            UpdatedAt = model.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = model.IsDeleted
         };
     }
@@ -73,8 +73,8 @@ public class BaseMapper
             Descripcion = entity.Descripcion,
             Tae = entity.Tae,
             TipoProducto = entity.TipoProducto,
-            CreatedAt = entity.CreatedAt,
-            UpdatedAt = entity.UpdatedAt,
+            CreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            UpdatedAt = entity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = entity.IsDeleted
         };
     }
