@@ -3,8 +3,6 @@ using Banco_VivesBank.Producto.Base.Storage;
 using Moq;
 using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Producto.Base.Storage;
-
 [TestFixture]
 public class StorageProductosTest
 {
@@ -97,7 +95,7 @@ public class StorageProductosTest
         Assert.That(productos[1].CreatedAt, Is.TypeOf<DateTime>());
     }
     [Test]
-    public void ExportarProductos_ListaVacia()
+    public void ExportarProductosListaVacia()
     {
         var file = new FileInfo("productos_vacios.csv");
         _storageProductos.ExportProductosFromCsv(file, new List<BaseModel>());
