@@ -1,12 +1,10 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
-using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.User.Exceptions;
-using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,9 +56,11 @@ public class ClienteService : IClienteService
     public async Task<ClienteResponse> CreateAsync(ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
-
-        ValidateClienteExistente(clienteRequest.Dni, clienteRequest.Email, clienteRequest.Telefono);
-
+        
+        ValidateDniExistente(clienteRequest.Dni);
+        ValidateEmailExistente(clienteRequest.Email);
+        ValidateTelefonoExistente(clienteRequest.Telefono);
+        
         var user = await _userService.GetUserModelByGuid(clienteRequest.UserGuid);
         if (user == null)
         {
@@ -85,30 +85,32 @@ public class ClienteService : IClienteService
             _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
             return null;
         }
-        
-        ValidateClienteExistente(clienteRequestUpdate.Dni, clienteRequestUpdate.Email, clienteRequestUpdate.Telefono);
-
-        clienteEntityExistente.Dni = clienteRequestUpdate.Dni;
-        clienteEntityExistente.Nombre = clienteRequestUpdate.Nombre;
-        clienteEntityExistente.Apellidos = clienteRequestUpdate.Apellidos;
-        clienteEntityExistente.Direccion = new Direccion()
+        if(!clienteRequestUpdate.HasAtLeastOneField())
         {
-            Calle = clienteRequestUpdate.Calle,
-            Numero = clienteRequestUpdate.Numero,
-            CodigoPostal = clienteRequestUpdate.CodigoPostal,
-            Piso = clienteRequestUpdate.Piso,
-            Letra = clienteRequestUpdate.Letra
-        };
-        clienteEntityExistente.Email = clienteRequestUpdate.Email;
-        clienteEntityExistente.Telefono = clienteRequestUpdate.Telefono;
-        clienteEntityExistente.IsDeleted = clienteRequestUpdate.IsDeleted;
+            _logger.LogInformation("No se ha modificado ningún campo");
+            return ClienteMapper.ToResponseFromEntity(clienteEntityExistente, await _userService.GetUserModelById(clienteEntityExistente.UserId));
+        }
 
-        _context.Clientes.Update(clienteEntityExistente);
+        if (clienteEntityExistente.Dni != clienteRequestUpdate.Dni && !string.IsNullOrEmpty(clienteRequestUpdate.Dni))
+        {
+            ValidateDniExistente(clienteRequestUpdate.Dni);
+        }
+        if (clienteEntityExistente.Email != clienteRequestUpdate.Email && !string.IsNullOrEmpty(clienteRequestUpdate.Email))
+        {
+            ValidateEmailExistente(clienteRequestUpdate.Email);
+        }
+        if (clienteEntityExistente.Telefono != clienteRequestUpdate.Telefono && !string.IsNullOrEmpty(clienteRequestUpdate.Telefono))
+        {
+            ValidateTelefonoExistente(clienteRequestUpdate.Telefono);
+        }
+        var clienteUpdated = ClienteMapper.ToModelFromRequestUpdate(clienteEntityExistente, clienteRequestUpdate);
+        
+        _context.Clientes.Update(clienteUpdated);
         await _context.SaveChangesAsync();
 
-        var user = await _userService.GetUserModelById(clienteEntityExistente.UserId);
+        var user = await _userService.GetUserModelById(clienteUpdated.UserId);
         _logger.LogInformation($"Cliente actualizado con guid: {guid}");
-        return ClienteMapper.ToResponseFromEntity(clienteEntityExistente, user!);
+        return ClienteMapper.ToResponseFromEntity(clienteUpdated, user!);
     }
 
     public async Task<ClienteResponse?> DeleteByGuidAsync(string guid) 
@@ -133,22 +135,70 @@ public class ClienteService : IClienteService
         return ClienteMapper.ToResponseFromEntity(clienteExistenteEntity, user!);
     }
 
-    private void ValidateClienteExistente(string dni, string email, string telefono)
+    public async Task<string> DerechoAlOlvido(string userGuid)
     {
-        _logger.LogInformation("Validando cliente");
+        _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
+        
+        var user = await _userService.GetUserModelByGuid(userGuid);
+        if (user == null)
+        {
+            _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
+            throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+        }
 
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
+        
+        cliente = DeleteData(cliente!);
+        _context.Clientes.Update(cliente);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation($"Cliente y datos del usuario con guid: {userGuid} borrados (desactivados)");
+        return "Clientes borrados (desactivados) con éxito";
+    }
+    
+    public ClienteEntity DeleteData(ClienteEntity entityCliente)
+    {
+        entityCliente.Dni = "";
+        entityCliente.Nombre = "";
+        entityCliente.Apellidos = "";
+        entityCliente.Direccion.Calle = "";
+        entityCliente.Direccion.Numero = "";
+        entityCliente.Direccion.CodigoPostal = "";
+        entityCliente.Direccion.Piso = "";
+        entityCliente.Direccion.Letra = "";
+        entityCliente.Email = "";
+        entityCliente.Telefono = "";
+        entityCliente.FotoPerfil= "";
+        entityCliente.FotoDni = "";
+        entityCliente.IsDeleted = true;
+        entityCliente.UpdatedAt = DateTime.Now;
+        //antes de borrar los urls borrar en volumen los recursos con el servicio de storage
+
+        return entityCliente;
+    }
+    
+    
+    private void ValidateDniExistente(string dni)
+    {
+        _logger.LogInformation("Validando Dni");
         if (_context.Clientes.Any(c => c.Dni.ToLower() == dni.ToLower()))
         {
             _logger.LogInformation($"Ya existe un cliente con el DNI: {dni}");
             throw new ClienteExistsException($"Ya existe un cliente con el DNI: {dni}");
         }
-        
+    }
+    private void ValidateEmailExistente(string email)
+    {
+        _logger.LogInformation("Validando email");
         if(_context.Clientes.Any(c => c.Email.ToLower() == email.ToLower()))
         {
             _logger.LogInformation($"Ya existe un cliente con el email: {email}");
             throw new ClienteExistsException($"Ya existe un cliente con el email: {email}");
         }
-        
+    }
+    private void ValidateTelefonoExistente(string telefono)
+    {
+        _logger.LogInformation("Validando teléfono");
         if(_context.Clientes.Any(c => c.Telefono == telefono))
         {
             _logger.LogInformation($"Ya existe un cliente con el teléfono: {telefono}");

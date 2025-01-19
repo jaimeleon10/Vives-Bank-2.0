@@ -81,6 +81,7 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Dni")
@@ -116,6 +117,7 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
@@ -140,7 +142,6 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnName("cliente_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Guid")
@@ -166,7 +167,6 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnName("tarjeta_id");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -238,6 +238,7 @@ namespace Banco_VivesBank.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Guid")
@@ -255,6 +256,7 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Username")
