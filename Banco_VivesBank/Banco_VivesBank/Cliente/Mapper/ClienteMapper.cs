@@ -6,6 +6,28 @@ namespace Banco_VivesBank.Cliente.Mapper;
 
 public class ClienteMapper
 {
+    public static Models.Cliente ToModelFromEntity(ClienteEntity entity, User.Models.User user)
+    {
+        return new Models.Cliente
+        {
+            Dni = entity.Dni,
+            Nombre = entity.Nombre,
+            Apellidos = entity.Apellidos,
+            Direccion = new Direccion
+            {
+                Calle = entity.Direccion.Calle,
+                Numero = entity.Direccion.Numero,
+                CodigoPostal = entity.Direccion.CodigoPostal,
+                Piso = entity.Direccion.Piso,
+                Letra = entity.Direccion.Letra,
+            },
+            Email = entity.Email,
+            Telefono = entity.Telefono,
+            User = user,
+            IsDeleted = entity.IsDeleted
+        };
+    }
+    
     public static Models.Cliente ToModelFromRequest(ClienteRequest userRequest, User.Models.User user)
     {
         return new Models.Cliente

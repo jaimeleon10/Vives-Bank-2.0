@@ -1,8 +1,9 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.EntityFrameworkCore;
@@ -205,5 +206,35 @@ public class ClienteService : IClienteService
         }
     }
     
-    
+    public async Task<Models.Cliente?> GetClienteModelByGuid(string guid)
+    {
+        _logger.LogInformation($"Buscando Cliente con guid: {guid}");
+
+        var clienteEntity = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con guid: {guid}");
+            var user = await _userService.GetUserModelById(clienteEntity.UserId);
+            return ClienteMapper.ToModelFromEntity(clienteEntity, user);
+        }
+
+        _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+        return null;
+    }
+        
+    public async Task<Models.Cliente?> GetClienteModelById(long id)
+    {
+        _logger.LogInformation($"Buscando Cliente con id: {id}");
+
+        var clienteEntity = await _context.Clientes.FirstOrDefaultAsync(t => t.Id == id);
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con id: {id}");
+            var user = await _userService.GetUserModelById(clienteEntity.UserId);
+            return ClienteMapper.ToModelFromEntity(clienteEntity, user);
+        }
+
+        _logger.LogInformation($"Cliente no encontrado con id: {id}");
+        return null;
+    }
 }

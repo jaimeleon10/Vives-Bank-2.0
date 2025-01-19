@@ -14,15 +14,12 @@ public class CuentaControllerAdmin : ControllerBase
 
     private readonly ICuentaService _cuentaService;
     private readonly PaginationLinksUtils _paginationLinksUtils;
-    private readonly ILogger<CuentaControllerAdmin> _logger;
 
 
-    public CuentaControllerAdmin(ICuentaService cuentaService, PaginationLinksUtils paginationLinksUtils,
-        ILogger<CuentaControllerAdmin> logger)
+    public CuentaControllerAdmin(ICuentaService cuentaService, PaginationLinksUtils paginationLinksUtils)
     {
         _cuentaService = cuentaService;
         _paginationLinksUtils = paginationLinksUtils;
-        _logger = logger;
     }
 
 
@@ -39,10 +36,6 @@ public class CuentaControllerAdmin : ControllerBase
     {
         try
         {
-            _logger.LogInformation(
-                "Buscando todas las cuentas con las siguientes opciones:SaldoMax: {saldoMax}, SaldoMin: {saldoMin}, TipoCuenta: {tipoCuenta}",
-                saldoMax, saldoMin, tipoCuenta);
-
             var pageRequest = new PageRequest
             {
                 PageNumber = page,
@@ -51,7 +44,7 @@ public class CuentaControllerAdmin : ControllerBase
                 Direction = direction
             };
 
-            var pageResult = await _cuentaService.GetAll(saldoMax, saldoMin, tipoCuenta, pageRequest);
+            var pageResult = await _cuentaService.GetAllAsync(saldoMax, saldoMin, tipoCuenta, pageRequest);
 
             var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
             var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
@@ -62,13 +55,11 @@ public class CuentaControllerAdmin : ControllerBase
         }
         catch (CuentaNoEncontradaException e)
         {
-            _logger.LogError(e, "No se ha encontrado ninguna cuenta.");
             return StatusCode(404, new { message = "No se han encontrado las cuentas.", details = e.Message });
 
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error al obtener las cuentas.");
             return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
         }
     }
@@ -76,110 +67,37 @@ public class CuentaControllerAdmin : ControllerBase
     [HttpGet("allAcounts/{guid:length(12)}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllByClientGuid(string guid)
     {
-        _logger.LogInformation($"Buscando todos las Cuentas del cliente {guid}");
-
-        try
-        {
-            var cuentas = await _cuentaService.getByClientGuid(guid);
-
-            return Ok(cuentas);
-        }
-        catch (CuentaInvalidaException e)
-        {
-            _logger.LogError(e, "Cuentas no encontradas por guid del cliente invalido.");
-            return StatusCode(400, new { message = "Cuentas no encontradas por guid del cliente invalido.", details = e.Message });
-
-        }
-        catch (CuentaNoEncontradaException e)
-        {
-            _logger.LogError(e, "No se ha encontrado ninguna cuenta del cliente con guid {guid}.", guid);
-            return StatusCode(404, new { message = "No se han encontrado las cuentas del cliente.", details = e.Message });
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al obtener las cuentas del cliente {guid}.", guid);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-        }
+        var cuentas = await _cuentaService.GetByClientGuidAsync(guid);
+        if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
+        if (guid is null) return NotFound($"No se ha encontrado el cliente con guid {guid}");
+        if (cuentas.Count() == 0) return NotFound($"No se han encontrado cuentas para el cliente con guid {guid}");
+        return Ok(cuentas);
     }
 
     [HttpGet("{guid:length(12)}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetByGuid(string guid)
     {
-        _logger.LogInformation($"Buscando Cuenta: {guid}");
-        try
-        {
-            var cuentas = await _cuentaService.getByGuid(guid);
-            return Ok(cuentas);
-        }
-        catch (CuentaInvalidaException e)
-        {
-            _logger.LogError(e, "Cuenta no encontrada por guid invalido.");
-            return StatusCode(400, new { message = "Cuenta no encontrada por guid invalido.", details = e.Message });
-
-        }
-        catch (CuentaNoEncontradaException e)
-        {
-            _logger.LogError(e, "No se ha encontrado la cuenta con guid {guid}.", guid);
-            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
-
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al obtener la cuenta {guid}.", guid);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-
-        }
+        var cuentaByGuid = await _cuentaService.GetByGuidAsync(guid);
+        if (guid.Length != 12) return BadRequest($"El guid debe tener 12 caracteres");
+        if (cuentaByGuid is null) return NotFound($"Cuenta no encontrada con guid {guid}");
+        return Ok(cuentaByGuid);
     }
     
     [HttpGet("iban/{iban:length(34)}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetByIban(string iban)
     {
-        _logger.LogInformation($"Buscando Cuenta por IBAN: {iban}");
-        try
-        {
-            var cuentas = await _cuentaService.getByIban(iban);
-            return Ok(cuentas);
-        }
-        catch (CuentaInvalidaException e)
-        {
-            _logger.LogError(e, "Cuenta no encontrada por iban invalido.");
-            return StatusCode(400, new { message = "Cuenta no encontrada por iban invalido.", details = e.Message });
-
-        }
-        catch (CuentaNoEncontradaException e)
-        {
-            _logger.LogError(e, "No se ha encontrado la cuenta con iban {iban}.", iban);
-            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
-
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al obtener la cuenta {iban}.", iban);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-
-        }
+        var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
+        if (iban.Length!= 34) return BadRequest($"El iban debe tener 34 caracteres");
+        if (cuentaByIban is null) return NotFound($"Cuenta no encontrada con iban {iban}");
+        return Ok(cuentaByIban);
     }
     
     [HttpDelete("{guid:length(12)}")]
     public async Task<ActionResult<CuentaResponse>> Delete(string guid)
     {
-        _logger.LogInformation($"Eliminando cuenta {guid}",guid);
-        try
-        {
-
-            var cuenta = await _cuentaService.deleteAdmin(guid);
-            return Ok(cuenta);
-        }
-        catch (CuentaNoEncontradaException e)
-        {
-            _logger.LogError(e, "No se ha encontrado la cuenta con guid {guid}.", guid);
-            return StatusCode(404, new { message = "No se ha encontrado la cuenta.", details = e.Message });
-
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al borrar la cuenta {guid}.", guid);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-        }
+        var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
+        if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
+        if (cuentaDelete is null) return NotFound($"Cuenta no encontrada con guid {guid}");
+        return Ok(cuentaDelete);
     }
 }

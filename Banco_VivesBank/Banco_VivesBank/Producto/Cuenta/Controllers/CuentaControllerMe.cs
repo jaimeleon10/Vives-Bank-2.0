@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,16 +12,11 @@ namespace Banco_VivesBank.Producto.Cuenta.Controllers;
 public class CuentaControllerMe: ControllerBase
 {
     private readonly ICuentaService _cuentaService;
-    private readonly ILogger<CuentaControllerAdmin> _logger;
 
-
-    public CuentaControllerMe(ICuentaService cuentaService, ILogger<CuentaControllerAdmin> logger)
+    public CuentaControllerMe(ICuentaService cuentaService)
     {
         _cuentaService = cuentaService;
-        _logger = logger;
-       
     }
-    
     
     [HttpGet]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllMeAccounts(
@@ -28,22 +24,7 @@ public class CuentaControllerMe: ControllerBase
         string guid
         )
     {
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        _logger.LogInformation($"Buscando todos mis Cuentas {userId}");
-
-        try
-        {
-            var cuentas = await _cuentaService.getByClientGuid(guid);
-
-            return Ok(cuentas);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al obtener las cuentas del cliente {guid}.", guid);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-        }
-
+        return Ok(await _cuentaService.GetByClientGuidAsync(guid));
     }
     
     [HttpGet("/iban/{iban:length(34)}")]
@@ -52,20 +33,10 @@ public class CuentaControllerMe: ControllerBase
         string iban
         )
     {
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"Buscando Cuenta por IBAN: {iban}");
-        try
-        {
-            var cuenta = await _cuentaService.getMeByIban(userId,iban);
-            return Ok(cuenta);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al obtener la cuenta {iban}.", iban);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-
-        }
-
+        var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
+        if (iban.Length!= 34) return BadRequest($"El iban debe tener 34 caracteres");
+        if (cuentaByIban is null) return NotFound($"Cuenta no encontrada con iban {iban}");
+        return Ok(cuentaByIban);
     }
     
     [HttpPost]
@@ -75,9 +46,8 @@ public class CuentaControllerMe: ControllerBase
         [FromBody] CuentaRequest cuentaRequest)
     {
         var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"Creando cuenta");
         
-        var cuenta = await _cuentaService.save(userId,cuentaRequest);
+        var cuenta = await _cuentaService.CreateAsync(userId,cuentaRequest);
         return Ok(cuenta);
     }
     
@@ -89,19 +59,15 @@ public class CuentaControllerMe: ControllerBase
         string guid)
     {
         var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"Actualizando cuenta {guid}",guid);
         try
         {
-
-             var cuenta = await _cuentaService.update(userId,guid,cuentaRequest);
+             var cuenta = await _cuentaService.UpdateAsync(userId,guid,cuentaRequest);
              return Ok(cuenta);
         }
-        catch (Exception e)
+        catch (CuentaException e)
         {
-            _logger.LogError(e, "Error al actualizar la cuenta {guid}.", guid);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
+            return BadRequest(e.Message);
         }
-       
     }
     
     
@@ -111,22 +77,9 @@ public class CuentaControllerMe: ControllerBase
         [FromServices] ClaimsPrincipal user,
         string guid)
     {
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        _logger.LogInformation($"Eliminando cuenta {guid}",guid);
-        try
-        {
-
-            var cuenta = await _cuentaService.delete(userId,guid);
-            return Ok(cuenta);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error al borrar la cuenta {guid}.", guid);
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-        }
-       
+        var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
+        if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
+        if (cuentaDelete is null) return NotFound($"Cuenta no encontrada con guid {guid}");
+        return Ok(cuentaDelete);
     }
-    
-    
-    
 }
