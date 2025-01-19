@@ -1,6 +1,7 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
+using Banco_VivesBank.User.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Cliente.Controller;
@@ -36,12 +37,11 @@ public class ClienteController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ClienteResponse>> Create([FromBody] ClienteRequest clienteRequest)
     {
-
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        
+
         try
         {
             return Ok(await _clienteService.CreateAsync(clienteRequest));
@@ -49,6 +49,10 @@ public class ClienteController : ControllerBase
         catch (ClienteException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (UserException e)
+        {
+            return NotFound(e.Message);
         }
     }
     
@@ -60,9 +64,16 @@ public class ClienteController : ControllerBase
             return BadRequest(ModelState);
         }
         
-        var clienteResponse = await _clienteService.UpdateAsync(guid, clienteRequestUpdate);
-        if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente con guid: {guid}"); 
-        return Ok(clienteResponse);
+        try
+        {
+            var clienteResponse = await _clienteService.UpdateAsync(guid, clienteRequestUpdate);
+            if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente con guid: {guid}"); 
+            return Ok(clienteResponse);
+        }
+        catch (ClienteException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpDelete("{guid}")]

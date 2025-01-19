@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Banco_VivesBank.Utils.Validators;
 
 namespace Banco_VivesBank.Cliente.Dto;
 
 public class ClienteRequestUpdate
 {
     [Required(ErrorMessage = "El DNI es obligatorio")]
-    [RegularExpression(@"^\d{8}[TRWAGMYFPDXBNJZSQVHLCKE]$", ErrorMessage = "El DNI debe tener 8 números seguidos de una letra en mayúsculas")]
+    [DniValidation]
     public string Dni { get; set; }
     
     [Required(ErrorMessage = "El nombre es obligatorio")]

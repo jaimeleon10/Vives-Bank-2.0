@@ -131,7 +131,7 @@ public class CuentaServiceTests
     public async Task GetByClientGuid()
     {
         var clientGuid = "cliente123";
-        var cliente = new Cliente.Models.Cliente { Guid = clientGuid, Nombre = "Cliente Test", Apellidos = "apellidos", Email = "email", Telefono = "telefono", Dni = "dni", Id = 1 };
+        var cliente = new Banco_VivesBank.Cliente.Models.Cliente { Guid = clientGuid, Nombre = "Cliente Test", Apellidos = "apellidos", Email = "email", Telefono = "telefono", Dni = "dni", Id = 1 };
         var producto = new BaseModel { Id = 1, Nombre = "Cuenta Ahorro" };
 
         var cuenta1 = new CuentaEntity
@@ -185,7 +185,7 @@ public class CuentaServiceTests
     public async Task GetByGuid()
     {
         var cuentaGuid = Guid.NewGuid().ToString();
-        var cuenta = new CuentaEntity { Guid = cuentaGuid, Iban = "ES9876543210987654321098", Saldo = 300, Cliente = new Cliente.Models.Cliente { Guid = "client1" } };
+        var cuenta = new CuentaEntity { Guid = cuentaGuid, Iban = "ES9876543210987654321098", Saldo = 300, Cliente = new Banco_VivesBank.Cliente.Models.Cliente { Guid = "client1" } };
 
         _dbContext.Cuentas.Add(cuenta);
         await _dbContext.SaveChangesAsync();
