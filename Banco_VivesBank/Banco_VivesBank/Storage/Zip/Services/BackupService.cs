@@ -79,7 +79,7 @@ public class BackupService : IBackupService
         var users = await _userService.GetAllAsync() ?? new List<UserResponse>();
         var clientes = await _clienteService.GetAllAsync() ?? new List<ClienteResponse>();
         var bases = await _baseService.GetAllAsync() ?? new List<BaseResponse>();
-        var cuentas = await _cuentaService.GetAll(
+        var cuentas = await _cuentaService.GetAllAsync(
             saldoMax: null, 
             saldoMin: null, 
             tipoCuenta: null, 
@@ -165,7 +165,7 @@ public class BackupService : IBackupService
                 var cuentas = _storageJson.ImportJson<CuentaRequest>(cuentasFile);
                 foreach (var cuentaDto in cuentas)
                 {
-                    await _cuentaService.save(GuidGenerator.GenerarId(),cuentaDto);
+                    await _cuentaService.CreateAsync(GuidGenerator.GenerarId(),cuentaDto);
                 }
             }
             
