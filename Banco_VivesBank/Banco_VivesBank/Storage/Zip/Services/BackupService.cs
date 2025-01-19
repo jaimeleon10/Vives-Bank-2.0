@@ -1,15 +1,19 @@
 ﻿using System.IO.Compression;
 using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Backup.Exceptions;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.User.Dto;
+using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
@@ -53,50 +57,60 @@ public class BackupService : IBackupService
         //inicializamos el storageJson
         _storageJson = storageJson;
     }
-
+    
     public async Task ExportToZip(string sourceDirectory, string zipFilePath)
+{
+    _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
+
+    if (string.IsNullOrWhiteSpace(sourceDirectory))
+        throw new ArgumentNullException(nameof(sourceDirectory));
+    if (string.IsNullOrWhiteSpace(zipFilePath))
+        throw new ArgumentNullException(nameof(zipFilePath));
+
+    try
     {
-        _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
-
-        try
+        // Elimina el archivo ZIP si ya existe
+        if (File.Exists(zipFilePath))
         {
-            // Obtén los datos de forma asíncrona
-            var users = await _userService.GetAllAsync();
-            var clientes = await _clienteService.GetAllAsync();
-            var bases = await _baseService.GetAllAsync();
-            var cuentas = await _cuentaService.GetAll(
-                saldoMax: null, 
-                saldoMin: null, 
-                tipoCuenta: null, 
-                pageRequest: new PageRequest { PageNumber = 1, PageSize = 10 }
-            );
-            var tarjetas = await _tarjetaService.GetAllAsync();
-
-            // Exporta los datos a archivos JSON
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "bases.json")), bases.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.Content.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
-
-            // Crea el archivo ZIP
-            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-            {
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "usuarios.json"), "usuarios.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "clientes.json"), "clientes.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "bases.json"), "bases.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "cuentas.json"), "cuentas.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "tarjetas.json"), "tarjetas.json");
-            }
-
-            _logger.LogInformation("Exportación de datos a ZIP finalizada.");
+            _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
+            File.Delete(zipFilePath);
         }
-        catch (Exception e)
+
+        var users = await _userService.GetAllAsync() ?? new List<UserResponse>();
+        var clientes = await _clienteService.GetAllAsync() ?? new List<ClienteResponse>();
+        var bases = await _baseService.GetAllAsync() ?? new List<BaseResponse>();
+        var cuentas = await _cuentaService.GetAll(
+            saldoMax: null, 
+            saldoMin: null, 
+            tipoCuenta: null, 
+            pageRequest: new PageRequest { PageNumber = 1, PageSize = 10 }
+        );
+        var tarjetas = await _tarjetaService.GetAllAsync() ?? new List<Tarjeta>();
+
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "bases.json")), bases.ToList());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.Content.ToList());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
+
+        using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
         {
-            _logger.LogError(e, "Error al exportar datos a ZIP");
-            throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
+            zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "usuarios.json"), "usuarios.json");
+            zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "clientes.json"), "clientes.json");
+            zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "bases.json"), "bases.json");
+            zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "cuentas.json"), "cuentas.json");
+            zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "tarjetas.json"), "tarjetas.json");
         }
+
+        _logger.LogInformation("Exportación de datos a ZIP finalizada.");
     }
+    catch (Exception e)
+    {
+        _logger.LogError(e, "Error al exportar datos a ZIP");
+        throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
+    }
+}
+
     
     public async Task ImportFromZip(string zipFilePath, string destinationDirectory)
     {
