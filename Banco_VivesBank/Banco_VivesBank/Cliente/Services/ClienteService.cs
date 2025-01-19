@@ -84,7 +84,22 @@ public class ClienteService : IClienteService
             _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
             return null;
         }
+
+        /*if (clienteEntityExistente.Dni == clienteRequestUpdate.Dni)
+        {
+            clienteEntityExistente.Dni = clienteRequestUpdate.Dni;
+            clienteRequestUpdate.Dni = "";
+        }
         
+        if (clienteEntityExistente.Email == clienteRequestUpdate.Email)
+        {
+            clienteRequestUpdate.Email = "";
+        }
+        
+        if (clienteEntityExistente.Telefono == clienteRequestUpdate.Telefono)
+        {
+            clienteRequestUpdate.Telefono = "";
+        }*/
         ValidateClienteExistente(clienteRequestUpdate.Dni, clienteRequestUpdate.Email, clienteRequestUpdate.Telefono);
 
         clienteEntityExistente.Dni = clienteRequestUpdate.Dni;
@@ -100,6 +115,7 @@ public class ClienteService : IClienteService
         };
         clienteEntityExistente.Email = clienteRequestUpdate.Email;
         clienteEntityExistente.Telefono = clienteRequestUpdate.Telefono;
+        clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
         clienteEntityExistente.IsDeleted = clienteRequestUpdate.IsDeleted;
 
         _context.Clientes.Update(clienteEntityExistente);
