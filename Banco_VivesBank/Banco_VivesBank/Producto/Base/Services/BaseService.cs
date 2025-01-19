@@ -179,4 +179,34 @@ public class BaseService : IBaseService
         _logger.LogInformation($"Producto borrado logico correctamente con guid: {guid}");
         return BaseMapper.ToResponseFromEntity(baseExistenteEntity);
     }
+    
+    public async Task<BaseModel?> GetBaseModelByGuid(string guid)
+    {
+        _logger.LogInformation($"Buscando producto con guid: {guid}");
+
+        var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
+        if (productoEntity != null)
+        {
+            _logger.LogInformation($"producto encontrado con guid: {guid}");
+            return BaseMapper.ToModelFromEntity(productoEntity);
+        }
+
+        _logger.LogInformation($"producto no encontrado con guid: {guid}");
+        return null;
+    }
+        
+    public async Task<BaseModel?> GetBaseModelById(long id)
+    {
+        _logger.LogInformation($"Buscando producto con id: {id}");
+
+        var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Id == id);
+        if (productoEntity != null)
+        {
+            _logger.LogInformation($"producto encontrado con id: {id}");
+            return BaseMapper.ToModelFromEntity(productoEntity);
+        }
+
+        _logger.LogInformation($"producto no encontrado con id: {id}");
+        return null;
+    }
 }
