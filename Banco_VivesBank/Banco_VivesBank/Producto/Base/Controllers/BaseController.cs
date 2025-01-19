@@ -1,10 +1,10 @@
 ﻿using Banco_VivesBank.Producto.Base.Dto;
+using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Producto.Base.Controllers;
-
 
 [ApiController]
 [Route("api/productosBase")]
@@ -18,26 +18,23 @@ public class BaseController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BaseModel>>> GetAllProductosBase()
+    public async Task<ActionResult<IEnumerable<BaseResponse>>> GetAll()
     {
-        var bases = await _baseService.GetAllAsync();
-        return Ok(bases);
+        return Ok(await _baseService.GetAllAsync());
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<BaseModel>> GetProductoBaseById(string id)
+    [HttpGet("{guid}")]
+    public async Task<ActionResult<BaseResponse>> GetByGuid(string guid)
     {
-        var baseById = await _baseService.GetByGuidAsync(id);
-        if (baseById == null)
-        {
-            return NotFound($"Producto con id: {id} no encontrado");
-        }
+        var baseByGuid = await _baseService.GetByGuidAsync(guid);
+        
+        if (baseByGuid is null) return NotFound($"Producto con guid: {guid} no encontrado");
 
-        return Ok(baseById);
+        return Ok(baseByGuid);
     }
     
     [HttpPost]
-    public async Task<ActionResult<BaseModel>> CreateProductoBase([FromBody] BaseRequestDto request)
+    public async Task<ActionResult<BaseResponse>> Create([FromBody] BaseRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -46,78 +43,33 @@ public class BaseController : ControllerBase
 
         try
         {
-            var baseModel = await _baseService.CreateAsync(request);
-
-            return CreatedAtAction(nameof(GetProductoBaseById), new { id = baseModel.Id }, baseModel);
+            return Ok(await _baseService.CreateAsync(request));
         }
-        catch (Exception e)
+        catch (BaseException e)
         {
-            return BadRequest($"{e.Message}");
+            return BadRequest(e.Message);
         }
-
-        // For debugging purposes:
-        // return StatusCode(500, "Error al actualizar el producto");
-    
-        // For debugging purposes:
-        // return StatusCode(404, "Producto no encontrado");
-    
-        // For debugging purposes:
-        // return StatusCode(400, "Modelo de producto invalido");
-    
-        // For debugging purposes:
-        // return StatusCode(201, "Producto creado con exito");
-    
-        // For debugging purposes:
-        // return StatusCode(401, "Usuario no autorizado");
-        
-        // For debugging purposes:
-        // return StatusCode(403, "Acceso denegado");
     }
 
-    [HttpPut("{id}")]
-    public async Task<ActionResult<BaseModel>> UpdateProductoBase(string id, [FromBody] BaseUpdateDto dto)
+    [HttpPut("{guid}")]
+    public async Task<ActionResult<BaseResponse>> Update(string guid, [FromBody] BaseUpdateDto dto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var baseById = await _baseService.GetByGuidAsync(id);
-        if (baseById == null)
-        {
-            return NotFound($"Producto con id: {id} no encontrado");
-        }
+        var baseResponse = await _baseService.UpdateAsync(guid, dto);
 
-        try
-        {
-            var updatedBase = await _baseService.UpdateAsync(id, dto);
-            return Ok(updatedBase);
-        }
-        catch (Exception e)
-        {
-            return BadRequest($"{e.Message}");
-        }
+        if (baseResponse is null) return NotFound($"No se ha podido actualizar el producto con guid: {guid}");
+        return Ok(baseResponse);
     }
-    
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteProductoBase(string id)
+
+    [HttpDelete("{guid}")]
+    public async Task<ActionResult<BaseResponse>> DeleteByGuid(string guid)
     {
-        var baseById = await _baseService.GetByGuidAsync(id);
-        if (baseById == null)
-        {
-            return NotFound($"Producto con id: {id} no encontrado");
-        }
-
-        try
-        {
-            await _baseService.DeleteAsync(id);
-            return NoContent();
-        }
-        catch (Exception e)
-        {
-            return BadRequest($"{e.Message}");
-        }
+        var baseByGuid = await _baseService.DeleteAsync(guid);
+        if (baseByGuid is null) return NotFound($"No se ha podido eliminar el producto con guid: {guid}");
+        return Ok(baseByGuid);
     }
-    
-
 }

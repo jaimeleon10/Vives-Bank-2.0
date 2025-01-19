@@ -5,10 +5,10 @@ namespace Banco_VivesBank.Producto.Base.Services;
 
 public interface IBaseService
 {
-    public Task<IEnumerable<BaseModel>> GetAllAsync();
-    public Task<BaseResponseDto> GetByGuidAsync(string id);
-    public Task<BaseResponseDto> GetByTipoAsync(string tipo);
-    public Task<BaseResponseDto> CreateAsync(BaseRequestDto baseRequest);
-    public Task<BaseResponseDto> UpdateAsync(string id, BaseUpdateDto baseUpdate);
-    public Task<BaseResponseDto> DeleteAsync(string id);
+    public Task<IEnumerable<BaseResponse>> GetAllAsync();
+    public Task<BaseResponse?> GetByGuidAsync(string guid);
+    public Task<BaseResponse?> GetByTipoAsync(string tipo);
+    public Task<BaseResponse> CreateAsync(BaseRequest baseRequest);
+    public Task<BaseResponse?> UpdateAsync(string guid, BaseUpdateDto baseUpdate);
+    public Task<BaseResponse?> DeleteAsync(string guid);
 }
