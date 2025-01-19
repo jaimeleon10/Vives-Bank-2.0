@@ -6,6 +6,9 @@ using Banco_VivesBank.Frankfurter.Exceptions;
 using Banco_VivesBank.Frankfurter.Services;
 using NUnit.Framework;
 
+
+namespace Banco_VivesBank.Test.Frankfurter.Services;
+
 public class DivisasServiceTest
 {
     private Mock<HttpMessageHandler> _mockHttpMessageHandler;
@@ -41,7 +44,6 @@ public class DivisasServiceTest
     [Test]
     public void ObtenerUCambio()
     {
-        // Arrange
         var jsonResponse = "{\"rates\":{\"USD\":1.13},\"amount\":1,\"base\":\"EUR\"}";
         var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {

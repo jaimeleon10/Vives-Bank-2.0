@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NUnit.Framework;
 
+namespace Banco_VivesBank.Test.Frankfurter.Controller;
+
 public class DivisasControllerTest
 {
     private Mock<ILogger<DivisasController>> _logger;
@@ -22,7 +24,7 @@ public class DivisasControllerTest
     [Test]
     public void ObtenerCambio()
     {
-        var expectedResponse = new FrankFurterResponse 
+        var respuestaEsperada = new FrankFurterResponse 
         { 
             Amount = 1,
             Base = "EUR",
@@ -31,19 +33,19 @@ public class DivisasControllerTest
     
         _divisasService
             .Setup(x => x.ObtenerUltimasTasas(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(expectedResponse);
+            .Returns(respuestaEsperada);
 
         var result = _controller.GetLatestRates("1", "EUR", "USD");
 
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
         var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult.Value, Is.EqualTo(expectedResponse));
+        Assert.That(okResult.Value, Is.EqualTo(respuestaEsperada));
     }
 
     [Test]
     public void ObtenerCambios()
     {
-        var expectedResponse = new FrankFurterResponse
+        var respuestaEsperada = new FrankFurterResponse
         {
             Amount = 1,
             Base = "EUR",
@@ -52,7 +54,7 @@ public class DivisasControllerTest
 
         _divisasService
             .Setup(x => x.ObtenerUltimasTasas("EUR", null, "1"))
-            .Returns(expectedResponse);
+            .Returns(respuestaEsperada);
 
         var result = _controller.GetLatestRates();
 
