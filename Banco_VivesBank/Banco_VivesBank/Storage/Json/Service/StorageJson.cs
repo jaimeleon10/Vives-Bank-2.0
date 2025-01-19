@@ -3,8 +3,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using FileNotFoundException = System.IO.FileNotFoundException;
-using Formatting = Newtonsoft.Json.Formatting;
-using JsonException = System.Text.Json.JsonException;
 
 namespace Banco_VivesBank.Storage.Json.Service;
 
