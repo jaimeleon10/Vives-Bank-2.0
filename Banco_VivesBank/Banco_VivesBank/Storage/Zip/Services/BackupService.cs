@@ -171,7 +171,7 @@ public class BackupService : IBackupService
             
             if (tarjetasFile.Exists)
             {   
-                var tarjetas = _storageJson.ImportJson<TarjetaRequestDto>(tarjetasFile);
+                var tarjetas = _storageJson.ImportJson<TarjetaRequest>(tarjetasFile);
                 foreach (var tarjetaDto in tarjetas)
                 {
                     await _tarjetaService.CreateAsync(tarjetaDto);
