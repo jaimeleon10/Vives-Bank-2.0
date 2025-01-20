@@ -13,6 +13,7 @@ using Banco_VivesBank.User.Service;
 using GraphiQl;
 using GraphQL;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -95,6 +96,9 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IBaseService, BaseService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
+    
+    // Caché en memoria
+    myBuilder.Services.AddMemoryCache();
 
     // Base de datos en PostgreSQL
     myBuilder.Services.AddDbContext<GeneralDbContext>(options =>
