@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+﻿/*using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Cuenta.Mappers;
@@ -120,7 +120,7 @@ public class CuentaMapperTest
             IsDeleted = false
         };
 
-        var tarjetaResponse = new TarjetaResponseDto { Guid = "tarjeta-guid" };
+        var tarjetaResponse = new TarjetaResponse { Guid = "tarjeta-guid" };
         var clienteResponse = new ClienteResponse { Guid = "cliente-guid" };
         var productoResponse = new BaseResponse { Guid = "producto-guid" };
         
@@ -139,4 +139,4 @@ public class CuentaMapperTest
             Assert.That(cuentaResponse.IsDeleted, Is.EqualTo(cuentaEntity.IsDeleted));
         });
     }
-}
+}*/

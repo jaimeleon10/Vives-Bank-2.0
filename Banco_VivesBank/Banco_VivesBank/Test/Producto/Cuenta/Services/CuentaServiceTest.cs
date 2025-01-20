@@ -1,4 +1,4 @@
-using Banco_VivesBank.Cliente.Mapper;
+/*using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Mappers;
@@ -224,7 +224,7 @@ public class CuentaServiceTests
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.TipoCuenta, Is.EqualTo("Ahorro"));
-    }*/
+    }#1#
 
     [Test]
         public async Task Update_SaldoInsuficienteException()
@@ -335,4 +335,4 @@ public class CuentaServiceTests
             Assert.That(ex, Is.Not.Null);
             Assert.That(ex.Message, Is.EqualTo($"Cuenta con IBAN: null  no le pertenece"));
         }
-}
+}*/

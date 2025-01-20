@@ -9,16 +9,16 @@ namespace Banco_VivesBank.Producto.Cuenta.Mappers;
 
 public static class CuentaMapper
 {
-    public static Models.Cuenta ToModelFromEntity(CuentaEntity entity)
+    /*public static Models.Cuenta ToModelFromEntity(CuentaEntity entity)
     {
         return new Models.Cuenta
         {
             Guid = entity.Guid,
             Iban = entity.Iban,
             Saldo = entity.Saldo,
-            TarjetaId = entity.TarjetaId,
-            ClienteId = entity.ClienteId,
-            ProductoId = entity.ProductoId,
+            Tarjeta = entity.TarjetaId,
+            Cliente = entity.ClienteId,
+            Producto = entity.ProductoId,
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             IsDeleted = entity.IsDeleted
@@ -32,14 +32,14 @@ public static class CuentaMapper
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
             Saldo = cuenta.Saldo,
-            TarjetaId = cuenta.TarjetaId,
-            ClienteId = cuenta.ClienteId,
-            ProductoId = cuenta.ProductoId,
+            TarjetaId = cuenta.Tarjeta,
+            ClienteId = cuenta.Cliente,
+            ProductoId = cuenta.Producto,
             CreatedAt = cuenta.CreatedAt,
             UpdatedAt = cuenta.UpdatedAt,
             IsDeleted = cuenta.IsDeleted
         };
-    }
+    }*/
     
     public static CuentaResponse ToResponseFromModel(Models.Cuenta cuenta, string tarjetaGuid, string clienteGuid, string productoGuid)
     {
@@ -51,13 +51,13 @@ public static class CuentaMapper
             TarjetaGuid = tarjetaGuid,
             ClienteGuid = clienteGuid,
             ProductoGuid = productoGuid,
-            CreatedAt = cuenta.CreatedAt,
-            UpdatedAt = cuenta.UpdatedAt,
+            CreatedAt = cuenta.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            UpdatedAt = cuenta.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = cuenta.IsDeleted
         };
     }
     
-    public static CuentaResponse ToResponseFromEntity(CuentaEntity cuentaEntity, TarjetaResponseDto tarjeta, ClienteResponse cliente, BaseResponse producto)
+    public static CuentaResponse ToResponseFromEntity(CuentaEntity cuentaEntity, Tarjeta.Models.Tarjeta tarjeta, Cliente.Models.Cliente cliente, BaseModel producto)
     {
         return new CuentaResponse
         {
@@ -67,8 +67,8 @@ public static class CuentaMapper
             TarjetaGuid = tarjeta.Guid,
             ClienteGuid = cliente.Guid,
             ProductoGuid = producto.Guid,
-            CreatedAt = cuentaEntity.CreatedAt,
-            UpdatedAt = cuentaEntity.UpdatedAt,
+            CreatedAt = cuentaEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            UpdatedAt = cuentaEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = cuentaEntity.IsDeleted
         };
     }

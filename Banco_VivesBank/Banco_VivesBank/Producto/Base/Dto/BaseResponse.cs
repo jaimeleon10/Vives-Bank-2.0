@@ -7,8 +7,8 @@ public class BaseResponse
     public string Descripcion { get; set; }
     public string TipoProducto { get; set; }
     public double Tae { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public string CreatedAt { get; set; }
+    public string UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }
 }
     
