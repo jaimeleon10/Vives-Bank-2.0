@@ -57,7 +57,13 @@ namespace Banco_VivesBank.User.Service
         if (!string.IsNullOrEmpty(redisCache))
         {
             _logger.LogInformation("Usuario obtenido desde Redis");
-            return JsonSerializer.Deserialize<UserResponse>(redisCache);
+            var userResponseFromRedis = JsonSerializer.Deserialize<UserResponse>(redisCache);
+            if (userResponseFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, userResponseFromRedis, TimeSpan.FromMinutes(30));
+            }
+
+            return userResponseFromRedis; 
         }
 
         // Consultar la base de datos
@@ -84,63 +90,76 @@ namespace Banco_VivesBank.User.Service
         return null;
     }
 
-        public async Task<UserResponse?> GetByUsernameAsync(string username)
+    public async Task<UserResponse?> GetByUsernameAsync(string username)
+    {
+        _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
+
+        var cacheKey = CacheKeyPrefix + username;
+        if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
         {
-            _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
-            
-            /*
-            var cacheKey = CacheKeyPrefix + username;
-
-            if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
+            _logger.LogInformation("Usuario obtenido desde memoria caché");
+            return UserMapper.ToResponseFromModel(cachedUser);
+        }
+        var redisUser = await _database.StringGetAsync(cacheKey);
+        if (!string.IsNullOrEmpty(redisUser))
+        {
+            _logger.LogInformation("Usuario obtenido desde Redis");
+            var userFromRedis = JsonSerializer.Deserialize<Models.User>(redisUser);
+            if (userFromRedis != null)
             {
-                _logger.LogInformation("Usuario obtenido desde cache");
-                return cachedUser;
+                _memoryCache.Set(cacheKey, userFromRedis, TimeSpan.FromMinutes(30));
+                return UserMapper.ToResponseFromModel(userFromRedis);
             }
-            */
+        }
+        var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+        if (userEntity != null)
+        {
+            _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
 
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
-            if (userEntity != null)
-            {
-                /*cachedUser = UserMapper.ToModelFromEntity(userEntity);
-                _memoryCache.Set(cacheKey, cachedUser, TimeSpan.FromMinutes(30));
-                return cachedUser;*/
-                
-                _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
-                return UserMapper.ToResponseFromEntity(userEntity);
-            }
+            var userModel = UserMapper.ToModelFromEntity(userEntity);
+            _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
+            var serializedUser = JsonSerializer.Serialize(userModel);
+            await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
 
-            _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
-            return null;
+            return UserMapper.ToResponseFromEntity(userEntity);
         }
 
-        public async Task<UserResponse> CreateAsync(UserRequest userRequest)
+        _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
+        return null;
+    }
+
+    public async Task<UserResponse> CreateAsync(UserRequest userRequest)
+    {
+        _logger.LogInformation("Creando Usuario");
+        
+        if (await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequest.Username.ToLower()))
         {
-            _logger.LogInformation("Creando Usuario");
-
-            if (await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequest.Username.ToLower()))
-            {
-                _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequest.Username}");
-                throw new UserExistException($"Ya existe un Usuario con el nombre: {userRequest.Username}");
-            }
-
-            var userModel = UserMapper.ToModelFromRequest(userRequest);
-            _context.Usuarios.Add(UserMapper.ToEntityFromModel(userModel));
-            await _context.SaveChangesAsync();
-
-            /*
-            var cacheKey = CacheKeyPrefix + userEntity.Id;
-            _memoryCache.Set(cacheKey, UserMapper.ToModelFromEntity(userEntity), TimeSpan.FromMinutes(30));
-            */
-
-            _logger.LogInformation("Usuario creado con éxito");
-            return UserMapper.ToResponseFromModel(userModel);
+            _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequest.Username} (en base de datos)");
+            throw new UserExistException($"Ya existe un Usuario con el nombre: {userRequest.Username}");
         }
+        
+        //Crear Usuario
+        var userModel = UserMapper.ToModelFromRequest(userRequest);
+        var userEntity = UserMapper.ToEntityFromModel(userModel);
+        _context.Usuarios.Add(userEntity);
+        await _context.SaveChangesAsync();
+        
+        var cacheKey = CacheKeyPrefix + userRequest.Username.ToLower();
+
+        // Guardar el usuario 
+        var serializedUser = JsonSerializer.Serialize(userModel);
+        _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
+        await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
+
+        _logger.LogInformation("Usuario creado con éxito");
+        return UserMapper.ToResponseFromModel(userModel);
+    }
 
 
         public async Task<UserResponse?> UpdateAsync(string guid, UserRequest userRequest)
         {
             _logger.LogInformation($"Actualizando usuario con guid: {guid}");
-            
+            // TODO Cambiar await por busqueda GetByGuid
             var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             if (userEntityExistente == null)
             {
@@ -163,11 +182,17 @@ namespace Banco_VivesBank.User.Service
             _context.Usuarios.Update(userEntityExistente);
             await _context.SaveChangesAsync();
             
-            /*
-            var cacheKey = CacheKeyPrefix + id;
-            _memoryCache.Remove(cacheKey);
-            */
-            
+            var cacheKey = CacheKeyPrefix + userEntityExistente.Username.ToLower();
+
+            // Eliminar los datos  de la cache 
+            _memoryCache.Remove(cacheKey);  
+            await _database.KeyDeleteAsync(cacheKey);  
+
+            // Guardar el usuario actualizado en la cache
+            var serializedUser = JsonSerializer.Serialize(userEntityExistente);
+            _memoryCache.Set(cacheKey, userEntityExistente, TimeSpan.FromMinutes(30));  
+            await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30)); 
+
             _logger.LogInformation($"Usuario actualizado con guid: {guid}");
             return UserMapper.ToResponseFromEntity(userEntityExistente);
         }
@@ -188,11 +213,14 @@ namespace Banco_VivesBank.User.Service
 
             _context.Usuarios.Update(userExistenteEntity);
             await _context.SaveChangesAsync();
-
-            /*
-            var cacheKey = CacheKeyPrefix + id;
+            
+            var cacheKey = CacheKeyPrefix + userExistenteEntity.Username.ToLower();
+    
+            // Eliminar de la cache en memoria
             _memoryCache.Remove(cacheKey);
-            */
+    
+            // Eliminar de Redis
+            await _database.KeyDeleteAsync(cacheKey);
 
             _logger.LogInformation($"Usuario borrado (desactivado) con id: {guid}");
             return UserMapper.ToResponseFromEntity(userExistenteEntity);
@@ -202,30 +230,76 @@ namespace Banco_VivesBank.User.Service
         {
             _logger.LogInformation($"Buscando usuario con guid: {guid}");
 
+            var cacheKey = CacheKeyPrefix + guid.ToLower();
+            if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
+            {
+                _logger.LogInformation("Usuario obtenido desde cache en memoria");
+                return cachedUser;  
+            }
+            
+            var cachedUserRedis = await _database.StringGetAsync(cacheKey);
+            if (cachedUserRedis.HasValue)
+            {
+                _logger.LogInformation("Usuario obtenido desde cache en Redis");
+                var userFromRedis = JsonSerializer.Deserialize<Models.User>(cachedUserRedis);
+                
+                if (userFromRedis != null)
+                {
+                    _memoryCache.Set(cacheKey, userFromRedis, TimeSpan.FromMinutes(30));
+                }
+                return userFromRedis;  
+            }
+            
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             if (userEntity != null)
             {
-                _logger.LogInformation($"Usuario encontrado con guid: {guid}");
-                return UserMapper.ToModelFromEntity(userEntity);
+                _logger.LogInformation($"Usuario encontrado con guid: {guid} en base de datos");
+                
+                var userModel = UserMapper.ToModelFromEntity(userEntity);
+                _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
+                var serializedUser = JsonSerializer.Serialize(userModel);
+                await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
+                return userModel;  
             }
-
             _logger.LogInformation($"Usuario no encontrado con guid: {guid}");
-            return null;
+            return null;  
         }
+            
+    public async Task<Models.User?> GetUserModelById(long id)
+    {
+        _logger.LogInformation($"Buscando usuario con id: {id}");
         
-        public async Task<Models.User?> GetUserModelById(long id)
+        var cacheKey = CacheKeyPrefix + id.ToString();
+        if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
         {
-            _logger.LogInformation($"Buscando usuario con id: {id}");
-
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
-            if (userEntity != null)
-            {
-                _logger.LogInformation($"Usuario encontrado con id: {id}");
-                return UserMapper.ToModelFromEntity(userEntity);
-            }
-
-            _logger.LogInformation($"Usuario no encontrado con id: {id}");
-            return null;
+            _logger.LogInformation("Usuario obtenido desde cache en memoria");
+            return cachedUser;  
         }
+        var cachedUserRedis = await _database.StringGetAsync(cacheKey);
+        if (cachedUserRedis.HasValue)
+        {
+            _logger.LogInformation("Usuario obtenido desde cache en Redis");
+            
+            var userFromRedis = JsonSerializer.Deserialize<Models.User>(cachedUserRedis);
+            if (userFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, userFromRedis, TimeSpan.FromMinutes(30));
+            }
+            return userFromRedis; 
+        }
+        var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+        if (userEntity != null)
+        {
+            _logger.LogInformation($"Usuario encontrado con id: {id} en base de datos");
+            
+            var userModel = UserMapper.ToModelFromEntity(userEntity);
+            _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
+            var serializedUser = JsonSerializer.Serialize(userModel);
+            await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
+            return userModel;  
+        }
+        _logger.LogInformation($"Usuario no encontrado con id: {id}");
+        return null; 
     }
+}
 }
