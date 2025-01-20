@@ -4,6 +4,7 @@ using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
+using Banco_VivesBank.Storage.Files.Service;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +16,14 @@ public class ClienteService : IClienteService
     private readonly GeneralDbContext _context;
     private readonly ILogger<ClienteService> _logger;
     private readonly IUserService _userService;
+    private readonly IFileStorageService _fileStorageService;
 
-    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService)
+    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService, IFileStorageService storageService)
     {
         _context = context;
         _logger = logger;
         _userService = userService;
+        _fileStorageService = storageService;
     }
     
     public async Task<IEnumerable<ClienteResponse>> GetAllAsync()
@@ -177,7 +180,6 @@ public class ClienteService : IClienteService
         return entityCliente;
     }
     
-    
     private void ValidateDniExistente(string dni)
     {
         _logger.LogInformation("Validando Dni");
@@ -206,6 +208,60 @@ public class ClienteService : IClienteService
         }
     }
     
+    public async Task<ClienteResponse?> UpdateFotoPerfil(string guid, IFormFile fotoPerfil)
+    {
+        _logger.LogInformation($"Actualizando foto de perfil del cliente con guid: {guid}");
+        
+        var clienteEntityExistente = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
+        if (clienteEntityExistente == null)
+        {
+            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+            return null;
+        }
+
+        var fotoAnterior = clienteEntityExistente.FotoPerfil;
+        if (clienteEntityExistente.FotoPerfil != "https://example.com/fotoPerfil.jpg")
+        {
+            await _fileStorageService.DeleteFileAsync(fotoAnterior);
+            
+        }
+        var nuevaFoto = await _fileStorageService.SaveFileAsync(fotoPerfil);
+        clienteEntityExistente.FotoPerfil = nuevaFoto;
+        clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
+        _context.Clientes.Update(clienteEntityExistente);
+        await _context.SaveChangesAsync();
+        
+        var user = await _userService.GetUserModelById(clienteEntityExistente.UserId);
+        return ClienteMapper.ToResponseFromEntity(clienteEntityExistente, user!);
+    }
+
+    public async Task<ClienteResponse?> UpdateFotoDni(string guid, IFormFile fotoDni)
+    {
+        _logger.LogInformation($"Actualizando foto del DNI del cliente con guid: {guid}");
+        
+        var clienteEntityExistente = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
+        if (clienteEntityExistente == null)
+        {
+            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+            return null;
+        }
+
+        var fotoAnterior = clienteEntityExistente.FotoDni;
+        if (clienteEntityExistente.FotoDni != "https://example.com/fotoDni.jpg")
+        {
+            await _fileStorageService.DeleteFileAsync(fotoAnterior);
+            
+        }
+        var nuevaFoto = await _fileStorageService.SaveFileAsync(fotoDni);
+        clienteEntityExistente.FotoDni= nuevaFoto;
+        clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
+        _context.Clientes.Update(clienteEntityExistente);
+        await _context.SaveChangesAsync();
+        
+        var user = await _userService.GetUserModelById(clienteEntityExistente.UserId);
+        return ClienteMapper.ToResponseFromEntity(clienteEntityExistente, user!);
+    }
+    
     public async Task<Models.Cliente?> GetClienteModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando Cliente con guid: {guid}");
@@ -231,7 +287,7 @@ public class ClienteService : IClienteService
         {
             _logger.LogInformation($"Cliente encontrado con id: {id}");
             var user = await _userService.GetUserModelById(clienteEntity.UserId);
-            return ClienteMapper.ToModelFromEntity(clienteEntity, user);
+            return ClienteMapper.ToModelFromEntity(clienteEntity, user!);
         }
 
         _logger.LogInformation($"Cliente no encontrado con id: {id}");

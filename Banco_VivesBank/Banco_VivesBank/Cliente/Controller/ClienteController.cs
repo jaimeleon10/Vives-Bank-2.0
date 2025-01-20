@@ -83,4 +83,22 @@ public class ClienteController : ControllerBase
         if (clienteResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
         return Ok(clienteResponse);
     }
+
+    [HttpPatch("{guid}/foto_perfil")]
+    public async Task<ActionResult<ClienteResponse>> PatchFotoPerfil(string guid, IFormFile foto)
+    {
+        var clienteResponse = await _clienteService.UpdateFotoPerfil(guid, foto);
+        
+        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto de perfil del cliente con guid: {guid}");
+        return Ok(clienteResponse);
+    }
+    
+    [HttpPatch("{guid}/foto_dni")]
+    public async Task<ActionResult<ClienteResponse>> PatchFotoDni(string guid, IFormFile foto)
+    {
+        var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+        
+        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto de perfil del cliente con guid: {guid}");
+        return Ok(clienteResponse);
+    }
 }
