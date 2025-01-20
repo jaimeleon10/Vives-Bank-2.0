@@ -28,22 +28,16 @@ public class CuentaEntity
     [ForeignKey("Tarjeta")] 
     [Column("tarjeta_id")]
     public long? TarjetaId { get; set; }
-
-    public TarjetaModel TarjetaModel { get; set; }
     
     [ForeignKey("Cliente")] 
     [Column("cliente_id")]  
     [Required] 
     public long ClienteId { get; set; }
-
-    public Cliente.Models.Cliente Cliente { get; set; } 
     
     [ForeignKey("Producto")] 
     [Column("producto_id")]  
     [Required] 
     public long ProductoId { get; set; }
-
-    public BaseModel Producto { get; set; } 
     
     [Required]
     [DefaultValue(false)]

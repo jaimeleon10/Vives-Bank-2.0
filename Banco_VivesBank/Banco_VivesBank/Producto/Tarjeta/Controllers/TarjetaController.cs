@@ -17,14 +17,14 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel>>> GetAllTarjetas()
+    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>>> GetAllTarjetas()
     {
         var tarjetas = await _tarjetaService.GetAllAsync();
         return Ok(tarjetas);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<TarjetaResponseDto>> GetTarjetaById(string id)
+    public async Task<ActionResult<TarjetaResponse>> GetTarjetaById(string id)
     {
         var tarjeta = await _tarjetaService.GetByGuidAsync(id);
         if (tarjeta == null) return NotFound();
@@ -32,7 +32,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel>> CreateTarjeta([FromBody] TarjetaRequestDto dto)
+    public async Task<ActionResult<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
         if (!ModelState.IsValid)
         {
@@ -52,7 +52,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<TarjetaResponseDto>> UpdateTarjeta(string id, [FromBody] TarjetaRequestDto dto)
+    public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequest dto)
     {
         if (!ModelState.IsValid)
         {

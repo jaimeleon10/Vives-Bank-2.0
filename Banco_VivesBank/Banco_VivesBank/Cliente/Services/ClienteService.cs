@@ -152,11 +152,11 @@ public class ClienteService : IClienteService
         _context.Clientes.Update(cliente);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation($"Cliente y datos del usuario con guid: {userGuid} borrados (desactivados)");
-        return "Clientes borrados (desactivados) con éxito";
+        _logger.LogInformation($"Datos del cliente eliminados de la base de datos");
+        return "Datos del cliente eliminados de la base de datos";
     }
     
-    public ClienteEntity DeleteData(ClienteEntity entityCliente)
+    private ClienteEntity DeleteData(ClienteEntity entityCliente)
     {
         entityCliente.Dni = "";
         entityCliente.Nombre = "";

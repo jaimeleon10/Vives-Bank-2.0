@@ -1,6 +1,6 @@
 ﻿namespace Banco_VivesBank.Producto.Tarjeta.Dto;
 
-public class TarjetaResponseDto
+public class TarjetaResponse
 {
     public long Id { get; set; }
     public string Guid { get; set; }

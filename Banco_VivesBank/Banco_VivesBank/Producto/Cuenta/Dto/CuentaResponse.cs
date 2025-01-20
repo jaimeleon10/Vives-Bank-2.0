@@ -10,7 +10,7 @@ public class CuentaResponse
     public string? TarjetaGuid { get; set; }
     public string ClienteGuid { get; set; } 
     public string ProductoGuid { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public string CreatedAt { get; set; }
+    public string UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }
 }

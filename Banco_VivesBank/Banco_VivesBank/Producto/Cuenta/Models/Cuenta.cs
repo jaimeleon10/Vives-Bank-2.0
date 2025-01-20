@@ -20,17 +20,11 @@ public class Cuenta
     [JsonPropertyName("saldo")] 
     public BigInteger Saldo { get; set; } = 0;
     
-    public long? TarjetaId { get; set; } = null;
+    [JsonPropertyName("tarjeta")] 
+    public Tarjeta.Models.Tarjeta? Tarjeta { get; set; } = null;
     
-    //[JsonPropertyName("tarjeta")] 
-    //public Tarjeta? Tarjeta { get; set; } = null
-    
-    public long ClienteId { get; set; }
-
     [JsonPropertyName("cliente")] 
     public Cliente.Models.Cliente Cliente { get; set; }
-    
-    public long ProductoId { get; set; }
     
     [JsonPropertyName("producto")] 
     public BaseModel Producto { get; set; }
