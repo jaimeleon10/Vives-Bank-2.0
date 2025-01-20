@@ -8265,6 +8265,7 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "Banco_VivesBank >= 1.0.0",
       "CacheManager.Core >= 1.2.0",
       "CacheMeIfYouCan.Redis >= 0.2.197",
       "GraphQL >= 8.3.0",
@@ -8298,7 +8299,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\jleon\\.nuget\\packages\\": {}
+    "C:\\Users\\Javier\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
@@ -8306,11 +8307,11 @@
       "projectUniqueName": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj",
       "projectName": "Banco_VivesBank",
       "projectPath": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj",
-      "packagesPath": "C:\\Users\\jleon\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\Javier\\.nuget\\packages\\",
       "outputPath": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\jleon\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Javier\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -8321,7 +8322,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj": {
+              "projectPath": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -8481,8 +8486,19 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.405/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1108",
+      "level": "Error",
+      "message": "Cycle detected. \r\n  Banco_VivesBank -> Banco_VivesBank.",
+      "libraryId": "Banco_VivesBank",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

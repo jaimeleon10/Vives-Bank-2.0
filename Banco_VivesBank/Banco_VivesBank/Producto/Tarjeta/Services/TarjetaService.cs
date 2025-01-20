@@ -28,7 +28,7 @@ public class TarjetaService : ITarjetaService
         _expDateGenerator = new ExpDateGenerator();
         _cardLimitValidators = new CardLimitValidators();
     }
-    public async Task<List<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>> GetAllAsync()
+    public async Task<List<Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel>> GetAllAsync()
     {
        _logger.LogDebug("Obteniendo todas las tarjetas");
        List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
@@ -138,7 +138,7 @@ public class TarjetaService : ITarjetaService
         return tarjeta.ToResponseFromEntity();
     }
     
-    public async Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid)
+    public async Task<Models.TarjetaModel?> GetTarjetaModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando Tarjeta con guid: {guid}");
 
@@ -153,7 +153,7 @@ public class TarjetaService : ITarjetaService
         return null;
     }
         
-    public async Task<Models.Tarjeta?> GetTarjetaModelById(long id)
+    public async Task<Models.TarjetaModel?> GetTarjetaModelById(long id)
     {
         _logger.LogInformation($"Buscando Tarjeta con id: {id}");
 

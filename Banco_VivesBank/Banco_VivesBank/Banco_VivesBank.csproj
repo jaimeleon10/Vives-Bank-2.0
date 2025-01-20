@@ -42,4 +42,8 @@
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="Banco_VivesBank.csproj" />
+    </ItemGroup>
+
 </Project>

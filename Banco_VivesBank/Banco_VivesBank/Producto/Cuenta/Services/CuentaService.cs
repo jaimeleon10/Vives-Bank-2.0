@@ -123,7 +123,7 @@ public class CuentaService : ICuentaService
         
         foreach (var cuentaEntity in cuentaEntityList)
         {
-            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.Tarjeta.Id);
+            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaModel.Id);
             var cliente = await _clienteService.GetClienteModelById(cuentaEntity.Cliente.Id);
             var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
 
@@ -155,7 +155,7 @@ public class CuentaService : ICuentaService
              _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
              return cachedCuenta.ToResponseFromModel();
              */
-            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.Tarjeta.Id);
+            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaModel.Id);
             var cliente = await _clienteService.GetClienteModelById(cuentaEntity.Cliente.Id);
             var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
             _logger.LogInformation($"Cuenta encontrada con guid: {guid}");
@@ -188,7 +188,7 @@ public class CuentaService : ICuentaService
              _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
              return cachedCuenta.ToResponseFromModel();
              */
-            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.Tarjeta.Id);
+            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaModel.Id);
             var cliente = await _clienteService.GetClienteModelById(cuentaEntity.Cliente.Id);
             var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
             _logger.LogInformation($"Cuenta encontrada con iban: {iban}");
@@ -206,7 +206,7 @@ public class CuentaService : ICuentaService
 
         if (cuentaEntity != null)
         {
-            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.Tarjeta.Id);
+            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaModel.Id);
             var cliente = await _clienteService.GetClienteModelById(cuentaEntity.Cliente.Id);
             var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
             _logger.LogInformation($"Cuenta encontrada con iban: {iban}");
@@ -215,7 +215,7 @@ public class CuentaService : ICuentaService
 
         if (cuentaEntity.Cliente.Guid == guid)
         {
-            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.Tarjeta.Id);
+            var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaModel.Id);
             var cliente = await _clienteService.GetClienteModelById(cuentaEntity.Cliente.Id);
             var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
             _logger.LogInformation($"Cuenta con IBAN: {iban}  le pertenece");
@@ -248,7 +248,7 @@ public class CuentaService : ICuentaService
 
         await _context.SaveChangesAsync();
 
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.Tarjeta.Id);
+        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaModel.Id);
         var cliente = await _clienteService.GetClienteModelById(cuentaEntity.Cliente.Id);
         var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
         var cuentaResponse = CuentaMapper.ToResponseFromEntity(cuentaEntity, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));
@@ -307,7 +307,7 @@ public class CuentaService : ICuentaService
 
         await _context.SaveChangesAsync();
 
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntityExistente.Tarjeta.Id);
+        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntityExistente.TarjetaModel.Id);
         var cliente = await _clienteService.GetClienteModelById(cuentaEntityExistente.Cliente.Id);
         var producto = await _baseService.GetBaseModelById(cuentaEntityExistente.ProductoId);
         var cuentaResponse = CuentaMapper.ToResponseFromEntity(cuentaEntityExistente, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));
@@ -346,7 +346,7 @@ public class CuentaService : ICuentaService
         */
         
         _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaExistenteEntity.Tarjeta.Id);
+        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaExistenteEntity.TarjetaModel.Id);
         var cliente = await _clienteService.GetClienteModelById(cuentaExistenteEntity.Cliente.Id);
         var producto = await _baseService.GetBaseModelById(cuentaExistenteEntity.ProductoId);
         return CuentaMapper.ToResponseFromEntity(cuentaExistenteEntity, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));
@@ -376,7 +376,7 @@ public class CuentaService : ICuentaService
         */
         
         _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaExistenteEntity.Tarjeta.Id);
+        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaExistenteEntity.TarjetaModel.Id);
         var cliente = await _clienteService.GetClienteModelById(cuentaExistenteEntity.Cliente.Id);
         var producto = await _baseService.GetBaseModelById(cuentaExistenteEntity.ProductoId);
         return CuentaMapper.ToResponseFromEntity(cuentaExistenteEntity, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));
