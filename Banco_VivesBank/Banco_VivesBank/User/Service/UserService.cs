@@ -44,20 +44,20 @@ namespace Banco_VivesBank.User.Service
         _logger.LogInformation($"Buscando usuario con guid: {guid}");
         
         var cacheKey = CacheKeyPrefix + guid;
-
+        
+        // Intentar obtener desde la memoria caché
+        if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
+        {
+            _logger.LogInformation("Usuario obtenido desde la memoria caché");
+            return UserMapper.ToResponseFromModel(cachedUser);
+        }
+        
         // Intentar obtener desde la caché de Redis
         var redisCache = await _database.StringGetAsync(cacheKey);
         if (!string.IsNullOrEmpty(redisCache))
         {
             _logger.LogInformation("Usuario obtenido desde Redis");
             return JsonSerializer.Deserialize<UserResponse>(redisCache);
-        }
-
-        // Intentar obtener desde la memoria caché
-        if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
-        {
-            _logger.LogInformation("Usuario obtenido desde la memoria caché");
-            return UserMapper.ToResponseFromModel(cachedUser);
         }
 
         // Consultar la base de datos
