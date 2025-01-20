@@ -10,7 +10,7 @@ using Banco_VivesBank.Producto.Base.Models;
 public class BaseMapperTests
 {
     [Test]
-    public void ToModelFromRequest_ShouldMapAllProperties()
+    public void ToModelFromRequest()
     {
         var request = new BaseRequest
         {
@@ -33,7 +33,7 @@ public class BaseMapperTests
     }
 
     [Test]
-    public void ToModelFromEntity_ShouldMapAllProperties()
+    public void ToModelFromEntity()
     {
         var entity = new BaseEntity
         {
@@ -61,7 +61,7 @@ public class BaseMapperTests
     }
 
     [Test]
-    public void ToEntityFromModel_ShouldMapAllProperties()
+    public void ToEntityFromModel()
     {
         var model = new BaseModel
         {
@@ -89,7 +89,7 @@ public class BaseMapperTests
     }
 
     [Test]
-    public void ToResponseFromModel_ShouldMapAllProperties()
+    public void ToResponseFromModel()
     {
         var model = new BaseModel
         {
@@ -106,17 +106,22 @@ public class BaseMapperTests
         var result = BaseMapper.ToResponseFromModel(model);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Nombre, Is.EqualTo(model.Nombre));
-        Assert.That(result.Descripcion, Is.EqualTo(model.Descripcion));
-        Assert.That(result.Tae, Is.EqualTo(model.Tae));
-        Assert.That(result.TipoProducto, Is.EqualTo(model.TipoProducto));
-        Assert.That(result.CreatedAt, Is.EqualTo(model.CreatedAt));
-        Assert.That(result.UpdatedAt, Is.EqualTo(model.UpdatedAt));
-        Assert.That(result.IsDeleted, Is.EqualTo(model.IsDeleted));
+        Assert.That(model.Nombre, Is.EqualTo(result.Nombre));
+        Assert.That(model.Descripcion, Is.EqualTo(result.Descripcion));
+        Assert.That(model.Tae, Is.EqualTo(result.Tae));
+        Assert.That(model.TipoProducto, Is.EqualTo(result.TipoProducto));
+        
+        var formattedCreatedAt = model.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        Assert.That(formattedCreatedAt, Is.EqualTo(result.CreatedAt));
+
+        var formattedUpdatedAt = model.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        Assert.That(formattedUpdatedAt, Is.EqualTo(result.UpdatedAt));
+        
+        Assert.That(model.IsDeleted, Is.EqualTo(result.IsDeleted));
     }
 
     [Test]
-    public void ToResponseFromEntity_ShouldMapAllProperties()
+    public void ToResponseFromEntity()
     {
         var entity = new BaseEntity
         {
@@ -137,13 +142,18 @@ public class BaseMapperTests
         Assert.That(entity.Descripcion, Is.EqualTo(result.Descripcion));
         Assert.That(entity.Tae, Is.EqualTo(result.Tae));
         Assert.That(entity.TipoProducto, Is.EqualTo(result.TipoProducto));
-        Assert.That(entity.CreatedAt, Is.EqualTo(result.CreatedAt));
-        Assert.That(entity.UpdatedAt, Is.EqualTo(result.UpdatedAt));
+
+        var formattedCreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        Assert.That(formattedCreatedAt, Is.EqualTo(result.CreatedAt));
+
+        var formattedUpdatedAt = entity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        Assert.That(formattedUpdatedAt, Is.EqualTo(result.UpdatedAt));
+
         Assert.That(entity.IsDeleted, Is.EqualTo(result.IsDeleted));
     }
 
     [Test]
-    public void ToResponseListFromEntityList_ShouldMapAllEntities()
+    public void ToResponseListFromEntityList()
     {
         var entities = new List<BaseEntity>
         {
@@ -182,8 +192,13 @@ public class BaseMapperTests
             Assert.That(entities[i].Descripcion, Is.EqualTo(results[i].Descripcion));
             Assert.That(entities[i].Tae, Is.EqualTo(results[i].Tae));
             Assert.That(entities[i].TipoProducto, Is.EqualTo(results[i].TipoProducto));
-            Assert.That(entities[i].CreatedAt, Is.EqualTo(results[i].CreatedAt));
-            Assert.That(entities[i].UpdatedAt, Is.EqualTo(results[i].UpdatedAt));
+            
+            var formattedCreatedAt = entities[i].CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+            Assert.That(formattedCreatedAt, Is.EqualTo(results[i].CreatedAt));
+
+            var formattedUpdatedAt = entities[i].UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+            Assert.That(formattedUpdatedAt, Is.EqualTo(results[i].UpdatedAt));
+            
             Assert.That(entities[i].IsDeleted, Is.EqualTo(results[i].IsDeleted));
         }
     }
