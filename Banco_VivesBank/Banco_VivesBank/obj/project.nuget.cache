@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "eMbrMURBQGM=",
+  "dgSpecHash": "NJA8gqeowqA=",
   "success": true,
   "projectFilePath": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj",
   "expectedPackageFiles": [
@@ -20,6 +20,8 @@
     "C:\\Users\\Javier\\.nuget\\packages\\graphql.microsoftdi\\8.2.1\\graphql.microsoftdi.8.2.1.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\graphql.server.transports.aspnetcore\\8.2.0\\graphql.server.transports.aspnetcore.8.2.0.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\graphql.systemtextjson\\8.3.0\\graphql.systemtextjson.8.3.0.nupkg.sha512",
+    "C:\\Users\\Javier\\.nuget\\packages\\htmlrenderer.core\\1.5.1-beta1\\htmlrenderer.core.1.5.1-beta1.nupkg.sha512",
+    "C:\\Users\\Javier\\.nuget\\packages\\htmlrenderer.pdfsharp\\1.5.1-beta1\\htmlrenderer.pdfsharp.1.5.1-beta1.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\ironzip\\2025.1.1\\ironzip.2025.1.1.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\8.0.11\\microsoft.aspnetcore.jsonpatch.8.0.11.nupkg.sha512",
@@ -80,6 +82,7 @@
     "C:\\Users\\Javier\\.nuget\\packages\\nsubstitute\\5.0.0\\nsubstitute.5.0.0.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\nunit\\4.3.2\\nunit.4.3.2.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\nunit3testadapter\\4.6.0\\nunit3testadapter.4.6.0.nupkg.sha512",
+    "C:\\Users\\Javier\\.nuget\\packages\\pdfsharp\\1.50.4000-beta3b\\pdfsharp.1.50.4000-beta3b.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\scrutor\\3.3.0\\scrutor.3.3.0.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\serilog\\4.2.0\\serilog.4.2.0.nupkg.sha512",
@@ -159,5 +162,36 @@
     "C:\\Users\\Javier\\.nuget\\packages\\testcontainers.postgresql\\4.1.0\\testcontainers.postgresql.4.1.0.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\zstdsharp.port\\0.7.3\\zstdsharp.port.0.7.3.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'HtmlRenderer.Core 1.5.1-beta1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "HtmlRenderer.Core",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'HtmlRenderer.PdfSharp 1.5.1-beta1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "HtmlRenderer.PdfSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'PDFsharp 1.50.4000-beta3b' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "PDFsharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

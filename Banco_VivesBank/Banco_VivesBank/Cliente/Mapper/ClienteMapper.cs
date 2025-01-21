@@ -1,12 +1,13 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.User.Dto;
 
 namespace Banco_VivesBank.Cliente.Mapper;
 
 public class ClienteMapper
 {
-    public static Models.Cliente ToModelFromEntity(ClienteEntity entity, User.Models.User user)
+    public static Models.Cliente ToModelFromEntity(ClienteEntity entity)
     {
         return new Models.Cliente
         {
@@ -23,7 +24,17 @@ public class ClienteMapper
             },
             Email = entity.Email,
             Telefono = entity.Telefono,
-            User = user,
+            User = new User.Models.User
+            { 
+                Id = entity.User.Id,
+                Guid = entity.User.Guid,
+                Username = entity.User.Username,
+                Password = entity.User.Password,
+                Role = entity.User.Role,
+                CreatedAt = entity.User.CreatedAt,
+                UpdatedAt = entity.User.UpdatedAt,
+                IsDeleted = entity.User.IsDeleted
+            },
             IsDeleted = entity.IsDeleted
         };
     }
@@ -84,14 +95,21 @@ public class ClienteMapper
             Telefono = cliente.Telefono,
             FotoPerfil = cliente.FotoPerfil,
             FotoDni = cliente.FotoDni,
-            UserId = cliente.User.Guid,
+            UserResponse = new UserResponse
+            {
+              Guid =   cliente.User.Guid,
+              Username = cliente.User.Username,
+              Role = cliente.User.Role.ToString(),
+              CreatedAt  = cliente.User.CreatedAt.ToString("dd/M,/yyyy - HH:mm:ss"),
+              UpdatedAt = cliente.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), IsDeleted = cliente.User.IsDeleted
+            },
             CreatedAt = cliente.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             UpdatedAt = cliente.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = cliente.IsDeleted
         };
     }
 
-    public static ClienteResponse ToResponseFromEntity(ClienteEntity clienteEntity, User.Models.User user)
+    public static ClienteResponse ToResponseFromEntity(ClienteEntity clienteEntity)
     {
         return new ClienteResponse
         {
@@ -104,7 +122,15 @@ public class ClienteMapper
             Telefono = clienteEntity.Telefono,
             FotoPerfil = clienteEntity.FotoPerfil,
             FotoDni = clienteEntity.FotoDni,
-            UserId = user.Guid,
+            UserResponse = new UserResponse
+            {
+                Guid =   clienteEntity.User.Guid,
+                Username = clienteEntity.User.Username,
+                Role = clienteEntity.User.Role.ToString(),
+                CreatedAt  = clienteEntity.User.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+                UpdatedAt = clienteEntity.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), 
+                IsDeleted = clienteEntity.User.IsDeleted
+            },
             CreatedAt = clienteEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             UpdatedAt = clienteEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = clienteEntity.IsDeleted
@@ -161,7 +187,7 @@ public class ClienteMapper
         {
             oldCliente.Telefono = updateDto.Telefono;
         }
-        oldCliente.UpdatedAt=DateTime.UtcNow;
+        oldCliente.UpdatedAt = DateTime.UtcNow;
         return oldCliente;
     }
 }
