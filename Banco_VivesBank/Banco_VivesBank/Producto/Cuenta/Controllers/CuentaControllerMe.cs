@@ -29,7 +29,7 @@ public class CuentaControllerMe: ControllerBase
     
     [HttpGet("/iban/{iban:length(34)}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetMeByIban(
-        [FromServices] ClaimsPrincipal user,
+        //[FromServices] ClaimsPrincipal user,
         string iban
         )
     {
@@ -40,28 +40,32 @@ public class CuentaControllerMe: ControllerBase
     }
     
     [HttpPost]
-    [Authorize]
+    //[Authorize]
     public async Task<ActionResult<CuentaResponse>> Create(
-        [FromServices] ClaimsPrincipal user,
+        //[FromServices] ClaimsPrincipal user,
         [FromBody] CuentaRequest cuentaRequest)
     {
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        //var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         
-        var cuenta = await _cuentaService.CreateAsync(userId,cuentaRequest);
+        //var cuenta = await _cuentaService.CreateAsync(userId,cuentaRequest);
+        var cuenta = await _cuentaService.CreateAsync(cuentaRequest);
+
         return Ok(cuenta);
     }
     
     [HttpPut("{guid:length(12)}")]
-    [Authorize]
+    //[Authorize]
     public async Task<ActionResult<CuentaResponse>> Update(
-        [FromServices] ClaimsPrincipal user,
+        //[FromServices] ClaimsPrincipal user,
         [FromBody] CuentaUpdateRequest cuentaRequest,
         string guid)
     {
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        //var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         try
         {
-             var cuenta = await _cuentaService.UpdateAsync(userId,guid,cuentaRequest);
+             //var cuenta = await _cuentaService.UpdateAsync(userId,guid,cuentaRequest);
+             var cuenta = await _cuentaService.UpdateAsync(guid,cuentaRequest);
+
              return Ok(cuenta);
         }
         catch (CuentaException e)
@@ -72,9 +76,9 @@ public class CuentaControllerMe: ControllerBase
     
     
     [HttpDelete("{guid:length(12)}")]
-    [Authorize]
+    //[Authorize]
     public async Task<ActionResult<CuentaResponse>> Delete(
-        [FromServices] ClaimsPrincipal user,
+        //[FromServices] ClaimsPrincipal user,
         string guid)
     {
         var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
