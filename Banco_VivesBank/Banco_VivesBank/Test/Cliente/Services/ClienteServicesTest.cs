@@ -44,7 +44,7 @@ public class ClienteServiceTests
         await _dbContext.Database.EnsureCreatedAsync();
 
         _userServiceMock = new Mock<IUserService>();
-        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object);
+        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, IMemoryCache memoryCache);
     }
 
     [OneTimeTearDown]
