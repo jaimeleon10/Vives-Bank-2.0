@@ -10,16 +10,16 @@ namespace Banco_VivesBank.Storage.Pdf.Controller;
 [Route("api/[controller]")]
 public class PdfTestController : Microsoft.AspNetCore.Mvc.Controller
 {
-    private readonly PdfStorage _pdfStorage;
-    
     class DomiciliacionConcreta : Domiciliacion { }
     class IngresoNominaConcreta : IngresoNomina { }
     class PagoConTarjetaConcreto : PagoConTarjeta { }
     class TransferenciaConcreta : Transferencia { }
     
-    public PdfTestController(PdfStorage pdfStorage)
+    private readonly PdfStorage _pdfStorage;
+
+    public PdfTestController(IPdfStorage pdfStorage)
     {
-        _pdfStorage = pdfStorage;
+        _pdfStorage = pdfStorage as PdfStorage ?? throw new ArgumentNullException(nameof(pdfStorage));
     }
 
     [HttpGet("export-pdf")]
@@ -96,10 +96,8 @@ public class PdfTestController : Microsoft.AspNetCore.Mvc.Controller
             }
         };
 
-
-        // Llamar al método ExportPDF con los datos de prueba
         _pdfStorage.ExportPDF(cuenta, movimientos);
-
+        
         return Ok("PDF generado con éxito. Revise el archivo guardado.");
     }
 }
