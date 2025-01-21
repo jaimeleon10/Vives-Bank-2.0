@@ -38,7 +38,6 @@ public class GeneralDbContext : DbContext
         modelBuilder.Entity<ClienteEntity>(entity =>
         {
             entity.Property(ent => ent.CreatedAt).IsRequired().ValueGeneratedOnAdd();
-            entity.Property(ent => ent.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
             entity.OwnsOne(e => e.Direccion, direccion =>
             {
                 direccion.Property(d => d.Calle).HasColumnName("Calle");
@@ -47,6 +46,10 @@ public class GeneralDbContext : DbContext
                 direccion.Property(d => d.Piso).HasColumnName("Piso");
                 direccion.Property(d => d.Letra).HasColumnName("Letra");
             });
+            entity.HasOne(e => e.User)
+                .WithOne()
+                .HasForeignKey<ClienteEntity>(e => e.UserId)
+                .IsRequired();
         });
         /*
         // Base Entity

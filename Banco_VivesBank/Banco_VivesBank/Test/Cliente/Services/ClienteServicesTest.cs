@@ -5,6 +5,7 @@ using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Storage.Files.Service;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ public class ClienteServiceTests
     private ClienteService _clienteService;
     private Mock<IUserService> _userServiceMock;
     private  IMemoryCache _memoryCache;
+    private Mock<IFileStorageService> _storageService;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -46,7 +48,7 @@ public class ClienteServiceTests
         await _dbContext.Database.EnsureCreatedAsync();
 
         _userServiceMock = new Mock<IUserService>();
-        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object,  _memoryCache);
+        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCache);
     }
 
     [OneTimeTearDown]

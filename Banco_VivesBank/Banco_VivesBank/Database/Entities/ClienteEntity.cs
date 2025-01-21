@@ -53,6 +53,8 @@ public class ClienteEntity
     [ForeignKey("User")]
     [Column("user_id")]
     public long UserId { get; set; }
+    
+    public UserEntity User { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
