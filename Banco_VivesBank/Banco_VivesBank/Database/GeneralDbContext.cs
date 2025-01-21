@@ -32,15 +32,23 @@ public class GeneralDbContext : DbContext
             entity.Property(e => e.CreatedAt).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnAddOrUpdate();
         });
+        */
 
         // Cliente Entity
         modelBuilder.Entity<ClienteEntity>(entity =>
         {
             entity.Property(ent => ent.CreatedAt).IsRequired().ValueGeneratedOnAdd();
             entity.Property(ent => ent.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
-            entity.OwnsOne(e => e.Direccion);
+            entity.OwnsOne(e => e.Direccion, direccion =>
+            {
+                direccion.Property(d => d.Calle).HasColumnName("Calle");
+                direccion.Property(d => d.Numero).HasColumnName("Numero");
+                direccion.Property(d => d.CodigoPostal).HasColumnName("CodigoPostal");
+                direccion.Property(d => d.Piso).HasColumnName("Piso");
+                direccion.Property(d => d.Letra).HasColumnName("Letra");
+            });
         });
-
+        /*
         // Base Entity
         modelBuilder.Entity<BaseEntity>(entity =>
         {

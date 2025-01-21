@@ -7,7 +7,7 @@ public class CardLimitValidators
     
     private static readonly ILogger<CardLimitValidators> _logger;
     
-    public bool ValidarLimite(TarjetaRequestDto dto)
+    public bool ValidarLimite(TarjetaRequest dto)
     {
         var diario = dto.LimiteDiario;
         var semanal = dto.LimiteSemanal;

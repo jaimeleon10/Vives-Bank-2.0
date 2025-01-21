@@ -11,4 +11,7 @@ public interface IBaseService
     public Task<BaseResponse> CreateAsync(BaseRequest baseRequest);
     public Task<BaseResponse?> UpdateAsync(string guid, BaseUpdateDto baseUpdate);
     public Task<BaseResponse?> DeleteAsync(string guid);
+    
+    public Task<BaseModel?> GetBaseModelByGuid(string guid);
+    public Task<BaseModel?> GetBaseModelById(long id);
 }

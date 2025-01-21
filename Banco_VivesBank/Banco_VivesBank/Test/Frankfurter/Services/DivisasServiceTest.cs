@@ -1,20 +1,22 @@
-﻿using System.Net;
-using System.Text;
-using Banco_VivesBank.Frankfurter.Services;
-using Moq;
+﻿using Moq;
 using Moq.Protected;
+using System.Net;
+using System.Text;
+using Banco_VivesBank.Frankfurter.Exceptions;
+using Banco_VivesBank.Frankfurter.Services;
 using NUnit.Framework;
+
 
 namespace Banco_VivesBank.Test.Frankfurter.Services;
 
-[TestFixture]
 public class DivisasServiceTest
 {
     private Mock<HttpMessageHandler> _mockHttpMessageHandler;
     private HttpClient _httpClient;
     private DivisasService _divisasService;
 
-    public DivisasServiceTest()
+    [SetUp]
+    public void Setup()
     {
         _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
         _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
@@ -22,13 +24,9 @@ public class DivisasServiceTest
     }
 
     [Test]
-    public async Task ObtenerCambioDeDivisas()
+    public void ObtenerCambioException()
     {
-        var jsonResponse = "{\"rates\":{\"USD\":1.13,\"GBP\":0.88},\"amount\":1}";
-        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent(jsonResponse, Encoding.UTF8, "application/json")
-        };
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.BadRequest);
 
         _mockHttpMessageHandler
             .Protected()
@@ -39,16 +37,41 @@ public class DivisasServiceTest
             )
             .ReturnsAsync(httpResponseMessage);
 
-        var result = _divisasService.ObtenerUltimasTasas("EUR", "USD", "1");
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Rates["USD"], Is.EqualTo(1.13m));
+        Assert.Throws<FrankFurterUnexpectedException>(() => 
+            _divisasService.ObtenerUltimasTasas("EUR", "USD", "1"));
     }
 
     [Test]
-    public async Task ObtenerCambioSinParametros()
+    public void ObtenerUCambio()
     {
-        var jsonResponse = "{\"rates\":{\"USD\":1.13,\"GBP\":0.88},\"amount\":1}";
+        var jsonResponse = "{\"rates\":{\"USD\":1.13},\"amount\":1,\"base\":\"EUR\"}";
+        var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(jsonResponse, Encoding.UTF8, "application/json")
+        };
+
+        var expectedUri = "https://api.frankfurter.app/latest?base=EUR&symbols=USD&amount=1";
+        HttpRequestMessage capturedRequest = null;
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Callback<HttpRequestMessage, CancellationToken>((request, token) => capturedRequest = request)
+            .ReturnsAsync(httpResponseMessage);
+
+        _divisasService.ObtenerUltimasTasas("EUR", "USD", "1");
+
+        Assert.That(capturedRequest.RequestUri.ToString(), Is.EqualTo(expectedUri));
+    }
+
+    [Test]
+    public void ObtenerUltimasTasasVariosCambios()
+    {
+        var jsonResponse = "{\"rates\":{\"USD\":1.13,\"GBP\":0.88,\"JPY\":130.45},\"amount\":1,\"base\":\"EUR\"}";
         var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(jsonResponse, Encoding.UTF8, "application/json")
@@ -63,11 +86,11 @@ public class DivisasServiceTest
             )
             .ReturnsAsync(httpResponseMessage);
 
-        var result = _divisasService.ObtenerUltimasTasas("", "", "");
+        var result = _divisasService.ObtenerUltimasTasas("EUR", "USD,GBP,JPY", "1");
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Rates["USD"], Is.EqualTo(1.13));
-        Assert.That(result.Rates["GBP"], Is.EqualTo(0.88));
+        Assert.That(result.Rates.Count, Is.EqualTo(3));
+        Assert.That(result.Rates["USD"], Is.EqualTo(1.13m));
+        Assert.That(result.Rates["GBP"], Is.EqualTo(0.88m));
+        Assert.That(result.Rates["JPY"], Is.EqualTo(130.45m));
     }
-    
 }

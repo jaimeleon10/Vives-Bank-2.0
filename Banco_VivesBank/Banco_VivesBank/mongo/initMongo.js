@@ -1,10 +1,10 @@
 db.createUser({
     user: 'admin',
-    pwd: 'password',
+    pwd: 'adminPassword123',
     roles: [
         {
             role: 'readWrite',
-            db: 'VivesBankDB',
+            db: 'banco-dev',
         },
     ],
 });

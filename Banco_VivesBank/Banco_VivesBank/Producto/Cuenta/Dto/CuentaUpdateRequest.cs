@@ -2,6 +2,5 @@
 
 public class CuentaUpdateRequest
 {
-    public string Dinero { get; set; }
-
+    public string Saldo { get; set; }
 }

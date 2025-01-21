@@ -1,13 +1,16 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+using System.Text.Json;
+using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
-using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.User.Exceptions;
-using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Memory;
+using IDatabase = StackExchange.Redis.IDatabase;
 
 namespace Banco_VivesBank.Cliente.Services;
 
@@ -16,12 +19,16 @@ public class ClienteService : IClienteService
     private readonly GeneralDbContext _context;
     private readonly ILogger<ClienteService> _logger;
     private readonly IUserService _userService;
+    private readonly IMemoryCache _memoryCache;
+    private readonly IDatabase _database;
+    private const string CacheKeyPrefix = "Cliente:";
 
-    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService)
+    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService, IMemoryCache memoryCache)
     {
         _context = context;
         _logger = logger;
         _userService = userService;
+        _memoryCache = memoryCache;
     }
     
     public async Task<IEnumerable<ClienteResponse>> GetAllAsync()
@@ -42,12 +49,36 @@ public class ClienteService : IClienteService
     public async Task<ClienteResponse?> GetByGuidAsync(string guid)
     {
 		_logger.LogInformation($"Buscando cliente con guid: {guid}");
+
+        var cacheKey = CacheKeyPrefix + guid;
+
+        if (_memoryCache.TryGetValue(cacheKey, out Models.Cliente? cachedCliente))
+        {
+            _logger.LogInformation("Cliente obtenido desde cache en memoria");
+            return ClienteMapper.ToResponseFromModel(cachedCliente);
+        }
+        
+        var redisCache = await _database.StringGetAsync(cacheKey);
+        if (!string.IsNullOrEmpty(redisCache))
+        {
+            _logger.LogInformation("Cliente obtenido desde cache en Redis");
+            return JsonSerializer.Deserialize<ClienteResponse>(redisCache);
+        }
+        
         var clienteEntity = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
         if (clienteEntity != null)
         {
             var user = await _userService.GetUserModelById(clienteEntity.UserId);
+            var clienteResponse = ClienteMapper.ToResponseFromEntity(clienteEntity, user!);
+            var clienteModel = ClienteMapper.ToModelFromEntity(clienteEntity, user!);
+
+            _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+            
+            var redisValue = JsonSerializer.Serialize(clienteResponse);
+            await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
+            
             _logger.LogInformation($"Cliente encontrado con guid: {guid}");
-            return ClienteMapper.ToResponseFromEntity(clienteEntity, user!);
+            return clienteResponse;
         }
         
         _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
@@ -57,19 +88,32 @@ public class ClienteService : IClienteService
     public async Task<ClienteResponse> CreateAsync(ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
-
-        ValidateClienteExistente(clienteRequest.Dni, clienteRequest.Email, clienteRequest.Telefono);
-
+        
+        ValidateDniExistente(clienteRequest.Dni);
+        ValidateEmailExistente(clienteRequest.Email);
+        ValidateTelefonoExistente(clienteRequest.Telefono);
+        
         var user = await _userService.GetUserModelByGuid(clienteRequest.UserGuid);
         if (user == null)
         {
             _logger.LogInformation($"Usuario no encontrado con guid: {clienteRequest.UserGuid}");
             throw new UserNotFoundException($"Usuario no encontrado con guid: {clienteRequest.UserGuid}");
         }
+        
+        if (await _context.Clientes.AnyAsync(c => c.Dni == clienteRequest.Dni))
+        {
+            _logger.LogInformation("Ya existe un cliente con ese dni");
+            throw new ClienteExistsException($"Ya existe un cliente con dni: {clienteRequest.Dni}");
+        }
 
         var clienteModel = ClienteMapper.ToModelFromRequest(clienteRequest, user);
         _context.Clientes.Add(ClienteMapper.ToEntityFromModel(clienteModel)); 
         await _context.SaveChangesAsync();
+
+        var cacheKey = CacheKeyPrefix + clienteModel.Dni;
+        _memoryCache.Set(cacheKey, clienteModel);
+        var redisValue = JsonSerializer.Serialize(ClienteMapper.ToResponseFromModel(clienteModel));
+        await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
         _logger.LogInformation("Cliente creado con éxito");
         return ClienteMapper.ToResponseFromModel(clienteModel);
@@ -84,46 +128,38 @@ public class ClienteService : IClienteService
             _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
             return null;
         }
-
-        /*if (clienteEntityExistente.Dni == clienteRequestUpdate.Dni)
+        if(!clienteRequestUpdate.HasAtLeastOneField())
         {
-            clienteEntityExistente.Dni = clienteRequestUpdate.Dni;
-            clienteRequestUpdate.Dni = "";
+            _logger.LogInformation("No se ha modificado ningún campo");
+            return ClienteMapper.ToResponseFromEntity(clienteEntityExistente, await _userService.GetUserModelById(clienteEntityExistente.UserId));
         }
-        
-        if (clienteEntityExistente.Email == clienteRequestUpdate.Email)
+
+        if (clienteEntityExistente.Dni != clienteRequestUpdate.Dni && !string.IsNullOrEmpty(clienteRequestUpdate.Dni))
         {
-            clienteRequestUpdate.Email = "";
+            ValidateDniExistente(clienteRequestUpdate.Dni);
         }
-        
-        if (clienteEntityExistente.Telefono == clienteRequestUpdate.Telefono)
+        if (clienteEntityExistente.Email != clienteRequestUpdate.Email && !string.IsNullOrEmpty(clienteRequestUpdate.Email))
         {
-            clienteRequestUpdate.Telefono = "";
-        }*/
-        ValidateClienteExistente(clienteRequestUpdate.Dni, clienteRequestUpdate.Email, clienteRequestUpdate.Telefono);
-
-        clienteEntityExistente.Dni = clienteRequestUpdate.Dni;
-        clienteEntityExistente.Nombre = clienteRequestUpdate.Nombre;
-        clienteEntityExistente.Apellidos = clienteRequestUpdate.Apellidos;
-        clienteEntityExistente.Direccion = new Direccion()
+            ValidateEmailExistente(clienteRequestUpdate.Email);
+        }
+        if (clienteEntityExistente.Telefono != clienteRequestUpdate.Telefono && !string.IsNullOrEmpty(clienteRequestUpdate.Telefono))
         {
-            Calle = clienteRequestUpdate.Calle,
-            Numero = clienteRequestUpdate.Numero,
-            CodigoPostal = clienteRequestUpdate.CodigoPostal,
-            Piso = clienteRequestUpdate.Piso,
-            Letra = clienteRequestUpdate.Letra
-        };
-        clienteEntityExistente.Email = clienteRequestUpdate.Email;
-        clienteEntityExistente.Telefono = clienteRequestUpdate.Telefono;
-        clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
-        clienteEntityExistente.IsDeleted = clienteRequestUpdate.IsDeleted;
+            ValidateTelefonoExistente(clienteRequestUpdate.Telefono);
+        }
+        var clienteUpdated = ClienteMapper.ToModelFromRequestUpdate(clienteEntityExistente, clienteRequestUpdate);
+        var user = await _userService.GetUserModelById(clienteUpdated.UserId);
+        var clienteModel = ClienteMapper.ToModelFromEntity(clienteUpdated, user!);
 
-        _context.Clientes.Update(clienteEntityExistente);
+        _context.Clientes.Update(clienteUpdated);
         await _context.SaveChangesAsync();
+        
+        var cacheKey = CacheKeyPrefix + clienteUpdated.Dni;
+        _memoryCache.Remove(cacheKey);
+        var redisValue = JsonSerializer.Serialize(ClienteMapper.ToResponseFromModel(clienteModel));
+        await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
-        var user = await _userService.GetUserModelById(clienteEntityExistente.UserId);
         _logger.LogInformation($"Cliente actualizado con guid: {guid}");
-        return ClienteMapper.ToResponseFromEntity(clienteEntityExistente, user!);
+        return ClienteMapper.ToResponseFromEntity(clienteUpdated, user!);
     }
 
     public async Task<ClienteResponse?> DeleteByGuidAsync(string guid) 
@@ -142,32 +178,166 @@ public class ClienteService : IClienteService
 
         _context.Clientes.Update(clienteExistenteEntity);
         await _context.SaveChangesAsync();
-
+        
         var user = await _userService.GetUserModelById(clienteExistenteEntity.UserId);
+        var clienteToDelete = ClienteMapper.ToModelFromEntity(clienteExistenteEntity, user!);
+        
+        var cacheKey = CacheKeyPrefix + clienteToDelete.Dni;
+        _memoryCache.Remove(cacheKey);
+        var redisValue = JsonSerializer.Serialize(ClienteMapper.ToResponseFromModel(clienteToDelete));
+        await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
+
         _logger.LogInformation($"Cliente borrado (desactivado) con guid: {guid}");
         return ClienteMapper.ToResponseFromEntity(clienteExistenteEntity, user!);
     }
 
-    private void ValidateClienteExistente(string dni, string email, string telefono)
+    public async Task<string> DerechoAlOlvido(string userGuid)
     {
-        _logger.LogInformation("Validando cliente");
+        _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
+        
+        var user = await _userService.GetUserModelByGuid(userGuid);
+        if (user == null)
+        {
+            _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
+            throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+        }
 
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
+        
+        cliente = DeleteData(cliente!);
+        _context.Clientes.Update(cliente);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation($"Datos del cliente eliminados de la base de datos");
+        return "Datos del cliente eliminados de la base de datos";
+    }
+    
+    private ClienteEntity DeleteData(ClienteEntity entityCliente)
+    {
+        entityCliente.Dni = "";
+        entityCliente.Nombre = "";
+        entityCliente.Apellidos = "";
+        entityCliente.Direccion.Calle = "";
+        entityCliente.Direccion.Numero = "";
+        entityCliente.Direccion.CodigoPostal = "";
+        entityCliente.Direccion.Piso = "";
+        entityCliente.Direccion.Letra = "";
+        entityCliente.Email = "";
+        entityCliente.Telefono = "";
+        entityCliente.FotoPerfil= "";
+        entityCliente.FotoDni = "";
+        entityCliente.IsDeleted = true;
+        entityCliente.UpdatedAt = DateTime.Now;
+        //antes de borrar los urls borrar en volumen los recursos con el servicio de storage
+
+        return entityCliente;
+    }
+    
+    
+    private void ValidateDniExistente(string dni)
+    {
+        _logger.LogInformation("Validando Dni");
         if (_context.Clientes.Any(c => c.Dni.ToLower() == dni.ToLower()))
         {
             _logger.LogInformation($"Ya existe un cliente con el DNI: {dni}");
             throw new ClienteExistsException($"Ya existe un cliente con el DNI: {dni}");
         }
-        
+    }
+    private void ValidateEmailExistente(string email)
+    {
+        _logger.LogInformation("Validando email");
         if(_context.Clientes.Any(c => c.Email.ToLower() == email.ToLower()))
         {
             _logger.LogInformation($"Ya existe un cliente con el email: {email}");
             throw new ClienteExistsException($"Ya existe un cliente con el email: {email}");
         }
-        
+    }
+    private void ValidateTelefonoExistente(string telefono)
+    {
+        _logger.LogInformation("Validando teléfono");
         if(_context.Clientes.Any(c => c.Telefono == telefono))
         {
             _logger.LogInformation($"Ya existe un cliente con el teléfono: {telefono}");
             throw new ClienteExistsException($"Ya existe un cliente con el teléfono: {telefono}");
         }
+    }
+    
+    public async Task<Models.Cliente?> GetClienteModelByGuid(string guid)
+    {
+        _logger.LogInformation($"Buscando Cliente con guid: {guid}");
+        
+        var cacheKey = CacheKeyPrefix + guid.ToLower();
+        if (_memoryCache.TryGetValue(cacheKey, out Models.Cliente? cachedCliente))
+        {
+            _logger.LogInformation("Cliente obtenido desde cache en memoria");
+            return cachedCliente;  
+        }
+            
+        var cachedClienteRedis = await _database.StringGetAsync(cacheKey);
+        if (cachedClienteRedis.HasValue)
+        {
+            _logger.LogInformation("Cliente obtenido desde cache en Redis");
+            var clienteFromRedis = JsonSerializer.Deserialize<Models.Cliente>(cachedClienteRedis);
+                
+            if (clienteFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, clienteFromRedis, TimeSpan.FromMinutes(30));
+            }
+            return clienteFromRedis;  
+        }
+
+        var clienteEntity = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con guid: {guid}");
+            var user = await _userService.GetUserModelById(clienteEntity.UserId);
+            var clienteModel = ClienteMapper.ToModelFromEntity(clienteEntity, user);
+            _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+            var serializedCliente = JsonSerializer.Serialize(clienteModel);
+            await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
+            return clienteModel;  
+        }
+
+        _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+        return null;
+    }
+        
+    public async Task<Models.Cliente?> GetClienteModelById(long id)
+    {
+        _logger.LogInformation($"Buscando Cliente con id: {id}");
+        
+        var cacheKey = CacheKeyPrefix + id;
+        if (_memoryCache.TryGetValue(cacheKey, out Models.Cliente? cachedCliente))
+        {
+            _logger.LogInformation("Cliente obtenido desde cache en memoria");
+            return cachedCliente;  
+        }
+        var cachedClienteRedis = await _database.StringGetAsync(cacheKey);
+        if (cachedClienteRedis.HasValue)
+        {
+            _logger.LogInformation("Cliente obtenido desde cache en Redis");
+            
+            var clienteFromRedis = JsonSerializer.Deserialize<Models.Cliente>(cachedClienteRedis);
+            if (clienteFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, clienteFromRedis, TimeSpan.FromMinutes(30));
+            }
+            return clienteFromRedis; 
+        }
+
+        var clienteEntity = await _context.Clientes.FirstOrDefaultAsync(t => t.Id == id);
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con id: {id}");
+            var user = await _userService.GetUserModelById(clienteEntity.UserId);
+            var clienteModel = ClienteMapper.ToModelFromEntity(clienteEntity, user);
+            _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+            var serializedCliente = JsonSerializer.Serialize(clienteModel);
+            await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
+            return clienteModel;  
+        }
+
+        _logger.LogInformation($"Cliente no encontrado con id: {id}");
+        return null;
     }
 }

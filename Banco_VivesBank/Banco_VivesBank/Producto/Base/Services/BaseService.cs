@@ -53,7 +53,7 @@ public class BaseService : IBaseService
         }
         
         _logger.LogInformation($"Producto no encontrado con guid: {guid}");
-        return null;
+        throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
     }
 
     public async Task<BaseResponse?> GetByTipoAsync(string tipo)
@@ -83,8 +83,9 @@ public class BaseService : IBaseService
         }
 
         _logger.LogInformation($"Producto no encontrado con el tipo: {tipo}");
+        
+        throw new BaseNotExistException($"Producto con tipo: {tipo} no encontrado");
 
-        return null;
     }
 
     public async Task<BaseResponse> CreateAsync(BaseRequest baseRequest)
@@ -107,11 +108,6 @@ public class BaseService : IBaseService
         _context.ProductoBase.Add(BaseMapper.ToEntityFromModel(baseModel));
         await _context.SaveChangesAsync();
         
-        /*
-        var cacheKey = CacheKeyPrefix + baseEntity.Id;
-        _cache.Set(cacheKey, BaseMappers.ToModelFromEntity(baseEntity), TimeSpan.FromMinutes(30));
-        */
-        
         _logger.LogInformation($"Producto creado correctamente con id: {baseModel.Id}");
         return BaseMapper.ToResponseFromModel(baseModel);
 
@@ -125,7 +121,8 @@ public class BaseService : IBaseService
         if (baseEntityExistente == null)
         {
             _logger.LogWarning($"Producto con guid: {guid} no encontrado");
-            return null;
+            //lanzamos excepcion
+            throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
         }
     
         _logger.LogInformation("Validando nombre único");
@@ -161,7 +158,7 @@ public class BaseService : IBaseService
         if (baseExistenteEntity == null)
         {
             _logger.LogWarning($"Producto con id: {guid} no encontrado");
-            return null;
+            throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
         }
 
         _logger.LogInformation("Actualizando isDeleted a true");
@@ -178,5 +175,35 @@ public class BaseService : IBaseService
 
         _logger.LogInformation($"Producto borrado logico correctamente con guid: {guid}");
         return BaseMapper.ToResponseFromEntity(baseExistenteEntity);
+    }
+    
+    public async Task<BaseModel?> GetBaseModelByGuid(string guid)
+    {
+        _logger.LogInformation($"Buscando producto con guid: {guid}");
+
+        var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
+        if (productoEntity != null)
+        {
+            _logger.LogInformation($"producto encontrado con guid: {guid}");
+            return BaseMapper.ToModelFromEntity(productoEntity);
+        }
+
+        _logger.LogInformation($"producto no encontrado con guid: {guid}");
+        return null;
+    }
+        
+    public async Task<BaseModel?> GetBaseModelById(long id)
+    {
+        _logger.LogInformation($"Buscando producto con id: {id}");
+
+        var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Id == id);
+        if (productoEntity != null)
+        {
+            _logger.LogInformation($"producto encontrado con id: {id}");
+            return BaseMapper.ToModelFromEntity(productoEntity);
+        }
+
+        _logger.LogInformation($"producto no encontrado con id: {id}");
+        return null;
     }
 }
