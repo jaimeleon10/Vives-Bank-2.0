@@ -3,6 +3,7 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -42,7 +43,15 @@ public class ClienteControllerTest
             Telefono = "telefonoTest",
             FotoPerfil = "fotoPerfilTest",
             FotoDni = "fotoDniTest",
-            UserId = "userIdTest",
+            UserResponse = new UserResponse 
+            {
+                Guid = "userGuid",
+                Username = "usernameTest",
+                Role = "roleTest",
+                CreatedAt = "createdAtTest",
+                UpdatedAt = "updatedAtTest",
+                IsDeleted = false
+            },
             CreatedAt = "createdAtTest",
             UpdatedAt = "updatedAtTest",
             IsDeleted = false
@@ -92,7 +101,15 @@ public class ClienteControllerTest
             Telefono = "telefonoTest",
             FotoPerfil = "fotoPerfilTest",
             FotoDni = "fotoDniTest",
-            UserId = "userIdTest",
+            UserResponse = new UserResponse
+            {
+                Guid = "userGuid",
+                Username = "usernameTest",
+                Role = "roleTest",
+                CreatedAt = "createdAtTest",
+                UpdatedAt = "updatedAtTest",
+                IsDeleted = false
+            },
             CreatedAt = "createdAtTest",
             UpdatedAt = "updatedAtTest",
             IsDeleted = false
@@ -159,7 +176,15 @@ public class ClienteControllerTest
             },
             Email = clienteRequest.Email,
             Telefono = clienteRequest.Telefono,
-            UserId = clienteRequest.UserGuid,
+            UserResponse = new UserResponse
+            {
+                Guid = "userGuid",
+                Username = "usernameTest",
+                Role = "roleTest",
+                CreatedAt = "createdAtTest",
+                UpdatedAt = "updatedAtTest",
+                IsDeleted = false
+            },
             CreatedAt = "createdAtTest",
             UpdatedAt = "updatedAtTest",
             IsDeleted = false

@@ -1,6 +1,7 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
+using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,12 @@ public class ClienteController : ControllerBase
     public async Task<ActionResult<List<ClienteResponse>>> GetAll()
     {
         return Ok(await _clienteService.GetAllAsync());
+    }
+    
+    [HttpGet("model")]
+    public async Task<ActionResult<List<ClienteEntity>>> GetAllModels()
+    {
+        return Ok(await _clienteService.GetAllModelsAsync());
     }
 
     [HttpGet("{guid}")]
