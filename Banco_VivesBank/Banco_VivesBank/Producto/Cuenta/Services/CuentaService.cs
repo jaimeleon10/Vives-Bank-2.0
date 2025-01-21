@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
@@ -60,14 +60,12 @@ public class CuentaService : ICuentaService
             query = query.Where(c => c.Saldo >= saldoMin.Value);
         }
 
-        /* TODO: Se necesita el nombre del producto para filtrar pero cuentaEntity solo tiene productoId
         if (!string.IsNullOrEmpty(tipoCuenta))
         {
             _logger.LogInformation($"Filtrando por Tipo de cuenta: {tipoCuenta}");
-            var producto = _baseService.GetBaseModelById();
             query = query.Where(c => c.Producto.Nombre.ToString().Contains(tipoCuenta));
         }
-        */
+        
 
         if (!string.IsNullOrEmpty(pageRequest.SortBy))
         {
@@ -84,30 +82,10 @@ public class CuentaService : ICuentaService
             .ToListAsync();
 
         var totalPages = (int)Math.Ceiling((double) totalElements / pageSize);
-
-        var contentResponse = new List<CuentaResponse>();
-
-        foreach (var cuentaEntity in content)
-        {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-            }
-            
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
-            
-            var cuentaResponse = CuentaMapper.ToResponseFromEntity(
-                cuentaEntity, tarjeta!, cliente!, producto!
-            );
-            
-            contentResponse.Add(cuentaResponse);
-        }
-
+        
         var pageResponse = new PageResponse<CuentaResponse>
         {
-            Content = contentResponse,
+            Content = content.Select(entity => entity.ToResponseFromEntity() ).ToList(),
             TotalPages = totalPages,
             TotalElements = totalElements,
             PageSize = pageSize,
@@ -131,7 +109,7 @@ public class CuentaService : ICuentaService
         {
             throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
         }
-        
+        /*
         var cuentaEntityList = await _context.Cuentas.ToListAsync();
 
         var cuentaEntityListFiltered = new List<CuentaEntity>();
@@ -142,29 +120,14 @@ public class CuentaService : ICuentaService
             {
                 cuentaEntityListFiltered.Add(cuentaEntity);
             }
-        }
-
-        var cuentaResponseList = new List<CuentaResponse>();
+        }*/
+        var query = _context.Cuentas.AsQueryable().Where(c => c.Cliente.Guid == guid); 
+        var content = await query.ToListAsync();
         
-        foreach (var cuentaEntity in cuentaEntityListFiltered)
-        {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-            }
-            
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
-            
-            var cuentaResponse = CuentaMapper.ToResponseFromEntity(
-                cuentaEntity, tarjeta!, cliente!, producto!
-            );
-            
-            cuentaResponseList.Add(cuentaResponse);
-        }
+        var cuentasResponses = content.Select(c => c.ToResponseFromEntity()).ToList();
 
-        return cuentaResponseList;
+
+        return cuentasResponses;
     }
 
     public async Task<CuentaResponse?> GetByGuidAsync(string guid)
@@ -188,16 +151,8 @@ public class CuentaService : ICuentaService
              _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
              return cachedCuenta.ToResponseFromModel();
              */
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-
-            }
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
             _logger.LogInformation($"Cuenta encontrada con guid: {guid}");
-            return CuentaMapper.ToResponseFromEntity(cuentaEntity, tarjeta!, cliente!, producto!);
+            return cuentaEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Cuenta no encontrada con guid: {guid}");
@@ -226,22 +181,14 @@ public class CuentaService : ICuentaService
              _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
              return cachedCuenta.ToResponseFromModel();
              */
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-
-            }
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
             _logger.LogInformation($"Cuenta encontrada con iban: {iban}");
-            return CuentaMapper.ToResponseFromEntity(cuentaEntity, tarjeta!, cliente!, producto!);
+            return cuentaEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
         return null;
     }
-    
+    /*
     public async Task<CuentaResponse?> GetMeByIbanAsync(string guid, string iban)
     {
         _logger.LogInformation($"Buscando Cuenta por IBAN: {iban}");
@@ -249,30 +196,23 @@ public class CuentaService : ICuentaService
 
         if (cuentaEntity != null)
         {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-
-            }
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
-            if (cliente!.Guid != guid)
+            if (cuentaEntity.Cliente.Guid != guid)
             {
                 _logger.LogInformation($"La cuenta con el iban {iban} no pertenece al cliente que la solicita");
                 throw new ClienteException($"La cuenta con el iban {iban} no pertenece al cliente que la solicita");
             }
             _logger.LogInformation($"Cuenta encontrada con guid: {guid}");
-            return CuentaMapper.ToResponseFromEntity(cuentaEntity, tarjeta!, cliente!, producto!);
+            return cuentaEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
         return null;
     }
-
+    */
+/*
     public async Task<CuentaResponse> CreateAsync(string guid, CuentaRequest cuentaRequest)
     {
-        /*_logger.LogInformation($"Creando cuenta nueva");
+        _logger.LogInformation($"Creando cuenta nueva");
         var tipoCuenta = await _baseService.GetByTipoAsync(cuentaRequest.TipoCuenta);
         
         if (tipoCuenta == null)
@@ -298,13 +238,46 @@ public class CuentaService : ICuentaService
 
         var cuentaResponse = CuentaMapper.ToResponseFromModel(cuenta, cuenta.Tarjeta.Guid, cuenta.Cliente.Guid, cuenta.Producto.Guid);
         
-        return cuentaResponse;*/
+        return cuentaResponse;
         return null;
     }
+*/
+    
+    public async Task<CuentaResponse> CreateAsync( CuentaRequest cuentaRequest)
+    {
+        _logger.LogInformation($"Creando cuenta nueva");
+        var tipoCuenta = await _baseService.GetByTipoAsync(cuentaRequest.TipoCuenta);
+        
+        if (tipoCuenta == null)
+        {
+            _logger.LogError($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
+            throw new BaseNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
+            
+        }
 
+        var tipoCuentaModel = await _baseService.GetBaseModelByGuid(tipoCuenta.Guid);
+        var clienteModel = await _clienteService.GetClienteModelByGuid(cuentaRequest.ClienteGuid);
+        
+        var cuenta = new Models.Cuenta
+        {
+            Producto = tipoCuentaModel,
+            Cliente = clienteModel
+        };
+
+        var cuentaEntity = cuenta.ToEntityFromModel();
+
+        await _context.Cuentas.AddAsync(cuentaEntity);
+        await _context.SaveChangesAsync();
+
+        var cuentaResponse = cuentaEntity.ToResponseFromEntity();
+        
+        return cuentaResponse;
+    }
+    
+    /*
     public async Task<CuentaResponse?> UpdateAsync(string guidClient, string guid, CuentaUpdateRequest cuentaRequest)
     {
-        /*_logger.LogInformation($"Actualizando cuenta con guid: {guid}");
+        _logger.LogInformation($"Actualizando cuenta con guid: {guid}");
         
         var cuentaEntityExistente = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
         if (cuentaEntityExistente == null)
@@ -328,10 +301,8 @@ public class CuentaService : ICuentaService
                 _logger.LogError($"Saldo insuficiente para actualizar.");
                 throw new SaldoInsuficienteException("El saldo debe ser mayor a 0.");
             }
-            else
-            {
-             cuentaEntityExistente.Saldo = saldo;   
-            }
+             
+            cuentaEntityExistente.Saldo = saldo;   
             
         }
         else
@@ -340,21 +311,62 @@ public class CuentaService : ICuentaService
             throw new SaldoInvalidoException("El saldo proporcionado no es válido.");
         }
 
+        _context.Cuentas.Update(cuentaEntityExistente);
         await _context.SaveChangesAsync();
+        
+        var cuentaResponse = cuentaEntityExistente.ToResponseFromEntity();
 
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntityExistente.Tarjeta.Id);
-        var cliente = await _clienteService.GetClienteModelById(cuentaEntityExistente.Cliente.Id);
-        var producto = await _baseService.GetBaseModelById(cuentaEntityExistente.ProductoId);
-        var cuentaResponse = CuentaMapper.ToResponseFromEntity(cuentaEntityExistente, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));
+        return cuentaResponse;
+    }
+    */
+    public async Task<CuentaResponse?> UpdateAsync(string guid, CuentaUpdateRequest cuentaRequest)
+    {
+        _logger.LogInformation($"Actualizando cuenta con guid: {guid}");
+        
+        var cuentaEntityExistente = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
+        if (cuentaEntityExistente == null)
+        {
+            _logger.LogError($"La cuenta con el GUID {guid} no existe.");
+            return null;
+        }
+        
+        _logger.LogDebug("Validando guid del cliente");
+        if (cuentaEntityExistente.Cliente.Guid != cuentaRequest.ClienteGuid)
+        {
+            _logger.LogError($"Cuenta con IBAN: {cuentaEntityExistente.Iban}  no le pertenece");
+            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {cuentaEntityExistente.Iban}  no le pertenece");
+        }
 
-        return cuentaResponse;*/
-        return null;
+        _logger.LogInformation("Actualizando cuenta");
+        if (BigInteger.TryParse(cuentaRequest.Saldo, out var saldo))
+        {
+            if (saldo <= 0)
+            {
+                _logger.LogError($"Saldo insuficiente para actualizar.");
+                throw new SaldoInsuficienteException("El saldo debe ser mayor a 0.");
+            }
+             
+            cuentaEntityExistente.Saldo = saldo;   
+            
+        }
+        else
+        {
+            _logger.LogError($"El saldo proporcionado no es válido.");
+            throw new SaldoInvalidoException("El saldo proporcionado no es válido.");
+        }
+
+        _context.Cuentas.Update(cuentaEntityExistente);
+        await _context.SaveChangesAsync();
+        
+        var cuentaResponse = cuentaEntityExistente.ToResponseFromEntity();
+
+        return cuentaResponse;
     }
 
-
+    /*
     public async Task<CuentaResponse?> DeleteAsync(string guidClient,string guid)
     {
-        /*_logger.LogInformation($"Eliminando cuenta {guid}");
+        _logger.LogInformation($"Eliminando cuenta {guid}");
         
         var cuentaExistenteEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
         if (cuentaExistenteEntity == null)
@@ -362,11 +374,11 @@ public class CuentaService : ICuentaService
             _logger.LogError($"La cuenta con el GUID {guid} no existe.");
             return null;
         }
-        
+
         if (cuentaExistenteEntity.Cliente.Guid != guidClient)
         {
             _logger.LogError($"Cuenta con IBAN: {cuentaExistenteEntity.Iban}  no le pertenece");
-            return null;
+            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {cuentaExistenteEntity.Iban}  no le pertenece");
         }
 
         _logger.LogInformation("Actualizando isDeleted a true");
@@ -376,22 +388,19 @@ public class CuentaService : ICuentaService
         _context.Cuentas.Update(cuentaExistenteEntity);
         await _context.SaveChangesAsync();
 
-        /*
-        var cacheKey = CacheKeyPrefix + id;
-        _memoryCache.Remove(cacheKey);
-        #1#
+        
+        //var cacheKey = CacheKeyPrefix + id;
+       // _memoryCache.Remove(cacheKey);
+       
         
         _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaExistenteEntity.Tarjeta.Id);
-        var cliente = await _clienteService.GetClienteModelById(cuentaExistenteEntity.Cliente.Id);
-        var producto = await _baseService.GetBaseModelById(cuentaExistenteEntity.ProductoId);
-        return CuentaMapper.ToResponseFromEntity(cuentaExistenteEntity, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));*/
-        return null;
+        return cuentaExistenteEntity.ToResponseFromEntity();
     }
+*/
     
     public async Task<CuentaResponse?> DeleteAdminAsync(string guid)
     {
-        /*_logger.LogInformation($"Eliminando cuenta {guid}");
+        _logger.LogInformation($"Eliminando cuenta {guid}");
         
         var cuentaExistenteEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
         if (cuentaExistenteEntity == null)
@@ -410,17 +419,13 @@ public class CuentaService : ICuentaService
         /*
         var cacheKey = CacheKeyPrefix + id;
         _memoryCache.Remove(cacheKey);
-        #1#
+        */
         
         _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        var tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaExistenteEntity.Tarjeta.Id);
-        var cliente = await _clienteService.GetClienteModelById(cuentaExistenteEntity.Cliente.Id);
-        var producto = await _baseService.GetBaseModelById(cuentaExistenteEntity.ProductoId);
-        return CuentaMapper.ToResponseFromEntity(cuentaExistenteEntity, TarjetaMappers.ToResponseFromModel(tarjeta), ClienteMapper.ToResponseFromModel(cliente), BaseMapper.ToResponseFromModel(producto));*/
-        return null;
+        return cuentaExistenteEntity.ToResponseFromEntity();
     }
 
-    /*public async Task<Models.Cuenta?> GetCuentaModelByGuid(string guid)
+    public async Task<Models.Cuenta?> GetCuentaModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando cuenta con guid: {guid}");
 
@@ -428,7 +433,7 @@ public class CuentaService : ICuentaService
         if (cuentaEntity != null)
         {
             _logger.LogInformation($"cuenta encontrada con guid: {guid}");
-            return CuentaMapper.ToModelFromEntity(cuentaEntity);
+            return cuentaEntity.ToModelFromEntity();
         }
 
         _logger.LogInformation($"cuenta no encontrada con guid: {guid}");
@@ -443,10 +448,10 @@ public class CuentaService : ICuentaService
         if (cuentaEntity != null)
         {
             _logger.LogInformation($"Cuenta encontrada con id: {id}");
-            return CuentaMapper.ToModelFromEntity(cuentaEntity);
+            return cuentaEntity.ToModelFromEntity();
         }
 
         _logger.LogInformation($"Cuenta no encontrada con id: {id}");
         return null;
-    }*/
+    }
 }
