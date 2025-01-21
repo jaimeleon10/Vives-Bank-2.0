@@ -128,6 +128,8 @@ public class CuentaService : ICuentaService
 
 
         return cuentasResponses;
+        
+        
     }
 
     public async Task<CuentaResponse?> GetByGuidAsync(string guid)
