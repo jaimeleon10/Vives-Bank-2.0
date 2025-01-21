@@ -35,7 +35,7 @@ public class StorageJsonTest
         var path = Path.Combine(Path.GetTempPath(), "testImport.json");
         var file = new FileInfo(path);
 
-        var data1 = new User.Models.User
+        var data1 = new Banco_VivesBank.User.Models.User
         {
             Id = 1L,
             Guid = "guid",
@@ -47,7 +47,7 @@ public class StorageJsonTest
             IsDeleted = false
         };
 
-        var data2 = new User.Models.User
+        var data2 = new Banco_VivesBank.User.Models.User
         {
             Id = 2L,
             Guid = "guid2",
@@ -59,7 +59,7 @@ public class StorageJsonTest
             IsDeleted = false
         };
 
-        var data = new List<User.Models.User> { data1, data2 };
+        var data = new List<Banco_VivesBank.User.Models.User> { data1, data2 };
 
         _storageJson.ExportJson(file, data);
 
@@ -68,7 +68,7 @@ public class StorageJsonTest
         var content = File.ReadAllText(file.FullName);
         Assert.That(!string.IsNullOrEmpty(content), Is.True);
         
-        var contentDeserializado = JsonConvert.DeserializeObject<List<User.Models.User>>(content, _jsonSettings);
+        var contentDeserializado = JsonConvert.DeserializeObject<List<Banco_VivesBank.User.Models.User>>(content, _jsonSettings);
         
         Assert.That(contentDeserializado.Count, Is.EqualTo(data.Count));
         for (int i = 0; i < data.Count; i++)
@@ -92,7 +92,7 @@ public class StorageJsonTest
 
         File.WriteAllText(path, "{ json invalido }");
 
-        var exception = Assert.Throws<JsonReadException>(() => _storageJson.ImportJson<User.Models.User>(file));
+        var exception = Assert.Throws<JsonReadException>(() => _storageJson.ImportJson<Banco_VivesBank.User.Models.User>(file));
         Assert.That(exception.Message, Is.EqualTo("Error al procesar el archivo JSON de User."));
     }
 
@@ -102,7 +102,7 @@ public class StorageJsonTest
         var path = Path.Combine(Path.GetTempPath(), "inexistente.json");
         var file = new FileInfo(path);
 
-        var exception = Assert.Throws<JsonNotFoundException>(() => _storageJson.ImportJson<User.Models.User>(file));
+        var exception = Assert.Throws<JsonNotFoundException>(() => _storageJson.ImportJson<Banco_VivesBank.User.Models.User>(file));
 
         Assert.That(exception.Message, Is.EqualTo("No se encontró el archivo para leer los datos de User."));
     }
@@ -113,7 +113,7 @@ public class StorageJsonTest
         var path = Path.Combine(Path.GetTempPath(), "testExport.json");
         var file = new FileInfo(path);
         
-        var data1 = new User.Models.User
+        var data1 = new Banco_VivesBank.User.Models.User
         {
             Id = 1L,
             Guid = "guid",
@@ -125,7 +125,7 @@ public class StorageJsonTest
             IsDeleted = false
         };
 
-        var data2 = new User.Models.User
+        var data2 = new Banco_VivesBank.User.Models.User
         {
             Id = 2L,
             Guid = "guid2",
@@ -137,7 +137,7 @@ public class StorageJsonTest
             IsDeleted = false
         };
         
-        var data = new List<User.Models.User>{data1, data2};
+        var data = new List<Banco_VivesBank.User.Models.User>{data1, data2};
         
         _storageJson.ExportJson(file, data);
         
