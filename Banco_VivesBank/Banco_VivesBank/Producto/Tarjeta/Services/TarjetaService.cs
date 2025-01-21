@@ -2,6 +2,7 @@
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
+using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.EntityFrameworkCore;
@@ -13,31 +14,34 @@ public class TarjetaService : ITarjetaService
 
     private readonly GeneralDbContext _context;
     private readonly ILogger<TarjetaService> _logger;
+    private readonly ILogger<CardLimitValidators> _log;
     private readonly TarjetaGenerator _tarjetaGenerator;
     private readonly CvvGenerator _cvvGenerator;
     private readonly ExpDateGenerator _expDateGenerator;
     private readonly CardLimitValidators _cardLimitValidators;
     
 
-    public TarjetaService(GeneralDbContext context, ILogger<TarjetaService> logger)
+    public TarjetaService(GeneralDbContext context, ILogger<TarjetaService> logger, ILogger<CardLimitValidators> log)
     {
         _context = context;
         _logger = logger;
+        _log = log;
         _tarjetaGenerator = new TarjetaGenerator();
         _cvvGenerator = new CvvGenerator();
         _expDateGenerator = new ExpDateGenerator();
-        _cardLimitValidators = new CardLimitValidators();
+        _cardLimitValidators = new CardLimitValidators(_log);
     }
-    public async Task<List<Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel>> GetAllAsync()
+
+    public async Task<List<TarjetaResponse>> GetAllAsync()
     {
        _logger.LogDebug("Obteniendo todas las tarjetas");
        List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
-       return tarjetas.ToModelList();
+       return tarjetas.ToResponseList();
     }
 
-    public async Task<TarjetaResponse> GetByGuidAsync(string id)
+    public async Task<TarjetaResponse?> GetByGuidAsync(string guid)
     {
-        _logger.LogDebug($"Obteniendo tarjeta con id: {id}");
+        _logger.LogDebug($"Obteniendo tarjeta con id: {guid}");
         
         /*var cacheKey = CacheKeyPrefix + id;
         if (_cache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
@@ -47,7 +51,7 @@ public class TarjetaService : ITarjetaService
         }*/
         
         _logger.LogDebug("Buscando tarjeta en la base de datos");
-        var tarjeta = await _context.Tarjetas.FindAsync(id);
+        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
         if (tarjeta == null)
         {
             _logger.LogDebug("Tarjeta no encontrada");
@@ -66,12 +70,6 @@ public class TarjetaService : ITarjetaService
         _logger.LogDebug("Creando una nueva tarjeta");
 
         var tarjeta = dto.ToModelFromRequest();
-
-        if (!_cardLimitValidators.ValidarLimite(dto))
-        {
-            _logger.LogWarning("Los límites de la tarjeta no son válidos");
-            return null;
-        }
         
         tarjeta.Numero = _tarjetaGenerator.GenerarTarjeta();
         tarjeta.Cvv = _cvvGenerator.GenerarCvv();
@@ -90,7 +88,7 @@ public class TarjetaService : ITarjetaService
     public async Task<TarjetaResponse> UpdateAsync(string id, TarjetaRequest dto)
     {
         _logger.LogDebug($"Actualizando tarjeta con id: {id}");
-        var tarjeta = await _context.Tarjetas.FindAsync(id);
+        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == id);
         
         if (tarjeta == null)
         {
@@ -117,10 +115,10 @@ public class TarjetaService : ITarjetaService
         return tarjeta.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponse> DeleteAsync(string id)
+    public async Task<TarjetaResponse?> DeleteAsync(string id)
     {
         _logger.LogDebug($"Eliminando tarjeta con id: {id}");
-        var tarjeta = await _context.Tarjetas.FindAsync(id);
+        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == id);
 
         if (tarjeta == null)
         {

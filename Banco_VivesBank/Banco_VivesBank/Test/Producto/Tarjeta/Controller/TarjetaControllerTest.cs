@@ -1,12 +1,15 @@
 ﻿
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Tarjeta.Controllers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
+using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Validators;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -19,7 +22,8 @@ public class TarjetaControllerTest
 {
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
-    private TarjetaService _tarjetaService;
+    private Mock<ITarjetaService> _tarjetaService;
+    private TarjetaController _tarjetaController;
     private Mock<TarjetaGenerator> _tarjetaGeneratorMock;
     private Mock<CvvGenerator> _cvvGeneratorMock;
     private Mock<ExpDateGenerator> _expDateGeneratorMock;
@@ -49,9 +53,11 @@ public class TarjetaControllerTest
         _cvvGeneratorMock = new Mock<CvvGenerator>();
         _expDateGeneratorMock = new Mock<ExpDateGenerator>();
         _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
+        _tarjetaService = new Mock<ITarjetaService>();
         
-        _tarjetaService = new TarjetaService(_dbContext, 
-            NullLogger<TarjetaService>.Instance
+        _tarjetaController = new TarjetaController(
+            _tarjetaService.Object,
+            NullLogger<CardLimitValidators>.Instance
         );
     }
     
@@ -74,23 +80,20 @@ public class TarjetaControllerTest
     public async Task GetAllTest()
     {
         // Arrange
-        var tarjetas = new List<TarjetaEntity>
+        var tarjetas = new List<TarjetaResponse>
         {
-            new TarjetaEntity() { Id = 1, Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" },
-            new TarjetaEntity() { Id = 2, Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
+            new TarjetaResponse() { Id = 1, Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" },
+            new TarjetaResponse() { Id = 2, Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
         };
 
-        _dbContext.Tarjetas.AddRange(tarjetas);
-        await _dbContext.SaveChangesAsync();
-
         // Act
-        var result = await _tarjetaService.GetAllAsync();
+        _tarjetaService.Setup(s => s.GetAllAsync()).ReturnsAsync(tarjetas);
+        var result = await _tarjetaController.GetAllTarjetas();
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.EqualTo(2));
-        Assert.That(result[0].Id, Is.EqualTo(1));
-        Assert.That(result[1].Id, Is.EqualTo(2));
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var returnValue = (result.Result as OkObjectResult)?.Value as IEnumerable<TarjetaResponse>;
+        Assert.That(returnValue, Is.EqualTo(tarjetas));
     }
 
     [Test]
@@ -100,100 +103,92 @@ public class TarjetaControllerTest
         // Arrange
         var tarjeta = new TarjetaEntity
             { Id = 1, Guid = guid, Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" };
-
-        _dbContext.Tarjetas.Add(tarjeta);
-        await _dbContext.SaveChangesAsync();
-
+        
         // Act
-        var result = await _tarjetaService.GetByGuidAsync(guid);
+        _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync(tarjeta.ToResponseFromEntity());
+        var result = await _tarjetaController.GetTarjetaById(guid);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Id, Is.EqualTo(1));
-        Assert.That(result.Numero, Is.EqualTo("1234567890123456"));
-        Assert.That(result.Cvv, Is.EqualTo("123"));
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var returnValue = (result.Result as OkObjectResult)?.Value as TarjetaResponse;
+        Assert.That(returnValue.Id, Is.EqualTo(tarjeta.ToResponseFromEntity().Id));
     }
 
     [Test]
-    public async Task GutByGuidNotFound()
+    public async Task GetByGuidNotFound()
     {
         var guid = "Guid-Prueba";
-
         // Act
+        _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync((TarjetaResponse)null);
         var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaService.GetByGuidAsync(guid));
+            await _tarjetaController.GetTarjetaById(guid));
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo($"No se encontró la tarjeta con el GUID: {guid}"));
+        Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
     }
 
     [Test]
     public async Task CreateTest()
     {
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "1234",
             LimiteDiario = 1000,
-            LimiteSemanal = 2000,
-            LimiteMensual = 3000
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
         };
-
-        _tarjetaGeneratorMock.Setup(x => x.GenerarTarjeta()).Returns("generated-tarjeta-guid");
-        _cvvGeneratorMock.Setup(x => x.GenerarCvv()).Returns("generated-cvv");
-        _expDateGeneratorMock.Setup(x => x.GenerarExpDate()).Returns("generated-exp-date");
-
         // Act
-        var result = await _tarjetaService.CreateAsync(tarjetaRequest);
+        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).
+            ReturnsAsync(tarjetaRequest.ToModelFromRequest().ToResponseFromModel);
+        var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
+        
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.Not.Null);
+        Assert.That(result.Result, Is.TypeOf<CreatedAtActionResult>());
+        var returnValue = (result.Result as CreatedAtActionResult)?.Value as TarjetaResponse;
+        Assert.That(returnValue, Is.Not.Null);
     }
 
     [Test]
     public async Task CreateWithInvalidPin()
     {
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "12345",
             LimiteDiario = 1000,
             LimiteSemanal = 2000,
             LimiteMensual = 3000
         };
-
-        _tarjetaGeneratorMock.Setup(x => x.GenerarTarjeta()).Returns("generated-tarjeta-guid");
-        _cvvGeneratorMock.Setup(x => x.GenerarCvv()).Returns("generated-cvv");
-        _expDateGeneratorMock.Setup(x => x.GenerarExpDate()).Returns("generated-exp-date");
-
         // Act
+        
+        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).ReturnsAsync((TarjetaResponse)null);
+        
         var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaService.CreateAsync(tarjetaRequest));
+            await _tarjetaController.CreateTarjeta(tarjetaRequest));
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo("Pin inválido"));
+        Assert.That(ex?.Message, Is.EqualTo("El pin tiene un formato incorrecto"));
     }
 
     [Test]
     public async Task CreateWithInvalidLimites()
     {
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 2000000,
-            LimiteMensual = 3000
+            LimiteDiario = 0,
+            LimiteSemanal = 0,
+            LimiteMensual = 0
         };
-
-        _tarjetaGeneratorMock.Setup(x => x.GenerarTarjeta()).Returns("generated-tarjeta-guid");
-        _cvvGeneratorMock.Setup(x => x.GenerarCvv()).Returns("generated-cvv");
-        _expDateGeneratorMock.Setup(x => x.GenerarExpDate()).Returns("generated-exp-date");
-
         // Act
+        
+        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).ReturnsAsync((TarjetaResponse)null);
+        
         var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaService.CreateAsync(tarjetaRequest));
+            await _tarjetaController.CreateTarjeta(tarjetaRequest));
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo("Límites de tarjeta inválidos"));
+        Assert.That(ex?.Message, Is.EqualTo("Error con los limites de gasto de la tarjeta"));
 
     }
 
@@ -203,35 +198,30 @@ public class TarjetaControllerTest
 
         var guid = "guid-prueba";
         
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "1234",
             LimiteDiario = 1000,
-            LimiteSemanal = 2000,
-            LimiteMensual = 3000
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
         };
+        _tarjetaService.Setup(s => s.GetByGuidAsync(guid))
+            .ReturnsAsync(tarjetaRequest.ToModelFromRequest().ToResponseFromModel);
 
-        var tarjetaEntity = new TarjetaEntity
-        {
-            Id = 1,
-            Guid = guid,
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            LimiteDiario = 500,
-            LimiteSemanal = 1000,
-            LimiteMensual = 1500
-        };
-
-        _dbContext.Tarjetas.Add(tarjetaEntity);
-        await _dbContext.SaveChangesAsync();
-        var updatedTarjeta = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
+        _tarjetaService.Setup(s => s.UpdateAsync(guid, tarjetaRequest))
+            .ReturnsAsync(tarjetaRequest.ToModelFromRequest().ToResponseFromModel);
+        
+        var updatedTarjeta = await _tarjetaController.UpdateTarjeta(guid, tarjetaRequest);
         
         // Assert
-        Assert.That(updatedTarjeta, Is.Not.Null);
-        Assert.That(updatedTarjeta.LimiteDiario, Is.EqualTo(1000));
-        Assert.That(updatedTarjeta.LimiteSemanal, Is.EqualTo(2000));
-        Assert.That(updatedTarjeta.LimiteMensual, Is.EqualTo(3000));
+        Assert.That(updatedTarjeta.Result, Is.TypeOf<OkObjectResult>());
+        var returnValue = (updatedTarjeta.Result as OkObjectResult)?.Value as TarjetaResponse;
+        Assert.That(returnValue, Is.Not.Null);
+        Assert.That(returnValue.Pin, Is.EqualTo(tarjetaRequest.Pin));
+        Assert.That(returnValue.LimiteDiario, Is.EqualTo(tarjetaRequest.LimiteDiario));
+        Assert.That(returnValue.LimiteSemanal, Is.EqualTo(tarjetaRequest.LimiteSemanal));
+        Assert.That(returnValue.LimiteMensual, Is.EqualTo(tarjetaRequest.LimiteMensual));
+
     }
 
     [Test]
@@ -239,33 +229,21 @@ public class TarjetaControllerTest
     {
         var guid = "guid-prueba";
 
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "12345",
             LimiteDiario = 1000,
             LimiteSemanal = 2000,
             LimiteMensual = 3000
         };
+        _tarjetaService.Setup(s => s.GetByGuidAsync(guid))
+            .ReturnsAsync((TarjetaResponse)null);
 
-        var tarjetaEntity = new TarjetaEntity
-        {
-            Id = 1,
-            Guid = guid,
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            LimiteDiario = 500,
-            LimiteSemanal = 1000,
-            LimiteMensual = 1500
-        };
-
-        _dbContext.Tarjetas.Add(tarjetaEntity);
-        await _dbContext.SaveChangesAsync();
         var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaService.UpdateAsync(guid, tarjetaRequest));
+            await _tarjetaController.UpdateTarjeta(guid, tarjetaRequest));
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo("No se encontró la tarjeta con el GUID: " + guid));
+        Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
     }
 
     [Test]
@@ -284,14 +262,12 @@ public class TarjetaControllerTest
             LimiteSemanal = 1000,
             LimiteMensual = 1500
         };
-
-        _dbContext.Tarjetas.Add(tarjetaEntity);
-        await _dbContext.SaveChangesAsync();
-        await _tarjetaService.DeleteAsync(guid);
-        var tarjeta = await _dbContext.Tarjetas.FirstOrDefaultAsync(x => x.Guid == guid);
+        _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync(tarjetaEntity.ToResponseFromEntity);
+        _tarjetaService.Setup(s => s.DeleteAsync(guid)).ReturnsAsync(tarjetaEntity.ToResponseFromEntity);
+        var tarjeta = await _tarjetaController.DeleteTarjeta(guid);
 
         // Assert
-        Assert.That(tarjeta, Is.Null);
+        Assert.That(tarjeta, Is.Not.Null);
     }
 
     [Test]
@@ -299,11 +275,14 @@ public class TarjetaControllerTest
     {
         var guid = "guid-prueba";
 
-        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaService.DeleteAsync(guid));
+        _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync((TarjetaResponse)null);
+        _tarjetaService.Setup(s => s.DeleteAsync(guid)).ReturnsAsync((TarjetaResponse)null);
+        
+
+        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () => await  _tarjetaController.DeleteTarjeta(guid));
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo("No se encontró la tarjeta con el GUID: " + guid));
+        Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
 
     }
 }

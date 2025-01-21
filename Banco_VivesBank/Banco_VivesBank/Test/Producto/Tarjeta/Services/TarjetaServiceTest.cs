@@ -18,6 +18,7 @@ namespace Banco_VivesBank.Test.Producto.Tarjeta.Services;
 [TestFixture]
 public class TarjetaServiceTest
 {
+    
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private TarjetaService _tarjetaService;
@@ -51,8 +52,10 @@ public class TarjetaServiceTest
         _expDateGeneratorMock = new Mock<ExpDateGenerator>();
         _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
         
-        _tarjetaService = new TarjetaService(_dbContext, 
-            NullLogger<TarjetaService>.Instance
+        _tarjetaService = new TarjetaService(
+            _dbContext, 
+            NullLogger<TarjetaService>.Instance,
+            NullLogger<CardLimitValidators>.Instance
             );
     }
     
@@ -74,10 +77,13 @@ public class TarjetaServiceTest
     [Test]
     public async Task GetAll()
     {
+        
+        await _dbContext.Tarjetas.ExecuteDeleteAsync();
         var tarjeta1 = new TarjetaEntity
         {
             Guid = Guid.NewGuid().ToString(),
             Numero = "1234567890123456",
+            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -88,13 +94,15 @@ public class TarjetaServiceTest
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
             
-            
+          
         };
 
         _dbContext.Tarjetas.Add(tarjeta1);
         await _dbContext.SaveChangesAsync();
 
         var tarjetas = await _tarjetaService.GetAllAsync();
+        
+        Console.WriteLine(tarjetas.ToString());
         Assert.That(tarjetas.Count, Is.EqualTo(1));
     }
 
@@ -106,6 +114,7 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
+            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -124,10 +133,9 @@ public class TarjetaServiceTest
     }
 
     [Test]
-    public async void GetByGuid_NotFound()
+    public async Task GetByGuid_NotFound()
     {
         var guid = "Guid-Prueba";
-        Assert.That(async () => await _tarjetaService.GetByGuidAsync(guid), Throws.InstanceOf<TarjetaNotFoundException>());
 
         // Test con tarjeta que no existe
         var tarjetaNoExiste = await _tarjetaService.GetByGuidAsync("non-existing-guid");
@@ -137,23 +145,17 @@ public class TarjetaServiceTest
     [Test]
     public async Task Create()
     {
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "1234",
             LimiteDiario = 1000,
-            LimiteSemanal = 2000,
-            LimiteMensual = 3000
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
         };
 
-        _tarjetaGeneratorMock.Setup(x => x.GenerarTarjeta()).Returns("tarjeta-generada");
-        _cvvGeneratorMock.Setup(x => x.GenerarCvv()).Returns("cvv-generado");
-        _expDateGeneratorMock.Setup(x => x.GenerarExpDate()).Returns("exp-date-generado");
 
         var tarjeta = await _tarjetaService.CreateAsync(tarjetaRequest);
 
-        Assert.That(tarjeta.Numero, Is.EqualTo("tarjeta-generada"));
-        Assert.That(tarjeta.Cvv, Is.EqualTo("cvv-generado"));
-        Assert.That(tarjeta.FechaVencimiento, Is.EqualTo("exp-date-generado"));
         Assert.That(tarjeta.Pin, Is.EqualTo("1234"));
         Assert.That(tarjeta.LimiteDiario, Is.EqualTo(1000));
     }
@@ -161,24 +163,26 @@ public class TarjetaServiceTest
     [Test]
     public async Task Update()
     {
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "1234",
             LimiteDiario = 1000,
-            LimiteSemanal = 2000,
-            LimiteMensual = 3000
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
         };
 
+        var guid = "NuevoGuid";
         var tarjeta = new TarjetaEntity
         {
-            Guid = Guid.NewGuid().ToString(),
+            Guid = guid,
             Numero = "1234567890123456",
+            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
             LimiteDiario = 1000,
-            LimiteSemanal = 2000,
-            LimiteMensual = 3000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -186,16 +190,16 @@ public class TarjetaServiceTest
         _dbContext.Tarjetas.Add(tarjeta);
         await _dbContext.SaveChangesAsync();
 
-        var tarjetaActualizada = await _tarjetaService.UpdateAsync(tarjeta.Guid, tarjetaRequest);
-
+        var tarjetaActualizada = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
+        
         Assert.That(tarjetaActualizada.Pin, Is.EqualTo("1234"));
         Assert.That(tarjetaActualizada.LimiteDiario, Is.EqualTo(1000));
     }
 
     [Test]
-    public async void Update_NotFound()
+    public async Task Update_NotFound()
     {
-        var tarjetaRequest = new TarjetaRequestDto
+        var tarjetaRequest = new TarjetaRequest
         {
             Pin = "1234",
             LimiteDiario = 1000,
@@ -204,8 +208,6 @@ public class TarjetaServiceTest
         };
 
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
-        Assert.That(async () => await _tarjetaService.UpdateAsync(nonExistingTarjetaGuid, tarjetaRequest),
-            Throws.InstanceOf<TarjetaNotFoundException>());
 
         // Test con tarjeta que no existe
         var tarjetaNoExiste = await _tarjetaService.UpdateAsync("non-existing-guid", tarjetaRequest);
@@ -219,6 +221,7 @@ public class TarjetaServiceTest
         {
             Guid = Guid.NewGuid().ToString(),
             Numero = "1234567890123456",
+            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -234,18 +237,18 @@ public class TarjetaServiceTest
 
         await _tarjetaService.DeleteAsync(tarjeta.Guid);
 
-        var tarjetaBorrada = await _dbContext.Tarjetas.FindAsync(tarjeta.Guid);
-        Assert.That(tarjetaBorrada, Is.Null);
+        var tarjetaBorrada = await _dbContext.Tarjetas.FirstOrDefaultAsync(t => t.Guid == tarjeta.Guid);
+        Assert.That(tarjetaBorrada.IsDeleted,  Is.True);
     }
 
     [Test]
-    public async void Delete_NotFound()
+    public async Task Delete_NotFound()
     {
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
         await _tarjetaService.DeleteAsync(nonExistingTarjetaGuid);
 
         // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _dbContext.Tarjetas.FindAsync(nonExistingTarjetaGuid);
+        var tarjetaNoExiste = await _dbContext.Tarjetas.FirstOrDefaultAsync(t => t.Guid == nonExistingTarjetaGuid);
         Assert.That(tarjetaNoExiste, Is.Null);
 
     }

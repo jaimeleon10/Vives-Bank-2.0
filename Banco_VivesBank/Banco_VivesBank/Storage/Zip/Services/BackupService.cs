@@ -85,7 +85,7 @@ public class BackupService : IBackupService
             tipoCuenta: null, 
             pageRequest: new PageRequest { PageNumber = 1, PageSize = 10 }
         );
-        var tarjetas = await _tarjetaService.GetAllAsync() ?? new List<Tarjeta>();
+        var tarjetas = await _tarjetaService.GetAllAsync() ?? new List<TarjetaResponse>();
 
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());

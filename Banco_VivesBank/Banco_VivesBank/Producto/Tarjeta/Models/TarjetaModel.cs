@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Models;
 
@@ -8,13 +9,12 @@ public class TarjetaModel
     public long Id { get; set; }
     
     [JsonPropertyName("Guid")]
-    public string Guid { get; set; }
+    public string Guid { get; set; } = GuidGenerator.GenerarId();
     
     [JsonPropertyName("numero")]
     public string Numero { get; set; }
-    
-    [JsonPropertyName("titular")]
-    public string Titular { get; set; }
+
+    [JsonPropertyName("titular")] public string Titular { get; set; } = string.Empty;
     
     [JsonPropertyName("fecha_vencimiento")]
     public string FechaVencimiento { get; set; }

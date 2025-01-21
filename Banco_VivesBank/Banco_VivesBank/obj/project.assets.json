@@ -8265,7 +8265,6 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "Banco_VivesBank >= 1.0.0",
       "CacheManager.Core >= 1.2.0",
       "CacheMeIfYouCan.Redis >= 0.2.197",
       "GraphQL >= 8.3.0",
@@ -8322,11 +8321,7 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {
-            "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj": {
-              "projectPath": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {
@@ -8489,16 +8484,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.404/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1108",
-      "level": "Error",
-      "message": "Cycle detected. \r\n  Banco_VivesBank -> Banco_VivesBank.",
-      "libraryId": "Banco_VivesBank",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  }
 }

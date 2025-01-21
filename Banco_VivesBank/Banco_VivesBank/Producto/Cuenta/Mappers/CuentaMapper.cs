@@ -57,7 +57,7 @@ public static class CuentaMapper
         };
     }
     
-    public static CuentaResponse ToResponseFromEntity(CuentaEntity cuentaEntity, Tarjeta.Models.Tarjeta tarjeta, Cliente.Models.Cliente cliente, BaseModel producto)
+    public static CuentaResponse ToResponseFromEntity(CuentaEntity cuentaEntity, Tarjeta.Models.TarjetaModel tarjeta, Cliente.Models.Cliente cliente, BaseModel producto)
     {
         return new CuentaResponse
         {

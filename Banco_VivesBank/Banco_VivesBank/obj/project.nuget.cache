@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "dgSpecHash": "zOYqCP3j0lA=",
-  "success": false,
+  "dgSpecHash": "eMbrMURBQGM=",
+  "success": true,
   "projectFilePath": "C:\\Proyectos-Grupales\\Vives-Bank-2.0\\Banco_VivesBank\\Banco_VivesBank\\Banco_VivesBank.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Javier\\.nuget\\packages\\cachemanager.core\\1.2.0\\cachemanager.core.1.2.0.nupkg.sha512",
@@ -159,15 +159,5 @@
     "C:\\Users\\Javier\\.nuget\\packages\\testcontainers.postgresql\\4.1.0\\testcontainers.postgresql.4.1.0.nupkg.sha512",
     "C:\\Users\\Javier\\.nuget\\packages\\zstdsharp.port\\0.7.3\\zstdsharp.port.0.7.3.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1108",
-      "level": "Error",
-      "message": "Cycle detected. \r\n  Banco_VivesBank -> Banco_VivesBank.",
-      "libraryId": "Banco_VivesBank",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }

@@ -89,7 +89,7 @@ public class CuentaService : ICuentaService
 
         foreach (var cuentaEntity in content)
         {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
+            Tarjeta.Models.TarjetaModel? tarjeta = null;
             if (cuentaEntity.TarjetaId.HasValue)
             {
                 tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
@@ -148,7 +148,7 @@ public class CuentaService : ICuentaService
         
         foreach (var cuentaEntity in cuentaEntityListFiltered)
         {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
+            Tarjeta.Models.TarjetaModel? tarjeta = null;
             if (cuentaEntity.TarjetaId.HasValue)
             {
                 tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
@@ -188,7 +188,7 @@ public class CuentaService : ICuentaService
              _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
              return cachedCuenta.ToResponseFromModel();
              */
-            Tarjeta.Models.Tarjeta? tarjeta = null;
+            Tarjeta.Models.TarjetaModel? tarjeta = null;
             if (cuentaEntity.TarjetaId.HasValue)
             {
                 tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
@@ -226,7 +226,7 @@ public class CuentaService : ICuentaService
              _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
              return cachedCuenta.ToResponseFromModel();
              */
-            Tarjeta.Models.Tarjeta? tarjeta = null;
+            Tarjeta.Models.TarjetaModel? tarjeta = null;
             if (cuentaEntity.TarjetaId.HasValue)
             {
                 tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
@@ -249,7 +249,7 @@ public class CuentaService : ICuentaService
 
         if (cuentaEntity != null)
         {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
+            Tarjeta.Models.TarjetaModel? tarjeta = null;
             if (cuentaEntity.TarjetaId.HasValue)
             {
                 tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
