@@ -38,7 +38,6 @@ public class GeneralDbContext : DbContext
         modelBuilder.Entity<ClienteEntity>(entity =>
         {
             entity.Property(ent => ent.CreatedAt).IsRequired().ValueGeneratedOnAdd();
-            entity.Property(ent => ent.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
             entity.OwnsOne(e => e.Direccion, direccion =>
             {
                 direccion.Property(d => d.Calle).HasColumnName("Calle");
@@ -47,6 +46,10 @@ public class GeneralDbContext : DbContext
                 direccion.Property(d => d.Piso).HasColumnName("Piso");
                 direccion.Property(d => d.Letra).HasColumnName("Letra");
             });
+            entity.HasOne(e => e.User)
+                .WithOne()
+                .HasForeignKey<ClienteEntity>(e => e.UserId)
+                .IsRequired();
         });
         /*
         // Base Entity
@@ -57,27 +60,25 @@ public class GeneralDbContext : DbContext
             // TODO: Revisar si hay que añadir relación
         });
 
-        // Cuenta Entity
-        // TODO: Revisar todas las relaciones
+        */
+        /*
         modelBuilder.Entity<CuentaEntity>(entity =>
         {
             entity.Property(e => e.CreatedAt).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
         });
-
+        */
         modelBuilder.Entity<CuentaEntity>()
-            .HasOne(c => c.Cliente)
-            .WithMany()
-            .HasForeignKey(c => c.ClienteId)
-            .IsRequired();
-
-        /*
-         modelBuilder.Entity<CuentaEntity>()
-            .HasOne(c => c.TarjetaId)
+            .HasOne(c => c.Cliente) 
+            .WithMany() 
+            .HasForeignKey(c => c.ClienteId) 
+            .IsRequired(); 
+        
+        modelBuilder.Entity<CuentaEntity>()
+            .HasOne(c => c.Tarjeta)
             .WithOne()
-            .HasForeignKey(c => c.TarjetaId)
+            .HasForeignKey<CuentaEntity>(c => c.TarjetaId)
             .IsRequired(false);
-        #1#
 
         modelBuilder.Entity<CuentaEntity>()
             .HasOne(c => c.Producto)
@@ -85,6 +86,7 @@ public class GeneralDbContext : DbContext
             .HasForeignKey(c => c.ProductoId)
             .IsRequired();
 
+        /*
         // Tarjeta Entity
         modelBuilder.Entity<TarjetaEntity>(entity =>
         {

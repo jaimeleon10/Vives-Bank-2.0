@@ -165,7 +165,7 @@ public class BackupService : IBackupService
                 var cuentas = _storageJson.ImportJson<CuentaRequest>(cuentasFile);
                 foreach (var cuentaDto in cuentas)
                 {
-                    await _cuentaService.CreateAsync(GuidGenerator.GenerarId(),cuentaDto);
+                    await _cuentaService.CreateAsync(cuentaDto);
                 }
             }
             
