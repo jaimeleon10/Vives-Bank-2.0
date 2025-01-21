@@ -96,6 +96,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IBaseService, BaseService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
+    myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();
