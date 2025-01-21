@@ -42,4 +42,12 @@
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="obj\Banco_VivesBank.csproj.nuget.dgspec.json" />
+      <Content Include="obj\Banco_VivesBank.csproj.nuget.g.props" />
+      <Content Include="obj\Debug\net8.0\Banco_VivesBank.AssemblyInfoInputs.cache" />
+      <Content Include="obj\Debug\net8.0\Banco_VivesBank.assets.cache" />
+      <Content Include="obj\Debug\net8.0\Banco_VivesBank.csproj.AssemblyReference.cache" />
+    </ItemGroup>
+
 </Project>
