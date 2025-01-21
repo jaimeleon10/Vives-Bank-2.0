@@ -26,7 +26,7 @@ public class ClienteMapperTest
             Telefono = "123456789",
             UserGuid = "user-guid"
         };
-        var user = new User.Models.User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Guid = "user-guid",
             Username = "test",
@@ -75,7 +75,7 @@ public class ClienteMapperTest
             Telefono = "123456789",
             FotoPerfil = "perfil.jpg",
             FotoDni = "dni.jpg",
-            User = new User.Models.User
+            User = new Banco_VivesBank.User.Models.User
             {
                 Guid = "user-guid",
                 Username = "test",
@@ -129,7 +129,7 @@ public class ClienteMapperTest
             Telefono = "123456789",
             FotoPerfil = "perfil.jpg",
             FotoDni = "dni.jpg",
-            User = new User.Models.User
+            User = new Banco_VivesBank.User.Models.User
             {
                 Guid = "user-guid",
                 Username = "test",
@@ -159,7 +159,7 @@ public class ClienteMapperTest
     [Test]
     public void ToResponseFromEntity()
     {
-        var user = new User.Models.User
+        var user = new UserEntity
         {
             Id = 1,
             Guid = "user-guid",
@@ -186,12 +186,13 @@ public class ClienteMapperTest
             FotoPerfil = "perfil.jpg",
             FotoDni = "dni.jpg",
             UserId = user.Id,
+            User = user,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
         
-        var result = ClienteMapper.ToResponseFromEntity(clienteEntity, user);
+        var result = ClienteMapper.ToResponseFromEntity(clienteEntity);
         Assert.Multiple(() =>
         {
             Assert.That(clienteEntity.Guid, Is.EqualTo(result.Guid));

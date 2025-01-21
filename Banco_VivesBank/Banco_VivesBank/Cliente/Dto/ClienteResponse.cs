@@ -1,4 +1,5 @@
 ﻿using Banco_VivesBank.Cliente.Models;
+using Banco_VivesBank.User.Dto;
 
 namespace Banco_VivesBank.Cliente.Dto;
 
@@ -22,7 +23,7 @@ public class ClienteResponse
     
     public string FotoDni  { get; set; }
     
-    public string UserId { get; set; }
+    public UserResponse UserResponse { get; set; }
     
     public string CreatedAt { get; set; }
     
