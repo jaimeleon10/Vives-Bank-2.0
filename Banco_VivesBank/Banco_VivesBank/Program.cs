@@ -8,12 +8,11 @@ using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.User.Mapper;
+using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Service;
 using GraphiQl;
 using GraphQL;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -73,7 +72,7 @@ WebApplicationBuilder InitServices()
 {
     var myBuilder = WebApplication.CreateBuilder(args);
 
-    // Configuramos los servicios de la aplicación
+    System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
     // Poner Serilog como logger por defecto (otra alternativa)
     myBuilder.Services.AddLogging(logging =>
@@ -96,6 +95,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IBaseService, BaseService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
+    myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();
