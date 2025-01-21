@@ -66,9 +66,6 @@ public class GeneralDbContext : DbContext
         });
         */
         modelBuilder.Entity<CuentaEntity>()
-            .HasKey(c => c.Id); 
-        
-        modelBuilder.Entity<CuentaEntity>()
             .HasOne(c => c.Cliente) 
             .WithMany() 
             .HasForeignKey(c => c.ClienteId) 
