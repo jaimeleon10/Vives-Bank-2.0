@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.Cliente.Exceptions;
+﻿using System.Numerics;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Dto;
@@ -146,7 +147,12 @@ public class MovimientoService : IMovimientoService
             throw new NotValidIbanException($"El iban de destino: {domiciliacion.IbanDestino} no es válido");
         }
 
-        // TODO Validar que el cliente existe (cliente autenticado)
+        _logger.LogInformation("Validando si el cliente existe");
+        var clienteExistente = await _clienteService.GetByGuidAsync(domiciliacion.Cliente.Guid);
+        if (clienteExistente == null)
+        {
+            throw new ClienteNotFoundException($"No se ha encontrado el cliente con guid: {domiciliacion.Cliente.Guid}");
+        }
         
         _logger.LogInformation("Validando cuenta existente");
         var cuentaCliente = await _cuentaService.GetByIbanAsync(domiciliacion.IbanOrigen);
@@ -155,28 +161,31 @@ public class MovimientoService : IMovimientoService
             _logger.LogInformation($"No se ha encontrado la cuenta con iban: {domiciliacion.IbanOrigen}");
             throw new CuentaNoEncontradaException($"No se ha encontrado la cuenta con iban: {domiciliacion.IbanOrigen}");
         };
-
-        // TODO Validar con cliente autenticado obtenido antes
-        /*
+        
         if (clienteExistente.Guid != cuentaCliente.ClienteGuid)
         {
             _logger.LogInformation("El iban de origen no coincide con el cliente autenticado");
             throw new NotValidIbanException("El iban de origen no coincide con el cliente autenticado");
         }
-        */
         
-        // TODO Validar con cliente autenticado obtenido antes
+        /* TODO Revisar !!!
         _logger.LogInformation("Validando si existe la domiciliación");
         var domiciliacionesCliente = await this.GetDomiciliacionByClienteGuidAsync(clienteExistente.Guid);
         if (domiciliacionesCliente != null)
         {
             throw new DomiciliacionExistsException("La domiciliacion ")
+        }*/
+        
+        _logger.LogInformation("Validando importe");
+        if (domiciliacion.Importe <= BigInteger.Zero)
+        {
+            throw new DomiciliacionExistsException("El importe debe ser mayor que cero");
         }
 
-        if (domiciliacionesCliente.IbanDestino == domiciliacion.IbanDestino)
-        {
-            
-        }
+        domiciliacion.UltimaEjecucion = DateTime.UtcNow;
+        // domiciliacion.Cliente.Guid = clienteExistente.Guid; TODO Revisar si hace falta
+        
+        
     }
 
     public async Task<Movimiento> CreateIngresoNominaAsync(IngresoNomina ingresoNomina)

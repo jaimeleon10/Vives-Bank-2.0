@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Banco_VivesBank.Movimientos.Models;
 
-public abstract class PagoConTarjeta
+public class PagoConTarjeta
 {
     [JsonPropertyName("numeroTarjeta")]
     public required string NumeroTarjeta { get; set; }

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Banco_VivesBank.Movimientos.Models;
 
-public abstract class IngresoNomina
+public class IngresoNomina
 {
     [JsonPropertyName("ibanOrigen")]
     public required string IbanOrigen { get; set; }

@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Banco_VivesBank.Movimientos.Models;
 
-public abstract class Domiciliacion
+public class Domiciliacion
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
