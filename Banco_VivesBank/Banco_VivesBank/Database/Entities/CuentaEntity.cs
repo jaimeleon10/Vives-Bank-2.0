@@ -29,28 +29,21 @@ public class CuentaEntity
     [Column("tarjeta_id")]
     public long? TarjetaId { get; set; }
     
-    public Tarjeta? Tarjeta { get; set; }
-    
     [ForeignKey("Cliente")] 
     [Column("cliente_id")]  
     [Required] 
     public long ClienteId { get; set; }
-    public Cliente.Models.Cliente Cliente { get; set; } 
-
     
     [ForeignKey("Producto")] 
     [Column("producto_id")]  
     [Required] 
     public long ProductoId { get; set; }
-    public BaseModel Producto { get; set; } 
     
     [Required]
     [DefaultValue(false)]
     public bool IsDeleted { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public DateTime CreatedAt { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime UpdatedAt { get; set; }
 }
