@@ -9,64 +9,64 @@ namespace Banco_VivesBank.Producto.Cuenta.Mappers;
 
 public static class CuentaMapper
 {
-    public static Models.Cuenta ToModelFromEntity(this CuentaEntity entity)
+    /*public static Models.Cuenta ToModelFromEntity(CuentaEntity entity)
     {
         return new Models.Cuenta
         {
             Guid = entity.Guid,
             Iban = entity.Iban,
             Saldo = entity.Saldo,
-            Tarjeta = entity.Tarjeta,
-            Cliente = entity.Cliente,
-            Producto = entity.Producto,
+            Tarjeta = entity.TarjetaId,
+            Cliente = entity.ClienteId,
+            Producto = entity.ProductoId,
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             IsDeleted = entity.IsDeleted
         };
     }
     
-    public static CuentaEntity ToEntityFromModel(this Models.Cuenta cuenta)
+    public static CuentaEntity ToEntityFromModel(Models.Cuenta cuenta)
     {
         return new CuentaEntity
         {
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
             Saldo = cuenta.Saldo,
-            TarjetaId = cuenta.Tarjeta.Id,
-            ClienteId = cuenta.Cliente.Id,
-            ProductoId = cuenta.Producto.Id,
+            TarjetaId = cuenta.Tarjeta,
+            ClienteId = cuenta.Cliente,
+            ProductoId = cuenta.Producto,
             CreatedAt = cuenta.CreatedAt,
             UpdatedAt = cuenta.UpdatedAt,
             IsDeleted = cuenta.IsDeleted
         };
-    }
+    }*/
     
-    public static CuentaResponse ToResponseFromModel(this Models.Cuenta cuenta)
+    public static CuentaResponse ToResponseFromModel(Models.Cuenta cuenta, string tarjetaGuid, string clienteGuid, string productoGuid)
     {
         return new CuentaResponse
         {
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
             Saldo = cuenta.Saldo,
-            TarjetaGuid = cuenta.Tarjeta.Guid,
-            ClienteGuid = cuenta.Cliente.Guid,
-            ProductoGuid = cuenta.Producto.Guid,
+            TarjetaGuid = tarjetaGuid,
+            ClienteGuid = clienteGuid,
+            ProductoGuid = productoGuid,
             CreatedAt = cuenta.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             UpdatedAt = cuenta.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = cuenta.IsDeleted
         };
     }
     
-    public static CuentaResponse ToResponseFromEntity(this CuentaEntity cuentaEntity)
+    public static CuentaResponse ToResponseFromEntity(CuentaEntity cuentaEntity, Tarjeta.Models.Tarjeta tarjeta, Cliente.Models.Cliente cliente, BaseModel producto)
     {
         return new CuentaResponse
         {
             Guid = cuentaEntity.Guid,
             Iban = cuentaEntity.Iban,
             Saldo = cuentaEntity.Saldo,
-            TarjetaGuid = cuentaEntity.Tarjeta.Guid,
-            ClienteGuid = cuentaEntity.Cliente.Guid,
-            ProductoGuid = cuentaEntity.Producto.Guid,
+            TarjetaGuid = tarjeta.Guid,
+            ClienteGuid = cliente.Guid,
+            ProductoGuid = producto.Guid,
             CreatedAt = cuentaEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             UpdatedAt = cuentaEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = cuentaEntity.IsDeleted
