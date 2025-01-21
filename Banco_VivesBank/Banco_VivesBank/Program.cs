@@ -8,8 +8,10 @@ using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.Storage.Files.Service;
 using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
+using Banco_VivesBank.Utils.Pagination;
 using GraphiQl;
 using GraphQL;
 using Microsoft.EntityFrameworkCore;
@@ -96,6 +98,8 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IBaseService, BaseService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
+    myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
+    myBuilder.Services.AddScoped<PaginationLinksUtils>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();
