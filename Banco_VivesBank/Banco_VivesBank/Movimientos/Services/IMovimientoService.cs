@@ -9,6 +9,8 @@ public interface IMovimientoService
     public Task<Movimiento?> GetByIdAsync(string id);
     public Task<Movimiento?> GetByGuidAsync(string guid);
     public Task<Movimiento?> GetByClinteGuidAsync(string clienteGuid);
+    public Task<Domiciliacion?> GetDomiciliacionByGuidAsync(string domiciliacionGuid);
+    public Task<Domiciliacion?> GetDomiciliacionByClienteGuidAsync(string clienteGuid);
     public Task<Movimiento> CreateAsync(MovimientoRequest movimientoRequest);
     public Task<Movimiento> CreateDomiciliacionAsync(Domiciliacion domiciliacion);
     public Task<Movimiento> CreateIngresoNominaAsync(IngresoNomina ingresoNomina);

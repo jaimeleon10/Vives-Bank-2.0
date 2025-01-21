@@ -4,6 +4,8 @@ using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -16,11 +18,13 @@ public class MovimientoService : IMovimientoService
     private readonly IMongoCollection<Movimiento> _movimientoCollection;
     private readonly ILogger<MovimientoService> _logger;
     private readonly IClienteService _clienteService;
+    private readonly ICuentaService _cuentaService;
     
-    public MovimientoService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<MovimientoService> logger, IClienteService clienteService)
+    public MovimientoService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<MovimientoService> logger, IClienteService clienteService, ICuentaService cuentaService)
     {
         _logger = logger;
         _clienteService = clienteService;
+        _cuentaService = cuentaService;
         var mongoClient = new MongoClient(movimientosDatabaseSettings.Value.ConnectionString);
         var mongoDatabase = mongoClient.GetDatabase(movimientosDatabaseSettings.Value.DatabaseName);
         _movimientoCollection = mongoDatabase.GetCollection<Movimiento>(movimientosDatabaseSettings.Value.CategoriasCollectionName);
@@ -89,6 +93,16 @@ public class MovimientoService : IMovimientoService
         return null;
     }
 
+    public Task<Domiciliacion?> GetDomiciliacionByGuidAsync(string domiciliacionGuid)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Domiciliacion?> GetDomiciliacionByClienteGuidAsync(string clienteGuid)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Movimiento> CreateAsync(MovimientoRequest movimientoRequest)
     {
         _logger.LogInformation("Guardando movimiento");
@@ -135,7 +149,34 @@ public class MovimientoService : IMovimientoService
         // TODO Validar que el cliente existe (cliente autenticado)
         
         _logger.LogInformation("Validando cuenta existente");
-        throw new NotImplementedException();
+        var cuentaCliente = await _cuentaService.GetByIbanAsync(domiciliacion.IbanOrigen);
+        if (cuentaCliente == null)
+        {
+            _logger.LogInformation($"No se ha encontrado la cuenta con iban: {domiciliacion.IbanOrigen}");
+            throw new CuentaNoEncontradaException($"No se ha encontrado la cuenta con iban: {domiciliacion.IbanOrigen}");
+        };
+
+        // TODO Validar con cliente autenticado obtenido antes
+        /*
+        if (clienteExistente.Guid != cuentaCliente.ClienteGuid)
+        {
+            _logger.LogInformation("El iban de origen no coincide con el cliente autenticado");
+            throw new NotValidIbanException("El iban de origen no coincide con el cliente autenticado");
+        }
+        */
+        
+        // TODO Validar con cliente autenticado obtenido antes
+        _logger.LogInformation("Validando si existe la domiciliación");
+        var domiciliacionesCliente = await this.GetDomiciliacionByClienteGuidAsync(clienteExistente.Guid);
+        if (domiciliacionesCliente != null)
+        {
+            throw new DomiciliacionExistsException("La domiciliacion ")
+        }
+
+        if (domiciliacionesCliente.IbanDestino == domiciliacion.IbanDestino)
+        {
+            
+        }
     }
 
     public async Task<Movimiento> CreateIngresoNominaAsync(IngresoNomina ingresoNomina)
