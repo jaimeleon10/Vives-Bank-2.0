@@ -5,6 +5,7 @@ using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NUnit.Framework;
@@ -16,12 +17,14 @@ public class ClienteControllerTest
 {
     private Mock<IClienteService> _clienteServiceMock;
     private ClienteController _clienteController;
+    private Mock<PaginationLinksUtils> _paginationLinksUtils;
 
     [SetUp]
     public void SetUp()
     {
         _clienteServiceMock = new Mock<IClienteService>();
-        _clienteController = new ClienteController(_clienteServiceMock.Object);
+        _paginationLinksUtils = new Mock<PaginationLinksUtils>();
+        _clienteController = new ClienteController(_clienteServiceMock.Object, _paginationLinksUtils.Object);
     }
 
     [Test]

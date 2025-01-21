@@ -1,8 +1,8 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
-using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Cliente.Controller;
@@ -12,25 +12,57 @@ namespace Banco_VivesBank.Cliente.Controller;
 public class ClienteController : ControllerBase
 {
     private readonly IClienteService _clienteService;
+    private readonly PaginationLinksUtils _paginationLinksUtils;
 
 
-    public ClienteController(IClienteService clienteService)
+    public ClienteController(IClienteService clienteService, PaginationLinksUtils paginations)
     {
         _clienteService = clienteService;
+        _paginationLinksUtils = paginations;
     }
     
+    
+    [HttpGet("page")]
+    public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
+        [FromQuery] string? nombre = null,
+        [FromQuery] string? apellido = null,
+        [FromQuery] string? dni = null,
+        [FromQuery] int page = 0,
+        [FromQuery] int size = 10,
+        [FromQuery] string sortBy = "id",
+        [FromQuery] string direction = "asc")
+    {
+        try
+        {
+            var pageRequest = new PageRequest
+            {
+                PageNumber = page,
+                PageSize = size,
+                SortBy = sortBy,
+                Direction = direction
+            };
+            var pageResult = await _clienteService.GetAllPagedAsync(nombre, apellido, dni, pageRequest);
+            
+            var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
+            var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
+            
+            Response.Headers.Add("link", linkHeader);
+            
+            return Ok(pageResult);
+
+        }
+        catch (ClienteNotFound e)
+        {
+            return StatusCode(404, new { message = "No se han encontrado los clientes.", details = e.Message });
+        }
+    }
+
     [HttpGet]
     public async Task<ActionResult<List<ClienteResponse>>> GetAll()
     {
         return Ok(await _clienteService.GetAllAsync());
     }
     
-    [HttpGet("model")]
-    public async Task<ActionResult<List<ClienteEntity>>> GetAllModels()
-    {
-        return Ok(await _clienteService.GetAllModelsAsync());
-    }
-
     [HttpGet("{guid}")]
     public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {

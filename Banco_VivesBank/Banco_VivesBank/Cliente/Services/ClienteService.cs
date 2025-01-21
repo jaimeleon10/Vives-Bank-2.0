@@ -8,6 +8,7 @@ using Banco_VivesBank.Storage.Files.Service;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace Banco_VivesBank.Cliente.Services;
@@ -39,6 +40,73 @@ public class ClienteService : IClienteService
         }
 
         return clienteResponseList;
+    }
+
+    public async Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellidos, string? dni, PageRequest page)
+    {
+        _logger.LogInformation("Obteniendo todos los clientes paginados y filtrados");
+        int pageNumber = page.PageNumber >= 0 ? page.PageNumber : 0;
+        int pageSize = page.PageSize > 0 ? page.PageSize : 10;
+
+        var query = _context.Clientes.Include(c => c.User).AsQueryable();
+
+        query = page.SortBy.ToLower() switch
+        {
+            "nombre" => page.Direction.ToUpper() == "ASC" 
+                ? query.OrderBy(c => c.Nombre) 
+                : query.OrderByDescending(c => c.Nombre),
+            "apellidos" => page.Direction.ToUpper() == "ASC" 
+                ? query.OrderBy(c => c.Apellidos) 
+                : query.OrderByDescending(c => c.Apellidos),
+            "dni" => page.Direction.ToUpper() == "ASC" 
+                ? query.OrderBy(c => c.Dni) 
+                : query.OrderByDescending(c => c.Dni),
+            "id" => page.Direction.ToUpper() == "ASC" 
+                ? query.OrderBy(c => c.Id) 
+                : query.OrderByDescending(c => c.Id),
+            _ => throw new InvalidOperationException($"La propiedad {page.SortBy} no es válida para ordenamiento.")
+        };
+        if (!string.IsNullOrWhiteSpace(nombre))
+        {
+            _logger.LogInformation($"Filtrando clientes por nombre {nombre}");;
+            query = query.Where(c => c.Nombre.ToLower().Contains(nombre.ToLower()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(apellidos))
+        {  
+           _logger.LogInformation($"Filtrando clientes por apellidos {apellidos}");
+            query = query.Where(c => c.Apellidos.ToLower().Contains(apellidos.ToLower()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(dni))
+        {
+            _logger.LogInformation($"Filtrando clientes por dni {dni}");
+            query = query.Where(c => c.Dni.ToLower().Contains(dni.ToLower()));
+        }
+
+        query = query.OrderBy(c => c.Id);
+
+        var totalElements = await query.CountAsync();
+        
+        var content = await query.Skip(pageNumber * pageSize).Take(pageSize).ToListAsync();
+        
+        var totalPages = (int)Math.Ceiling(totalElements / (double)pageSize);
+        
+        var contentResponse = content.Select(ClienteMapper.ToResponseFromEntity).ToList();
+        
+        return new PageResponse<ClienteResponse>
+        {
+            Content = contentResponse,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalElements = totalElements,
+            TotalPages = totalPages,
+            Empty = !content.Any(),
+            First = pageNumber == 0,
+            Last = pageNumber == totalPages - 1,
+            SortBy = page.SortBy,
+            Direction = page.Direction
+        };
     }
 
     public async Task<ClienteResponse?> GetByGuidAsync(string guid)
@@ -286,19 +354,6 @@ public class ClienteService : IClienteService
 
         _logger.LogInformation($"Cliente no encontrado con id: {id}");
         return null;
-    }
-    
-    public async Task<IEnumerable<ClienteEntity>> GetAllModelsAsync()
-    {
-        _logger.LogInformation("Obteniendo todos los clientes modelos");
-        var clientesEntityList = await _context.Clientes.Include(c=>c.User).ToListAsync();
-        var clienteResponseList = new List<ClienteEntity>();
-        foreach (var clienteEntity in clientesEntityList)
-        {
-            clienteResponseList.Add(clienteEntity);
-        }
-
-        return clienteResponseList;
     }
     
 }

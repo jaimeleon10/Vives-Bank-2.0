@@ -1,5 +1,6 @@
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Utils.Pagination;
 
 namespace Banco_VivesBank.Cliente.Services;
 
@@ -17,6 +18,5 @@ public interface IClienteService
     public Task<Models.Cliente?> GetClienteModelByGuid(string guid);
     public Task<Models.Cliente?> GetClienteModelById(long id);
     
-    public Task<IEnumerable<ClienteEntity>> GetAllModelsAsync();
-
+    public Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellido, string? dni, PageRequest pageRequest);
 }
