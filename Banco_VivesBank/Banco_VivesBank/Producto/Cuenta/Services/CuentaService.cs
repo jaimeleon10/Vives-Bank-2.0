@@ -120,8 +120,7 @@ public class CuentaService : ICuentaService
             {
                 cuentaEntityListFiltered.Add(cuentaEntity);
             }
-        }
-        */
+        }*/
         var query = _context.Cuentas.AsQueryable().Where(c => c.Cliente.Guid == guid); 
         var content = await query.ToListAsync();
         
