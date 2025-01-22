@@ -51,7 +51,7 @@ public class GeneralDbContext : DbContext
                 .HasForeignKey<ClienteEntity>(e => e.UserId)
                 .IsRequired();
         });
-        /*
+        
         // Base Entity
         modelBuilder.Entity<BaseEntity>(entity =>
         {
@@ -60,7 +60,7 @@ public class GeneralDbContext : DbContext
             // TODO: Revisar si hay que añadir relación
         });
 
-        */
+        
         /*
         modelBuilder.Entity<CuentaEntity>(entity =>
         {
@@ -89,12 +89,12 @@ public class GeneralDbContext : DbContext
             .HasForeignKey(c => c.ProductoId)
             .IsRequired();
 
-        /*
+        
         // Tarjeta Entity
         modelBuilder.Entity<TarjetaEntity>(entity =>
         {
             entity.Property(e => e.CreatedAt).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
-        });*/
+        });
     }
 }

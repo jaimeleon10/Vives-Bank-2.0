@@ -11,6 +11,7 @@ public class BaseMapper
         return new BaseModel
         {
             Nombre = d.Nombre,
+            Guid = d.Guid,
             Descripcion = d.Descripcion,
             Tae = d.Tae,
             TipoProducto = d.TipoProducto,

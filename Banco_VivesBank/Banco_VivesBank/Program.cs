@@ -6,6 +6,7 @@ using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Base.Services;
+using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Pdf.Services;
@@ -101,6 +102,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
+    myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();

@@ -22,10 +22,6 @@ public class TarjetaServiceTest
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private TarjetaService _tarjetaService;
-    private Mock<TarjetaGenerator> _tarjetaGeneratorMock;
-    private Mock<CvvGenerator> _cvvGeneratorMock;
-    private Mock<ExpDateGenerator> _expDateGeneratorMock;
-    private Mock<CardLimitValidators> _cardLimitValidatorsMock;
     
     [OneTimeSetUp]
     public async Task Setup()
@@ -46,11 +42,6 @@ public class TarjetaServiceTest
 
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
-
-        _tarjetaGeneratorMock = new Mock<TarjetaGenerator>();
-        _cvvGeneratorMock = new Mock<CvvGenerator>();
-        _expDateGeneratorMock = new Mock<ExpDateGenerator>();
-        _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
         
         _tarjetaService = new TarjetaService(
             _dbContext, 

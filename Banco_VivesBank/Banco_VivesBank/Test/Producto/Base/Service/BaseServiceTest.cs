@@ -6,6 +6,7 @@ using Banco_VivesBank.Producto.Base.Dto;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 using Banco_VivesBank.Database;
+using Banco_VivesBank.Utils.Pagination;
 using NUnit.Framework;
 
 namespace Banco_VivesBank.Test.Producto.Base;
@@ -79,6 +80,45 @@ public class BaseServiceTest
         var result = await _baseService.GetAllAsync();
 
         Assert.That(result.Count(), Is.EqualTo(5));
+    }
+    
+    [Test]
+    public async Task GetAllPagedAsync()
+    {
+
+        var guid = "Guid-Prueba";
+        // Arrange
+        await _dbContext.ProductoBase.ExecuteDeleteAsync();
+        for (int i = 0; i < 15; i++)
+        {
+            var baseEntity = new BaseEntity
+            {
+                Guid = guid,
+                Nombre = $"Producto Test",
+                TipoProducto = $"Tipo Test"
+            };
+            _dbContext.ProductoBase.Add(baseEntity);
+        }
+        await _dbContext.SaveChangesAsync();
+    
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 0, 
+            SortBy = "id",
+            Direction = "ASC"
+        };
+        
+        var result = await _baseService.GetAllPagedAsync(pageRequest);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Content.Count, Is.EqualTo(10)); 
+        Assert.That(result.TotalElements, Is.EqualTo(15));
+        Assert.That(result.TotalPages, Is.EqualTo(2));
+        Assert.That(result.First, Is.True);
+        Assert.That(result.Last, Is.False);
+        Assert.That(result.PageNumber, Is.EqualTo(0));
+        Assert.That(result.PageSize, Is.EqualTo(10));
     }
     
     [Test]

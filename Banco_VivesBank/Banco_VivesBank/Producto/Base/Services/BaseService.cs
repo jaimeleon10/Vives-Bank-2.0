@@ -1,9 +1,13 @@
+using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Utils.Generators;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace Banco_VivesBank.Producto.Base.Services;
@@ -27,6 +31,47 @@ public class BaseService : IBaseService
         return BaseMapper.ToResponseListFromEntityList(baseEntityList);
     }
 
+    public async Task<PageResponse<BaseResponse>> GetAllPagedAsync(PageRequest page)
+    {
+        _logger.LogInformation("Obteniendo todos los productos paginados y filtrados");
+        int pageNumber = page.PageNumber >= 0 ? page.PageNumber : 0;
+        int pageSize = page.PageSize > 0 ? page.PageSize : 10;
+
+        var query = _context.ProductoBase.AsQueryable();
+
+        query = page.SortBy.ToLower() switch
+        {
+            "id" => page.Direction.ToUpper() == "ASC" 
+                ? query.OrderBy(c => c.Id) 
+                : query.OrderByDescending(c => c.Id),
+            _ => throw new InvalidOperationException($"La propiedad {page.SortBy} no es válida para ordenamiento.")
+        };
+
+        query = query.OrderBy(c => c.Id);
+
+        var totalElements = await query.CountAsync();
+        
+        var content = await query.Skip(pageNumber * pageSize).Take(pageSize).ToListAsync();
+        
+        var totalPages = (int)Math.Ceiling(totalElements / (double)pageSize);
+        
+        var contentResponse = content.Select(BaseMapper.ToResponseFromEntity).ToList();
+        
+        return new PageResponse<BaseResponse>
+        {
+            Content = contentResponse,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalElements = totalElements,
+            TotalPages = totalPages,
+            Empty = !content.Any(),
+            First = pageNumber == 0,
+            Last = pageNumber == totalPages - 1,
+            SortBy = page.SortBy,
+            Direction = page.Direction
+        };
+    }
+    
     public async Task<BaseResponse?> GetByGuidAsync(string guid)
     {
         _logger.LogDebug($"Obteniendo el producto con guid: {guid}");
@@ -91,7 +136,7 @@ public class BaseService : IBaseService
     public async Task<BaseResponse> CreateAsync(BaseRequest baseRequest)
     {
         _logger.LogInformation("Creando un nuevo producto base");
-
+        _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
         if (await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == baseRequest.Nombre.ToLower()))
         {
             _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
@@ -105,6 +150,9 @@ public class BaseService : IBaseService
         }
         
         var baseModel = BaseMapper.ToModelFromRequest(baseRequest);
+        
+        baseModel.Guid = GuidGenerator.GenerarId();
+        
         _context.ProductoBase.Add(BaseMapper.ToEntityFromModel(baseModel));
         await _context.SaveChangesAsync();
         

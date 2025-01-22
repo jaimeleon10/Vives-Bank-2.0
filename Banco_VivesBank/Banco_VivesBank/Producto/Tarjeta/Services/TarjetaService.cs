@@ -1,9 +1,12 @@
-﻿using Banco_VivesBank.Database;
+﻿using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Utils.Generators;
+using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +40,46 @@ public class TarjetaService : ITarjetaService
        _logger.LogDebug("Obteniendo todas las tarjetas");
        List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
        return tarjetas.ToResponseList();
+    }
+    public async Task<PageResponse<TarjetaResponse>> GetAllPagedAsync(PageRequest page)
+    {
+        _logger.LogInformation("Obteniendo todas las tarjetas paginadas");
+        int pageNumber = page.PageNumber >= 0 ? page.PageNumber : 0;
+        int pageSize = page.PageSize > 0 ? page.PageSize : 10;
+
+        var query = _context.Tarjetas.AsQueryable();
+
+        query = page.SortBy.ToLower() switch
+        {
+            "id" => page.Direction.ToUpper() == "ASC"
+                ? query.OrderBy(t => t.Id)
+                : query.OrderByDescending(t => t.Id),
+            _ => throw new InvalidOperationException($"La propiedad {page.SortBy} no es válida para ordenamiento.")
+        };
+
+        query = query.OrderBy(t => t.Id);
+
+        var totalElements = await query.CountAsync();
+        
+        var content = await query.Skip(pageNumber * pageSize).Take(pageSize).ToListAsync();
+        
+        var totalPages = (int)Math.Ceiling(totalElements / (double)pageSize);
+        
+        var contentResponse = content.Select(TarjetaMappers.ToResponseFromEntity).ToList();
+        
+        return new PageResponse<TarjetaResponse>
+        {
+            Content = contentResponse,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalElements = totalElements,
+            TotalPages = totalPages,
+            Empty = !content.Any(),
+            First = pageNumber == 0,
+            Last = pageNumber == totalPages - 1,
+            SortBy = page.SortBy,
+            Direction = page.Direction
+        };
     }
 
     public async Task<TarjetaResponse?> GetByGuidAsync(string guid)
