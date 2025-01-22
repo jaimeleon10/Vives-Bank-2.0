@@ -166,11 +166,10 @@ public class TarjetaService : ITarjetaService
         return null;
     }
     
-    //Hacemos un GetAllForStorage que hace un get all sin filtrado ni paginacion y devuelve model
     public async Task<List<Models.Tarjeta>> GetAllForStorage()
     {
         _logger.LogDebug("Obteniendo todas las tarjetas");
         List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
-        return tarjetas.ToModelList();
+        return tarjetas.Select(t => TarjetaMappers.ToModelFromEntity(t)).ToList();
     }
 }
