@@ -350,5 +350,13 @@ namespace Banco_VivesBank.User.Service
         _logger.LogInformation($"Usuario no encontrado con id: {id}");
         return null; 
     }
+    
+    public async Task<IEnumerable<Models.User>> GetAllForStorage()
+    {
+        _logger.LogInformation("Buscando todos los usuarios en base de datos");
+        var usersEntities = await _context.Usuarios.ToListAsync();
+        return usersEntities.Select(UserMapper.ToModelFromEntity).ToList();
+    }
+
 }
 }

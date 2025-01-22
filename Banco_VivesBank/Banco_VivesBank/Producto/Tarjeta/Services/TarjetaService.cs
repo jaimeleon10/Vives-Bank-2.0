@@ -165,4 +165,11 @@ public class TarjetaService : ITarjetaService
         _logger.LogInformation($"Tarjeta no encontrada con id: {id}");
         return null;
     }
+    
+    public async Task<List<Models.Tarjeta>> GetAllForStorage()
+    {
+        _logger.LogDebug("Obteniendo todas las tarjetas");
+        List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
+        return tarjetas.Select(t => TarjetaMappers.ToModelFromEntity(t)).ToList();
+    }
 }

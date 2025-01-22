@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
@@ -76,21 +76,16 @@ public class BackupService : IBackupService
             File.Delete(zipFilePath);
         }
 
-        var users = await _userService.GetAllAsync() ?? new List<UserResponse>();
-        var clientes = await _clienteService.GetAllAsync() ?? new List<ClienteResponse>();
-        var bases = await _baseService.GetAllAsync() ?? new List<BaseResponse>();
-        var cuentas = await _cuentaService.GetAllAsync(
-            saldoMax: null, 
-            saldoMin: null, 
-            tipoCuenta: null, 
-            pageRequest: new PageRequest { PageNumber = 1, PageSize = 10 }
-        );
-        var tarjetas = await _tarjetaService.GetAllAsync() ?? new List<TarjetaResponse>();
+        var users = await _userService.GetAllForStorage();
+        var clientes = await _clienteService.GetAllForStorage();
+        var bases = await _baseService.GetAllForStorage();
+        var cuentas = await _cuentaService.GetAllForStorage();
+        var tarjetas = await _tarjetaService.GetAllForStorage();
 
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "bases.json")), bases.ToList());
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.Content.ToList());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
 
         using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))

@@ -206,4 +206,19 @@ public class BaseService : IBaseService
         _logger.LogInformation($"producto no encontrado con id: {id}");
         return null;
     }
+    
+    //Acemos un GetAllByStorage que es un get all pero sin filtrado ni paginacion que devuelve en modelo
+    public async Task<IEnumerable<BaseModel>> GetAllForStorage()
+    {
+        _logger.LogInformation("Obteniendo todos los productos");
+        var productoEntityList = await _context.ProductoBase.ToListAsync();
+        //hacemos un bucle para mapear uno a uno
+        var baseModelList = new List<BaseModel>();
+        foreach (var productoEntity in productoEntityList)
+        {
+            baseModelList.Add(BaseMapper.ToModelFromEntity(productoEntity));
+        }
+        return baseModelList;
+    }
+
 }

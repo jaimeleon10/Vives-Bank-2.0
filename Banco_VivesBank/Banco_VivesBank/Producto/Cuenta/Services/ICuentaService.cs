@@ -33,4 +33,6 @@ public interface ICuentaService
     //public Task<CuentaResponse?> DeleteAsync(string guidClient,string guid);
     
     public Task<CuentaResponse?> DeleteAdminAsync(string guid);
+
+    public Task<List<Models.Cuenta>> GetAllForStorage();
 }

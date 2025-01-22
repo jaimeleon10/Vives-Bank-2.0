@@ -558,4 +558,19 @@ public class CuentaService : ICuentaService
         _logger.LogInformation($"Cuenta no encontrada con id: {id}");
         return null;
     }
+    // hacemos un GetAllForStorage sin filtrado ni paginacion que devuelve un model
+    public async Task<List<Models.Cuenta>> GetAllForStorage()
+    {
+        _logger.LogInformation("Buscando todas las cuentas");
+
+        var cuentasEntity = await _context.Cuentas.ToListAsync();
+        if (cuentasEntity!= null)
+        {
+            _logger.LogInformation("Cuentas encontradas");
+            return cuentasEntity.Select(c => c.ToModelFromEntity()).ToList();
+        }
+
+        _logger.LogInformation("No se encontraron cuentas");
+        return new List<Models.Cuenta>();
+    }
 }

@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Dto;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Services;
 
@@ -12,4 +12,5 @@ public interface ITarjetaService
     
     public Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid);
     public Task<Models.Tarjeta?> GetTarjetaModelById(long id);
+    public Task<List<Models.Tarjeta>> GetAllForStorage();
 }

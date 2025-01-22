@@ -455,4 +455,10 @@ public class ClienteService : IClienteService
         return null;
     }
     
+    public async Task<IEnumerable<Models.Cliente>> GetAllForStorage()
+    {
+        _logger.LogInformation("Buscando todos los clientes en la base de datos");
+        var clientes = await _context.Clientes.ToListAsync();
+        return clientes.Select(c => ClienteMapper.ToModelFromEntity(c));
+    }
 }
