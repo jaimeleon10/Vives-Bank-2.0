@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
@@ -53,11 +54,6 @@ public class CuentaControllerAdmin : ControllerBase
 
             return Ok(pageResult);
         }
-        catch (CuentaNoEncontradaException e)
-        {
-            return StatusCode(404, new { message = "No se han encontrado las cuentas.", details = e.Message });
-
-        }
         catch (Exception e)
         {
             return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
@@ -70,14 +66,19 @@ public class CuentaControllerAdmin : ControllerBase
         try
         {
             var cuentas = await _cuentaService.GetByClientGuidAsync(guid);
-            if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
-            if (guid is null) return NotFound($"No se ha encontrado el cliente con guid {guid}");
-            if (cuentas.Count() == 0) return NotFound($"No se han encontrado cuentas para el cliente con guid {guid}");
+            if (guid.Length!= 12) return BadRequest(new {message ="El guid debe tener 12 caracteres"});
+            //if (guid is null) return NotFound($"No se ha encontrado el cliente con guid {guid}");
+            //if (cuentas.Count() == 0) return NotFound($"No se han encontrado cuentas para el cliente con guid {guid}");
             return Ok(cuentas);
+        }
+        catch (ClienteNotFoundException e)
+        {
+            return NotFound( new { message = "Error buscando cliente.", details = e.Message });
+
         }
         catch (Exception e)
         {
-            return StatusCode(404, new { message = "No se han encontrado las cuentas.", details = e.Message });
+            return BadRequest( new { message = "Error obteniendo las cuentas.", details = e.Message });
         }
         
     }
@@ -86,8 +87,8 @@ public class CuentaControllerAdmin : ControllerBase
     public async Task<ActionResult<List<CuentaResponse>>> GetByGuid(string guid)
     {
         var cuentaByGuid = await _cuentaService.GetByGuidAsync(guid);
-        if (guid.Length != 12) return BadRequest($"El guid debe tener 12 caracteres");
-        if (cuentaByGuid is null) return NotFound($"Cuenta no encontrada con guid {guid}");
+        if (guid.Length != 12) return BadRequest(new { message = $"El guid debe tener 12 caracteres"});
+        if (cuentaByGuid is null) return NotFound(new {message ="Cuenta no encontrada con guid {guid}"});
         return Ok(cuentaByGuid);
     }
     
@@ -95,8 +96,8 @@ public class CuentaControllerAdmin : ControllerBase
     public async Task<ActionResult<List<CuentaResponse>>> GetByIban(string iban)
     {
         var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
-        if (iban.Length!= 34) return BadRequest($"El iban debe tener 34 caracteres");
-        if (cuentaByIban is null) return NotFound($"Cuenta no encontrada con iban {iban}");
+        if (iban.Length!= 34) return BadRequest(new {message = "El iban debe tener 34 caracteres"});
+        if (cuentaByIban is null) return NotFound(new { message = $"Cuenta no encontrada con iban {iban}"});
         return Ok(cuentaByIban);
     }
     
@@ -104,8 +105,8 @@ public class CuentaControllerAdmin : ControllerBase
     public async Task<ActionResult<CuentaResponse>> Delete(string guid)
     {
         var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
-        if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
-        if (cuentaDelete is null) return NotFound($"Cuenta no encontrada con guid {guid}");
+        if (guid.Length!= 12) return BadRequest(new {message ="El guid debe tener 12 caracteres"});
+        if (cuentaDelete is null) return NotFound(new {message =$"Cuenta no encontrada con guid {guid}"});
         return Ok(cuentaDelete);
     }
 }
