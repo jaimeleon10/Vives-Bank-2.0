@@ -19,11 +19,11 @@ public class Domiciliacion
     [JsonPropertyName("cliente")]
     public required Cliente.Models.Cliente Cliente { get; set; }
     
-    [JsonPropertyName("ibanOrigen")]
-    public required string IbanOrigen { get; set; }
+    [JsonPropertyName("ibanEmpresa")]
+    public required string IbanEmpresa { get; set; }
     
-    [JsonPropertyName("ibanDestino")]
-    public required string IbanDestino { get; set; }
+    [JsonPropertyName("ibanCliente")]
+    public required string IbanCliente { get; set; }
     
     [JsonPropertyName("importe")]
     public required BigInteger Importe { get; set; }

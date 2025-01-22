@@ -6,9 +6,9 @@ public class DomiciliacionResponse
 {
     public string ClienteGuid { get; set; }
     
-    public string IbanOrigen { get; set; }
+    public string IbanEmpresa { get; set; }
     
-    public string IbanDestino { get; set; }
+    public string IbanCliente { get; set; }
     
     public BigInteger Importe { get; set; }
     

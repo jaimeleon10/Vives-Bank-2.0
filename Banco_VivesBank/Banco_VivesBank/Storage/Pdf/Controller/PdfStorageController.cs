@@ -47,8 +47,8 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
                 Domiciliacion = new DomiciliacionConcreta
                 {
                     Cliente = cuenta.Cliente,
-                    IbanOrigen = cuenta.Iban,
-                    IbanDestino = "ES00998877665544332211",
+                    IbanEmpresa = cuenta.Iban,
+                    IbanCliente = "ES00998877665544332211",
                     Importe = new BigInteger(50000),
                     Acreedor = "Compañía Eléctrica",
                     FechaInicio = new DateTime(2024, 1, 1),

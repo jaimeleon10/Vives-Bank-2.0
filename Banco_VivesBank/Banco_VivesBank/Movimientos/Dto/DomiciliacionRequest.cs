@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Banco_VivesBank.Utils.Validators;
 using Renci.SshNet.Common;
+using BigInteger = System.Numerics.BigInteger;
 
 namespace Banco_VivesBank.Movimientos.Dto;
 
@@ -10,10 +11,10 @@ public class DomiciliacionRequest
     public string ClienteGuid { get; set; }
     
     [IbanValidator]
-    public string IbanOrigen { get; set; }
+    public string IbanEmpresa { get; set; }
     
     [IbanValidator]
-    public string IbanDestino { get; set; }
+    public string IbanCliente { get; set; }
     
     [Required(ErrorMessage = "El importe es obligatorio")]
     [BigIntegerValidation]

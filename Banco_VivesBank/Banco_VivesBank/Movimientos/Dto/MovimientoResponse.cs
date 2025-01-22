@@ -12,7 +12,7 @@ public class MovimientoResponse
 
     public PagoConTarjetaResponse? PagoConTarjeta { get; set; } = null;
 
-    public TransferenciaRespone? Transferencia { get; set; } = null;
+    public TransferenciaResponse? Transferencia { get; set; } = null;
     
     public required string CreatedAt { get; set; }
 
