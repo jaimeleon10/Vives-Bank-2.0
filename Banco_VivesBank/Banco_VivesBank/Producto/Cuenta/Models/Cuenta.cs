@@ -22,7 +22,7 @@ public class Cuenta
     public BigInteger Saldo { get; set; } = 0;
     
     [JsonPropertyName("tarjeta")] 
-    public TarjetaModel? Tarjeta { get; set; } = null;
+    public Tarjeta.Models.Tarjeta? Tarjeta { get; set; } = null;
     
     [JsonPropertyName("cliente")] 
     public Cliente.Models.Cliente Cliente { get; set; }

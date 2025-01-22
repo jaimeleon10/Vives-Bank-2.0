@@ -98,7 +98,7 @@ namespace Banco_VivesBank.User.Service
         if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
         {
             _logger.LogInformation("Usuario obtenido desde la memoria caché");
-            return UserMapper.ToResponseFromModel(cachedUser);
+            return cachedUser.ToResponseFromModel();
         }
         
         // Intentar obtener desde la caché de Redis
@@ -122,8 +122,8 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario encontrado con guid: {guid}");
 
             // Mapear entidad a modelo y respuesta
-            var userResponse = UserMapper.ToResponseFromEntity(userEntity);
-            var userModel = UserMapper.ToModelFromEntity(userEntity);
+            var userResponse = userEntity.ToResponseFromEntity();
+            var userModel = userEntity.ToModelFromEntity();
 
             // Guardar en la memoria caché
             _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
@@ -147,7 +147,7 @@ namespace Banco_VivesBank.User.Service
         if (_memoryCache.TryGetValue(cacheKey, out Models.User? cachedUser))
         {
             _logger.LogInformation("Usuario obtenido desde memoria caché");
-            return UserMapper.ToResponseFromModel(cachedUser);
+            return cachedUser.ToResponseFromModel();
         }
         var redisUser = await _database.StringGetAsync(cacheKey);
         if (!string.IsNullOrEmpty(redisUser))
@@ -157,7 +157,7 @@ namespace Banco_VivesBank.User.Service
             if (userFromRedis != null)
             {
                 _memoryCache.Set(cacheKey, userFromRedis, TimeSpan.FromMinutes(30));
-                return UserMapper.ToResponseFromModel(userFromRedis);
+                return userFromRedis.ToResponseFromModel();
             }
         }
         var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
@@ -165,12 +165,12 @@ namespace Banco_VivesBank.User.Service
         {
             _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
 
-            var userModel = UserMapper.ToModelFromEntity(userEntity);
+            var userModel = userEntity.ToModelFromEntity();
             _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
             var serializedUser = JsonSerializer.Serialize(userModel);
             await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
 
-            return UserMapper.ToResponseFromEntity(userEntity);
+            return userEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
@@ -188,8 +188,8 @@ namespace Banco_VivesBank.User.Service
         }
         
         //Crear Usuario
-        var userModel = UserMapper.ToModelFromRequest(userRequest);
-        var userEntity = UserMapper.ToEntityFromModel(userModel);
+        var userModel = userRequest.ToModelFromRequest();
+        var userEntity = userModel.ToEntityFromModel();
         _context.Usuarios.Add(userEntity);
         await _context.SaveChangesAsync();
         
@@ -201,7 +201,7 @@ namespace Banco_VivesBank.User.Service
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
 
         _logger.LogInformation("Usuario creado con éxito");
-        return UserMapper.ToResponseFromModel(userModel);
+        return userModel.ToResponseFromModel();
     }
 
 
@@ -243,7 +243,7 @@ namespace Banco_VivesBank.User.Service
             await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30)); 
 
             _logger.LogInformation($"Usuario actualizado con guid: {guid}");
-            return UserMapper.ToResponseFromEntity(userEntityExistente);
+            return userEntityExistente.ToResponseFromEntity();
         }
 
         public async Task<UserResponse?> DeleteByGuidAsync(string guid)
@@ -272,7 +272,7 @@ namespace Banco_VivesBank.User.Service
             await _database.KeyDeleteAsync(cacheKey);
 
             _logger.LogInformation($"Usuario borrado (desactivado) con id: {guid}");
-            return UserMapper.ToResponseFromEntity(userExistenteEntity);
+            return userExistenteEntity.ToResponseFromEntity();
         }
 
         public async Task<Models.User?> GetUserModelByGuid(string guid)
@@ -304,7 +304,7 @@ namespace Banco_VivesBank.User.Service
             {
                 _logger.LogInformation($"Usuario encontrado con guid: {guid} en base de datos");
                 
-                var userModel = UserMapper.ToModelFromEntity(userEntity);
+                var userModel = userEntity.ToModelFromEntity();
                 _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
                 var serializedUser = JsonSerializer.Serialize(userModel);
                 await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
@@ -341,7 +341,7 @@ namespace Banco_VivesBank.User.Service
         {
             _logger.LogInformation($"Usuario encontrado con id: {id} en base de datos");
             
-            var userModel = UserMapper.ToModelFromEntity(userEntity);
+            var userModel = userEntity.ToModelFromEntity();
             _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
             var serializedUser = JsonSerializer.Serialize(userModel);
             await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
