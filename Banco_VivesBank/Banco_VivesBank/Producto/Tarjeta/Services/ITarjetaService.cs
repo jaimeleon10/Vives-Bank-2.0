@@ -10,6 +10,6 @@ public interface ITarjetaService
     public Task<TarjetaResponse> UpdateAsync(string id, TarjetaRequest dto);
     public Task<TarjetaResponse> DeleteAsync(string id);
     
-    public Task<Models.TarjetaModel?> GetTarjetaModelByGuid(string guid);
-    public Task<Models.TarjetaModel?> GetTarjetaModelById(long id);
+    public Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid);
+    public Task<Models.Tarjeta?> GetTarjetaModelById(long id);
 }

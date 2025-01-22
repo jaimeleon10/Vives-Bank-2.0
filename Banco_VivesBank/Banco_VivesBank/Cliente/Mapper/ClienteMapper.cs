@@ -5,9 +5,9 @@ using Banco_VivesBank.User.Dto;
 
 namespace Banco_VivesBank.Cliente.Mapper;
 
-public class ClienteMapper
+public static class ClienteMapper
 {
-    public static Models.Cliente ToModelFromEntity(ClienteEntity entity)
+    public static Models.Cliente ToModelFromEntity(this ClienteEntity entity)
     {
         return new Models.Cliente
         {
@@ -39,7 +39,7 @@ public class ClienteMapper
         };
     }
     
-    public static Models.Cliente ToModelFromRequest(ClienteRequest userRequest, User.Models.User user)
+    public static Models.Cliente ToModelFromRequest(this ClienteRequest userRequest, User.Models.User user)
     {
         return new Models.Cliente
         {
@@ -61,7 +61,7 @@ public class ClienteMapper
         };
     }
     
-    public static ClienteEntity ToEntityFromModel(Models.Cliente cliente)
+    public static ClienteEntity ToEntityFromModel(this Models.Cliente cliente)
     {
         return new ClienteEntity
         {
@@ -82,7 +82,7 @@ public class ClienteMapper
         };
     }
 
-    public static ClienteResponse ToResponseFromModel(Models.Cliente cliente)
+    public static ClienteResponse ToResponseFromModel(this Models.Cliente cliente)
     {
         return new ClienteResponse
         {
@@ -109,7 +109,7 @@ public class ClienteMapper
         };
     }
 
-    public static ClienteResponse ToResponseFromEntity(ClienteEntity clienteEntity)
+    public static ClienteResponse ToResponseFromEntity(this ClienteEntity clienteEntity)
     {
         return new ClienteResponse
         {
@@ -137,7 +137,7 @@ public class ClienteMapper
         };
     }
     
-    public static ClienteEntity ToModelFromRequestUpdate(ClienteEntity oldCliente, ClienteRequestUpdate updateDto)
+    public static ClienteEntity ToModelFromRequestUpdate(this ClienteEntity oldCliente, ClienteRequestUpdate updateDto)
     {
         if (!string.IsNullOrWhiteSpace(updateDto.Dni))
         {

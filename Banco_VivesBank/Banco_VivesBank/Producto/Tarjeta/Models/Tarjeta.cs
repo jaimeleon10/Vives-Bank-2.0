@@ -3,7 +3,7 @@ using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Models;
 
-public class TarjetaModel
+public class Tarjeta
 {
     [JsonPropertyName("id")]
     public long Id { get; set; }

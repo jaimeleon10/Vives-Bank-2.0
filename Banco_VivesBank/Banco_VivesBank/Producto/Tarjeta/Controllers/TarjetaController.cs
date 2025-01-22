@@ -24,7 +24,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel>>> GetAllTarjetas()
+    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>>> GetAllTarjetas()
     {
         var tarjetas = await _tarjetaService.GetAllAsync();
         return Ok(tarjetas);
@@ -39,7 +39,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<TarjetaModel>> CreateTarjeta([FromBody] TarjetaRequest dto)
+    public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
         if (!ModelState.IsValid)
         {
