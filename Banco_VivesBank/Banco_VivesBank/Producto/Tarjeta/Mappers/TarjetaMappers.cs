@@ -5,7 +5,7 @@ namespace Banco_VivesBank.Producto.Tarjeta.Mappers;
 
 public static class TarjetaMappers
 {
-    public static TarjetaEntity ToEntityFromModel(this Models.TarjetaModel model)
+    public static TarjetaEntity ToEntityFromModel(this Models.Tarjeta model)
     {
         return new TarjetaEntity
         {
@@ -25,9 +25,9 @@ public static class TarjetaMappers
         };
     }
 
-    public static Models.TarjetaModel ToModelFromRequest(this TarjetaRequest dto)
+    public static Models.Tarjeta ToModelFromRequest(this TarjetaRequest dto)
     {
-        return new Models.TarjetaModel
+        return new Models.Tarjeta
         {
             Pin = dto.Pin,
             LimiteDiario = dto.LimiteDiario,
@@ -39,9 +39,9 @@ public static class TarjetaMappers
         };
     }
 
-    public static Models.TarjetaModel ToModelFromEntity(this TarjetaEntity entity)
+    public static Models.Tarjeta ToModelFromEntity(this TarjetaEntity entity)
     {
-        return new Models.TarjetaModel
+        return new Models.Tarjeta
         {
             Id = entity.Id,
             Guid = entity.Guid,
@@ -79,7 +79,7 @@ public static class TarjetaMappers
         };
     }
 
-    public static TarjetaResponse ToResponseFromModel(this Models.TarjetaModel model)
+    public static TarjetaResponse ToResponseFromModel(this Models.Tarjeta model)
     {
         return new TarjetaResponse
         {

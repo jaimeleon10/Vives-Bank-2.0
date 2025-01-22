@@ -29,7 +29,7 @@ public class CuentaEntity
     [Column("tarjeta_id")]
     public long? TarjetaId { get; set; }
     
-    public TarjetaModel? Tarjeta { get; set; }
+    public Tarjeta? Tarjeta { get; set; }
     
     [ForeignKey("Cliente")] 
     [Column("cliente_id")]  
