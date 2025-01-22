@@ -19,4 +19,5 @@ public interface IUserService
     public Task<UserResponse> CreateAsync(UserRequest userRequest);
     public Task<UserResponse?> UpdateAsync(string guid, UserRequest userRequest);
     public Task<UserResponse?> DeleteByGuidAsync(string guid);
+    public Task<IEnumerable<Models.User>> GetAllForStorage();
 }
