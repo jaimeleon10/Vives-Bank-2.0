@@ -1,8 +1,10 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Producto.Base.Dto;
+using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Models;
@@ -80,35 +82,17 @@ public class BackupServiceTests
     private void SetupMockResponses()
     {
         // Mock de respuestas de servicios
-        _userServiceMock.Setup(s => s.GetAllAsync())
-            .ReturnsAsync(new List<UserResponse> { new UserResponse() });
+        _userServiceMock.Setup(s => s.GetAllForStorage())
+            .ReturnsAsync(new List<Banco_VivesBank.User.Models.User> { new Banco_VivesBank.User.Models.User() });
 
-        _clienteServiceMock.Setup(s => s.GetAllAsync())
-            .ReturnsAsync(new List<ClienteResponse> { new ClienteResponse() });
+        _clienteServiceMock.Setup(s => s.GetAllForStorage())
+            .ReturnsAsync(new List<Banco_VivesBank.Cliente.Models.Cliente> { new Banco_VivesBank.Cliente.Models.Cliente() });
 
-        _baseServiceMock.Setup(s => s.GetAllAsync())
-            .ReturnsAsync(new List<BaseResponse> { new BaseResponse() });
+        _baseServiceMock.Setup(s => s.GetAllForStorage())
+            .ReturnsAsync(new List<BaseModel> { new BaseModel() });
 
-        /*_cuentaServiceMock.Setup(s => s.GetAll(
-                It.IsAny<int?>(), 
-                It.IsAny<double?>(), 
-                It.IsAny<string>(), 
-                It.IsAny<PageRequest>()))
-            .ReturnsAsync(new Page<Cuenta>
-            {
-                Content = new List<Cuenta> { new Cuenta() }, // Lista de cuentas
-                TotalPages = 1, // Total de páginas
-                TotalElements = 1, // Total de elementos
-                PageSize = 10, // Tamaño de la página
-                PageNumber = 0, // Número de la página (índice base 0)
-                IsFirst = true, // Es la primera página
-                IsLast = true // Es la última página
-            });*/
-
-
-
-        _tarjetaServiceMock.Setup(s => s.GetAllAsync())
-            .ReturnsAsync(new List<TarjetaResponse> { new TarjetaResponse() });
+        _tarjetaServiceMock.Setup(s => s.GetAllForStorage())
+            .ReturnsAsync(new List<Tarjeta> { new Tarjeta() });
     }
 
     [Test]
@@ -128,50 +112,47 @@ public class BackupServiceTests
     [Test]
     public async Task ExportToZip_ARREGLAR()
     {
-        /*await _backupService.ExportToZip(_testSourceDirectory, _testZipPath);
+        await _backupService.ExportToZip(_testSourceDirectory, _testZipPath);
 
         Assert.That(File.Exists(_testZipPath), Is.True, "El archivo ZIP no fue creado");
         
-        _userServiceMock.Verify(s => s.GetAllAsync(), Times.Once);
-        _clienteServiceMock.Verify(s => s.GetAllAsync(), Times.Once);
-        _baseServiceMock.Verify(s => s.GetAllAsync(), Times.Once);
-        _tarjetaServiceMock.Verify(s => s.GetAllAsync(), Times.Once);
+        _userServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
+        _clienteServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
+        _baseServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
+        _cuentaServiceMock.Verify(s => s.GetAllForStorage(), Times.Never);
+        _tarjetaServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
         
         _storageJsonMock.Verify(s => s.ExportJson(
             It.IsAny<FileInfo>(), 
             It.IsAny<List<UserResponse>>()), Times.Once);
         _storageJsonMock.Verify(s => s.ExportJson(
             It.IsAny<FileInfo>(), 
-            It.IsAny<List<ClienteResponse>>()), Times.Once);*/
+            It.IsAny<List<ClienteResponse>>()), Times.Once);
     }
 
     [Test]
     public async Task ImportFromZip_ARREGLAR()
     {
-        /*await CreateTestZipFile();
+        await CreateTestZipFile();
 
-        _storageJsonMock.Setup(s => s.ImportJson<UserRequest>(It.IsAny<FileInfo>()))
-            .Returns(new List<UserRequest> { new UserRequest() });
-        _storageJsonMock.Setup(s => s.ImportJson<ClienteRequest>(It.IsAny<FileInfo>()))
-            .Returns(new List<ClienteRequest> { new ClienteRequest() });
-        _storageJsonMock.Setup(s => s.ImportJson<BaseRequest>(It.IsAny<FileInfo>()))
-            .Returns(new List<BaseRequest> { new BaseRequest() });
-        _storageJsonMock.Setup(s => s.ImportJson<CuentaRequest>(It.IsAny<FileInfo>()))
-            .Returns(new List<CuentaRequest> 
-            {
-                new CuentaRequest { TipoCuenta = "Ahorro" } 
-            });
-
-        _storageJsonMock.Setup(s => s.ImportJson<TarjetaRequestDto>(It.IsAny<FileInfo>()))
-            .Returns(new List<TarjetaRequestDto> { new TarjetaRequestDto() });
+        _storageJsonMock.Setup(s => s.ImportJson<Banco_VivesBank.User.Models.User>(It.IsAny<FileInfo>()))
+            .Returns(new List<Banco_VivesBank.User.Models.User> { new Banco_VivesBank.User.Models.User() });
+        _storageJsonMock.Setup(s => s.ImportJson<Banco_VivesBank.Cliente.Models.Cliente>(It.IsAny<FileInfo>()))
+            .Returns(new List<Banco_VivesBank.Cliente.Models.Cliente> { new Banco_VivesBank.Cliente.Models.Cliente() });
+        _storageJsonMock.Setup(s => s.ImportJson<BaseModel>(It.IsAny<FileInfo>()))
+            .Returns(new List<BaseModel> { new BaseModel() });
+        _storageJsonMock.Setup(s => s.ImportJson<Cuenta>(It.IsAny<FileInfo>()))
+            .Returns(new List<Cuenta> { new Cuenta() });
+        _storageJsonMock.Setup(s => s.ImportJson<Tarjeta>(It.IsAny<FileInfo>()))
+            .Returns(new List<Tarjeta> { new Tarjeta() });
 
         await _backupService.ImportFromZip(_testZipPath, _testDestinationDirectory);
 
         _userServiceMock.Verify(s => s.CreateAsync(It.IsAny<UserRequest>()), Times.Once);
         _clienteServiceMock.Verify(s => s.CreateAsync(It.IsAny<ClienteRequest>()), Times.Once);
         _baseServiceMock.Verify(s => s.CreateAsync(It.IsAny<BaseRequest>()), Times.Once);
-        _cuentaServiceMock.Verify(s => s.save(It.IsAny<string>(), It.IsAny<CuentaRequest>()), Times.Once);
-        _tarjetaServiceMock.Verify(s => s.CreateAsync(It.IsAny<TarjetaRequestDto>()), Times.Once);*/
+        _cuentaServiceMock.Verify(s => s.CreateAsync(It.IsAny<CuentaRequest>()), Times.Once);
+        _tarjetaServiceMock.Verify(s => s.CreateAsync(It.IsAny<TarjetaRequest>()), Times.Once);
     }
 
     [Test]
