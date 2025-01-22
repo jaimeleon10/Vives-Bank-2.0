@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.Producto.Cuenta.Models;
@@ -21,7 +22,7 @@ public class Cuenta
     public BigInteger Saldo { get; set; } = 0;
     
     [JsonPropertyName("tarjeta")] 
-    public Tarjeta.Models.Tarjeta? Tarjeta { get; set; } = null;
+    public TarjetaModel? Tarjeta { get; set; } = null;
     
     [JsonPropertyName("cliente")] 
     public Cliente.Models.Cliente Cliente { get; set; }
