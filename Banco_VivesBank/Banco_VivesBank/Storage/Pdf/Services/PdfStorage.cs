@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Producto.Cuenta.Models;
+using Banco_VivesBank.Storage.Pdf.Exceptions;
 using PdfSharp.Pdf;
 using TheArtOfDev.HtmlRenderer.PdfSharp;
 
@@ -17,13 +18,26 @@ public class PdfStorage : IPdfStorage
     
     public void ExportPDF(Cuenta cuenta, List<Movimiento> movimientos)
     {
-        var html = GenerarHtml(cuenta, movimientos);
-        var pdfDoc = GenerarPdf(html);
-        string fechaHora = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        
-        pdfDoc.Save(Path.Combine(Directory.GetCurrentDirectory(), "data", $"ReporteTransacciones_{cuenta.Cliente.Dni}_{fechaHora}.pdf"));
+        if (cuenta == null)
+            throw new CuentaInvalidaException("La cuenta proporcionada es nula.");
+        if (movimientos == null)
+            throw new MovimientosInvalidosException("La lista de movimientos proporcionada es nula.");
+    
+        string html = movimientos.Count == 0
+            ? $"<html><body><h1>No hay movimientos registrados para la cuenta de {cuenta.Cliente.Nombre} {cuenta.Cliente.Apellidos}</h1></body></html>"
+            : GenerarHtml(cuenta, movimientos);
 
-        _logger.LogInformation("PDF generado y guardado en la carpeta data.");
+        var pdfDoc = GenerarPdf(html);
+
+        if (pdfDoc.PageCount == 0)
+            throw new PdfGenerateException("No se generaron páginas para el documento PDF.");
+
+        string fechaHora = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "data", $"ReporteTransacciones_{cuenta.Cliente.Dni}_{fechaHora}.pdf");
+        
+        pdfDoc.Save(filePath);
+        
+        _logger.LogInformation("PDF generado y guardado en la carpeta data: {FilePath}", filePath);
     }
 
     private string GenerarHtml(Cuenta cuenta, List<Movimiento> movimientos)
@@ -187,7 +201,7 @@ public class PdfStorage : IPdfStorage
         };
     }
 
-    private PdfDocument GenerarPdf(string html)
+    public  PdfDocument GenerarPdf(string html)
     {
         PdfDocument pdf = PdfGenerator.GeneratePdf(html, PdfSharp.PageSize.A4);
         return pdf;
