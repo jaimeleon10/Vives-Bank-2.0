@@ -5,18 +5,15 @@ namespace Banco_VivesBank.Movimientos.Services;
 
 public interface IMovimientoService
 {
-    public Task<IEnumerable<Movimiento>> GetAllAsync();
-    public Task<Movimiento?> GetByIdAsync(string id);
-    public Task<Movimiento?> GetByGuidAsync(string guid);
-    public Task<Movimiento?> GetByClinteGuidAsync(string clienteGuid);
-    public Task<Domiciliacion?> GetDomiciliacionByGuidAsync(string domiciliacionGuid);
-    public Task<Domiciliacion?> GetDomiciliacionByClienteGuidAsync(string clienteGuid);
-    public Task<Movimiento> CreateAsync(MovimientoRequest movimientoRequest);
-    public Task<Movimiento> CreateDomiciliacionAsync(Domiciliacion domiciliacion);
-    public Task<Movimiento> CreateIngresoNominaAsync(IngresoNomina ingresoNomina);
-    public Task<Movimiento> CreatePagoConTarjetaAsync(PagoConTarjeta pagoConTarjeta);
-    public Task<Movimiento> CreateTransferenciaAsync(Transferencia transferencia);
-    public Task<Movimiento> RevocarTransferencia(String movimientoGuid);
-    public Task<Movimiento?> UpdateAsync(string id, Movimiento movimiento);
-    public Task<Movimiento?> DeleteAsync(string id);
+    public Task<IEnumerable<MovimientoResponse>> GetAllAsync();
+    public Task<MovimientoResponse?> GetByGuidAsync(string guid);
+    public Task<IEnumerable<MovimientoResponse?>> GetByClienteGuidAsync(string clienteGuid);
+    public Task<MovimientoResponse> CreateAsync(MovimientoRequest movimientoRequest);
+    public Task<MovimientoResponse> CreateDomiciliacionAsync(DomiciliacionRequest domiciliacionRequest);
+    public Task<MovimientoResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNomina);
+    public Task<MovimientoResponse> CreatePagoConTarjetaAsync(PagoConTarjetaRequest pagoConTarjeta);
+    public Task<MovimientoResponse> CreateTransferenciaAsync(TransferenciaRequest transferencia);
+    public Task<MovimientoResponse> RevocarTransferencia(String movimientoGuid);
+    public Task<MovimientoResponse?> UpdateAsync(string id, MovimientoRequest movimientoRequest);
+    public Task<MovimientoResponse?> DeleteAsync(string id);
 }
