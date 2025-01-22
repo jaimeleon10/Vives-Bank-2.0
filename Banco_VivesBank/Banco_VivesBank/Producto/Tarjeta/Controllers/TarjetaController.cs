@@ -1,5 +1,8 @@
 ﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Exceptions;
+using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.Utils.Validators;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Controllers;
@@ -10,14 +13,18 @@ namespace Banco_VivesBank.Producto.Tarjeta.Controllers;
 public class TarjetaController : ControllerBase
 {
     private readonly ITarjetaService _tarjetaService;
+    private readonly CardLimitValidators _cardLimitValidators;
+    private readonly ILogger<CardLimitValidators> _log;
 
-    public TarjetaController(ITarjetaService tarjetaService)
+    public TarjetaController(ITarjetaService tarjetaService, ILogger<CardLimitValidators> log)
     {
+        _log = log; 
         _tarjetaService = tarjetaService;
+        _cardLimitValidators = new CardLimitValidators(_log);
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>>> GetAllTarjetas()
+    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel>>> GetAllTarjetas()
     {
         var tarjetas = await _tarjetaService.GetAllAsync();
         return Ok(tarjetas);
@@ -27,18 +34,28 @@ public class TarjetaController : ControllerBase
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaById(string id)
     {
         var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-        if (tarjeta == null) return NotFound();
+        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
         return Ok(tarjeta);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
+    public async Task<ActionResult<TarjetaModel>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
+        if (dto.Pin.Length != 4)
+        {
+            throw new TarjetaNotFoundException("El pin tiene un formato incorrecto");
+        }
+        
+        if (!_cardLimitValidators.ValidarLimite(dto))
+        {
+            throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta");
+        }
+        
         try
         {
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
@@ -60,7 +77,7 @@ public class TarjetaController : ControllerBase
         }
 
         var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-        if (tarjeta == null) return NotFound();
+        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
 
         try
         {
@@ -77,7 +94,7 @@ public class TarjetaController : ControllerBase
     public async Task<ActionResult> DeleteTarjeta(string id)
     {
         var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-        if (tarjeta == null) return NotFound();
+        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
 
         try
         {

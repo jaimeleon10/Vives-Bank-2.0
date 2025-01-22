@@ -95,7 +95,7 @@ public class ClienteServiceTests
         var savedCliente = await _dbContext.Clientes.FirstOrDefaultAsync(c => c.Guid == "cliente-guid");
         Console.WriteLine(savedCliente?.Guid);  
 
-        var user = new User.Models.User { Guid = "user-guid", Id = 1 };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
         _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
     
         var result = await _clienteService.GetAllAsync();
@@ -131,7 +131,7 @@ public class ClienteServiceTests
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
 
-        var user = new User.Models.User { Guid = "user-guid", Id = 1 };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
         _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
         
         var result = await _clienteService.GetByGuidAsync(cliente.Guid);
@@ -166,7 +166,7 @@ public class ClienteServiceTests
             IsDeleted = false
         };
 
-        var user = new User.Models.User { Guid = "user-guid", Id = 1 };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
         _userServiceMock.Setup(x => x.GetUserModelByGuid(clienteRequest.UserGuid)).ReturnsAsync(user);
         
         var result = await _clienteService.CreateAsync(clienteRequest);
@@ -195,7 +195,7 @@ public class ClienteServiceTests
             IsDeleted = false
         };
 
-        _userServiceMock.Setup(x => x.GetUserModelByGuid(clienteRequest.UserGuid)).ReturnsAsync((User.Models.User?)null);
+        _userServiceMock.Setup(x => x.GetUserModelByGuid(clienteRequest.UserGuid)).ReturnsAsync((Banco_VivesBank.User.Models.User?)null);
         
         var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => await _clienteService.CreateAsync(clienteRequest));
         Assert.That(ex.Message, Is.EqualTo($"Usuario no encontrado con guid: {clienteRequest.UserGuid}"));
@@ -227,7 +227,7 @@ public class ClienteServiceTests
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
 
-        var user = new User.Models.User { Guid = "user-guid", Id = 1 };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
         _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
 
         var updateRequest = new ClienteRequestUpdate
@@ -356,7 +356,7 @@ public class ClienteServiceTests
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
 
-        var user = new User.Models.User { Guid = "user-guid", Id = 1 };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
         _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
         
         var result = await _clienteService.DeleteByGuidAsync(cliente.Guid);

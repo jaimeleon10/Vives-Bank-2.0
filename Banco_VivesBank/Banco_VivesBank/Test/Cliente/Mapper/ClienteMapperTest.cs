@@ -26,7 +26,7 @@ public class ClienteMapperTest
             Telefono = "123456789",
             UserGuid = "user-guid"
         };
-        var user = new User.Models.User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Guid = "user-guid",
             Username = "test",
@@ -75,7 +75,7 @@ public class ClienteMapperTest
             Telefono = "123456789",
             FotoPerfil = "perfil.jpg",
             FotoDni = "dni.jpg",
-            User = new User.Models.User
+            User = new Banco_VivesBank.User.Models.User
             {
                 Guid = "user-guid",
                 Username = "test",
@@ -129,7 +129,7 @@ public class ClienteMapperTest
             Telefono = "123456789",
             FotoPerfil = "perfil.jpg",
             FotoDni = "dni.jpg",
-            User = new User.Models.User
+            User = new Banco_VivesBank.User.Models.User
             {
                 Guid = "user-guid",
                 Username = "test",
