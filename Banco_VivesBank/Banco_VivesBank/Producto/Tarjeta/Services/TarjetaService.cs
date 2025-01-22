@@ -6,6 +6,8 @@ using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Services;
 
@@ -15,17 +17,22 @@ public class TarjetaService : ITarjetaService
     private readonly GeneralDbContext _context;
     private readonly ILogger<TarjetaService> _logger;
     private readonly ILogger<CardLimitValidators> _log;
+    private readonly IMemoryCache _memoryCache;
+    private readonly IConnectionMultiplexer _redis;
     private readonly TarjetaGenerator _tarjetaGenerator;
     private readonly CvvGenerator _cvvGenerator;
     private readonly ExpDateGenerator _expDateGenerator;
     private readonly CardLimitValidators _cardLimitValidators;
+    private const string CacheKeyPrefix = "Tarjeta:"; 
     
 
-    public TarjetaService(GeneralDbContext context, ILogger<TarjetaService> logger, ILogger<CardLimitValidators> log)
+    public TarjetaService(GeneralDbContext context, ILogger<TarjetaService> logger, ILogger<CardLimitValidators> log,  IConnectionMultiplexer redis,  IMemoryCache memoryCache )
     {
         _context = context;
         _logger = logger;
         _log = log;
+        _redis = redis;
+        _memoryCache = memoryCache; 
         _tarjetaGenerator = new TarjetaGenerator();
         _cvvGenerator = new CvvGenerator();
         _expDateGenerator = new ExpDateGenerator();
@@ -42,7 +49,12 @@ public class TarjetaService : ITarjetaService
     public async Task<TarjetaResponse?> GetByGuidAsync(string guid)
     {
         _logger.LogDebug($"Obteniendo tarjeta con id: {guid}");
-        
+        // Intentar obtener desde la memoria caché
+        if (_memoryCache.TryGetValue(cacheKey, out Tarjeta? cachedTarjeta))
+        {
+            _logger.LogInformation("Tarjeta obtenido desde la memoria caché");
+            return TarjetaMapper.ToResponseFromModel(cachedTarjeta);
+        }
         /*var cacheKey = CacheKeyPrefix + id;
         if (_cache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
         {
