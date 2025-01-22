@@ -31,7 +31,7 @@ public class CuentaControllerAdmin : ControllerBase
         [FromQuery] string? tipoCuenta = null,
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
-        [FromQuery] string sortBy = "id",
+        [FromQuery] string sortBy = "Id",
         [FromQuery] string direction = "asc")
     {
         try
@@ -67,11 +67,19 @@ public class CuentaControllerAdmin : ControllerBase
     [HttpGet("allAcounts/{guid:length(12)}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllByClientGuid(string guid)
     {
-        var cuentas = await _cuentaService.GetByClientGuidAsync(guid);
-        if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
-        if (guid is null) return NotFound($"No se ha encontrado el cliente con guid {guid}");
-        if (cuentas.Count() == 0) return NotFound($"No se han encontrado cuentas para el cliente con guid {guid}");
-        return Ok(cuentas);
+        try
+        {
+            var cuentas = await _cuentaService.GetByClientGuidAsync(guid);
+            if (guid.Length!= 12) return BadRequest($"El guid debe tener 12 caracteres");
+            if (guid is null) return NotFound($"No se ha encontrado el cliente con guid {guid}");
+            if (cuentas.Count() == 0) return NotFound($"No se han encontrado cuentas para el cliente con guid {guid}");
+            return Ok(cuentas);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(404, new { message = "No se han encontrado las cuentas.", details = e.Message });
+        }
+        
     }
 
     [HttpGet("{guid:length(12)}")]
