@@ -1,42 +1,43 @@
 ﻿using System.Numerics;
-using Banco_VivesBank.Cliente.Dto;
+using System.Text.Json;
 using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
-using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Mappers;
-using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Mappers;
-using Banco_VivesBank.Producto.Tarjeta.Dto;
-using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 
 namespace Banco_VivesBank.Producto.Cuenta.Services;
 
 public class CuentaService : ICuentaService
 {
-    
+    private readonly IConnectionMultiplexer _redis;
     private readonly GeneralDbContext _context;
     private readonly IBaseService _baseService;
     private readonly ILogger<CuentaService> _logger;
     private readonly ITarjetaService _tarjetaService;
     private readonly IClienteService _clienteService;
+    private readonly IMemoryCache _memoryCache;
+    private readonly IDatabase _database;
+    private const string CacheKeyPrefix = "Cuenta:";
 
-    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService, IClienteService clienteService, ITarjetaService tarjetaService)
+    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService, IClienteService clienteService, ITarjetaService tarjetaService, IConnectionMultiplexer redis, IMemoryCache memoryCache)
     {
         _context = context;
         _logger = logger;
         _baseService = baseService;
         _clienteService = clienteService;
         _tarjetaService = tarjetaService;
+        _redis = redis;
+        _memoryCache = memoryCache; 
+        _database = _redis.GetDatabase();
     }
 
     
@@ -136,25 +137,54 @@ public class CuentaService : ICuentaService
     {
         _logger.LogInformation($"Buscando Cuenta con guid: {guid} en la base de datos");
         
-        /*
         var cacheKey = CacheKeyPrefix + guid;
-        if (_cache.TryGetValue(cacheKey, out Cuenta? cachedCuenta))
+        
+        if (_memoryCache.TryGetValue(cacheKey, out Models.Cuenta? cachedCuenta))
         {
-            _logger.LogDebug("Cuenta obtenida de cache");
-            return cachedCuenta.ToResponseFromModel();
-        }*/
+            _logger.LogDebug("Cuenta obtenida de cache en memoria");
+            return CuentaMapper.ToResponseFromModel(cachedCuenta);
+        }
+
+        var redisCache = await _database.StringGetAsync(cacheKey);
+        if (!string.IsNullOrEmpty(redisCache))
+        {
+            _logger.LogInformation("Cuenta obtenida desde Redis");
+            var cuentaResponseFromRedis = JsonSerializer.Deserialize<CuentaResponse>(redisCache);
+            if (cuentaResponseFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, cuentaResponseFromRedis, TimeSpan.FromMinutes(30));
+            }
+
+            return cuentaResponseFromRedis;
+        }
         
         var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);
 
         if (cuentaEntity != null)
         {
-            /*
-             cachedCuenta = CuentaMapper.ToModelFromEntity(cuentaEntity);
-             _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
-             return cachedCuenta.ToResponseFromModel();
-             */
+            Tarjeta.Models.Tarjeta? tarjeta = null;
+            if (cuentaEntity.TarjetaId.HasValue)
+            {
+                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
+
+            }
+            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
+            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
+
+            cuentaEntity.Tarjeta = tarjeta;
+            cuentaEntity.Cliente = cliente;
+            cuentaEntity.Producto = producto;
+            
+            var cuentaResponse = CuentaMapper.ToResponseFromEntity(cuentaEntity);
+            var cuentaModel = CuentaMapper.ToModelFromEntity(cuentaEntity);
+            
+            _memoryCache.Set(cacheKey, cuentaModel, TimeSpan.FromMinutes(30));
+
+            var redisValue = JsonSerializer.Serialize(cuentaResponse);
+            await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
+            
             _logger.LogInformation($"Cuenta encontrada con guid: {guid}");
-            return cuentaEntity.ToResponseFromEntity();
+            return cuentaResponse;
         }
 
         _logger.LogInformation($"Cuenta no encontrada con guid: {guid}");
@@ -165,26 +195,54 @@ public class CuentaService : ICuentaService
     {
         _logger.LogInformation($"Buscando Cuenta por IBAN: {iban} en la base de datos");
         
-        /*
         var cacheKey = CacheKeyPrefix + iban;
-        if (_cache.TryGetValue(cacheKey, out Cuenta? cachedCuenta))
+        
+        if (_memoryCache.TryGetValue(cacheKey, out Models.Cuenta? cachedCuenta))
         {
-            _logger.LogDebug("Cuenta obtenida de cache");
-            return cachedCuenta;
+            _logger.LogDebug("Cuenta obtenida de cache en memoria");
+            return CuentaMapper.ToResponseFromModel(cachedCuenta);
         }
-        */
+        
+        var redisCache = await _database.StringGetAsync(cacheKey);
+        if (!string.IsNullOrEmpty(redisCache))
+        {
+            _logger.LogInformation("Cuenta obtenida desde Redis");
+            var cuentaResponseFromRedis = JsonSerializer.Deserialize<CuentaResponse>(redisCache);
+            if (cuentaResponseFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, cuentaResponseFromRedis, TimeSpan.FromMinutes(30));
+            }
+
+            return cuentaResponseFromRedis;
+        }
         
         var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Iban == iban);
 
         if (cuentaEntity != null)
         {
-            /*
-             cachedCuenta = CuentaMapper.ToModelFromEntity(cuentaEntity);
-             _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
-             return cachedCuenta.ToResponseFromModel();
-             */
+            Tarjeta.Models.Tarjeta? tarjeta = null;
+            if (cuentaEntity.TarjetaId.HasValue)
+            {
+                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
+
+            }
+            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
+            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
+
+            cuentaEntity.Tarjeta = tarjeta;
+            cuentaEntity.Cliente = cliente;
+            cuentaEntity.Producto = producto;
+            
+            var cuentaResponse = CuentaMapper.ToResponseFromEntity(cuentaEntity);
+            var cuentaModel = CuentaMapper.ToModelFromEntity(cuentaEntity);
+            
+            _memoryCache.Set(cacheKey, cuentaModel, TimeSpan.FromMinutes(30));
+
+            var redisValue = JsonSerializer.Serialize(cuentaResponse);
+            await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
+            
             _logger.LogInformation($"Cuenta encontrada con iban: {iban}");
-            return cuentaEntity.ToResponseFromEntity();
+            return cuentaResponse;
         }
 
         _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
@@ -249,12 +307,10 @@ public class CuentaService : ICuentaService
     {
         _logger.LogInformation($"Creando cuenta nueva");
         var tipoCuenta = await _baseService.GetByTipoAsync(cuentaRequest.TipoCuenta);
-        
         if (tipoCuenta == null)
         {
             _logger.LogError($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
             throw new BaseNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
-            
         }
 
         var tipoCuentaModel = await _baseService.GetBaseModelByGuid(tipoCuenta.Guid);
