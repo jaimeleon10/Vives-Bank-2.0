@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Text.Json;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
@@ -109,25 +109,14 @@ public class CuentaService : ICuentaService
         var clienteExiste = await _context.Clientes.AnyAsync(c => c.Guid == guid);
         if (!clienteExiste)
         {
+            _logger.LogInformation($"Cliente con guid: {guid} no encontrado");
             throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
         }
-        /*
-        var cuentaEntityList = await _context.Cuentas.ToListAsync();
-
-        var cuentaEntityListFiltered = new List<CuentaEntity>();
-        foreach (var cuentaEntity in cuentaEntityList)
-        {
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            if (cliente != null && cliente.Guid == guid)
-            {
-                cuentaEntityListFiltered.Add(cuentaEntity);
-            }
-        }*/
         var query = _context.Cuentas.AsQueryable().Where(c => c.Cliente.Guid == guid); 
         var content = await query.ToListAsync();
         
         var cuentasResponses = content.Select(c => c.ToResponseFromEntity()).ToList();
-
+        
         return cuentasResponses;
     }
 

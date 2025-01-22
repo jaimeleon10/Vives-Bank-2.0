@@ -1,6 +1,9 @@
-﻿using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.User.Controller;
@@ -10,16 +13,52 @@ namespace Banco_VivesBank.User.Controller;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly PaginationLinksUtils _paginationLinksUtils;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService,PaginationLinksUtils paginationLinksUtils)
     {
         _userService = userService;
+        _paginationLinksUtils = paginationLinksUtils;
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserResponse>>> GetAll()
+    //[Authorize(Policy = "AdminPolicy")]
+    public async Task<ActionResult<PageResponse<UserResponse>>> Getall(
+        [FromQuery] string? username = null,
+        [FromQuery] Role? role = null,
+        [FromQuery] int page = 0,
+        [FromQuery] int size = 10,
+        [FromQuery] string sortBy = "Id",
+        [FromQuery] string direction = "asc")
     {
-        return Ok(await _userService.GetAllAsync());
+        try
+        {
+            var pageRequest = new PageRequest
+            {
+                PageNumber = page,
+                PageSize = size,
+                SortBy = sortBy,
+                Direction = direction
+            };
+
+            var pageResult = await _userService.GetAllAsync(username, role, pageRequest);
+
+            var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
+            var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
+
+            Response.Headers.Add("link", linkHeader);
+
+            return Ok(pageResult);
+        }
+        catch (UserNotFoundException e)
+        {
+            return StatusCode(404, new { message = "No se han encontrado los usuarios.", details = e.Message });
+
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
+        }
     }
 
     [HttpGet("{guid}")]
