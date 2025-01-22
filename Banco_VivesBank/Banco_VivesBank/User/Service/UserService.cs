@@ -1,8 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using Banco_VivesBank.Database;
+using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Mappers;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -32,11 +36,56 @@ namespace Banco_VivesBank.User.Service
         _database = _redis.GetDatabase();  
     }
 
-    public async Task<IEnumerable<UserResponse>> GetAllAsync()
+     public async Task<PageResponse<UserResponse>> GetAllAsync(string? username,Role? role, PageRequest pageRequest)
     {
-        _logger.LogInformation("Obteniendo todos los usuarios");
-        var userEntityList = await _context.Usuarios.ToListAsync();
-        return UserMapper.ToResponseListFromEntityList(userEntityList);
+        _logger.LogInformation("Buscando todos los usuarios en la base de datos");
+        int pageNumber = pageRequest.PageNumber >= 0 ? pageRequest.PageNumber : 0;
+        int pageSize = pageRequest.PageSize > 0 ? pageRequest.PageSize : 10;
+
+        var query = _context.Usuarios.AsQueryable();
+
+        if (!string.IsNullOrEmpty(username))
+        {
+            query = query.Where(e => e.Username.ToLower().Contains(username.ToLower()));
+        }
+        
+        if (role != null)
+        {
+            query = query.Where(e => e.Role == role);
+        }
+        
+
+        if (!string.IsNullOrEmpty(pageRequest.SortBy))
+        {
+            query = pageRequest.Direction.ToUpper() == "ASC"
+                ? query.OrderBy(e => EF.Property<object>(e, pageRequest.SortBy))
+                : query.OrderByDescending(e => EF.Property<object>(e, pageRequest.SortBy));
+        }
+
+        var totalElements = await query.CountAsync();
+
+        var content = await query
+            .Skip(pageNumber * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalPages = (int)Math.Ceiling((double) totalElements / pageSize);
+        
+        var pageResponse = new PageResponse<UserResponse>
+        {
+            Content = content.Select(UserMapper.ToResponseFromEntity).ToList(),
+            TotalPages = totalPages,
+            TotalElements = totalElements,
+            PageSize = pageSize,
+            PageNumber = pageNumber,
+            Empty = !content.Any(),
+            First = pageNumber == 0,
+            Last = pageNumber == totalPages - 1,
+            SortBy = pageRequest.SortBy,
+            Direction = pageRequest.Direction
+        };
+
+        return pageResponse;
     }
 
     public async Task<UserResponse?> GetByGuidAsync(string guid)

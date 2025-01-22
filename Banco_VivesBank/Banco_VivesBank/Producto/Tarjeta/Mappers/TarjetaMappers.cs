@@ -5,7 +5,7 @@ namespace Banco_VivesBank.Producto.Tarjeta.Mappers;
 
 public static class TarjetaMappers
 {
-    public static TarjetaEntity ToEntityFromModel(this Models.Tarjeta model)
+    public static TarjetaEntity ToEntityFromModel(this Models.TarjetaModel model)
     {
         return new TarjetaEntity
         {
@@ -25,9 +25,9 @@ public static class TarjetaMappers
         };
     }
 
-    public static Models.Tarjeta ToModelFromRequest(this TarjetaRequest dto)
+    public static Models.TarjetaModel ToModelFromRequest(this TarjetaRequest dto)
     {
-        return new Models.Tarjeta
+        return new Models.TarjetaModel
         {
             Pin = dto.Pin,
             LimiteDiario = dto.LimiteDiario,
@@ -39,9 +39,9 @@ public static class TarjetaMappers
         };
     }
 
-    public static Models.Tarjeta ToModelFromEntity(this TarjetaEntity entity)
+    public static Models.TarjetaModel ToModelFromEntity(this TarjetaEntity entity)
     {
-        return new Models.Tarjeta
+        return new Models.TarjetaModel
         {
             Id = entity.Id,
             Guid = entity.Guid,
@@ -79,7 +79,7 @@ public static class TarjetaMappers
         };
     }
 
-    public static TarjetaResponse ToResponseFromModel(this Models.Tarjeta model)
+    public static TarjetaResponse ToResponseFromModel(this Models.TarjetaModel model)
     {
         return new TarjetaResponse
         {
@@ -99,8 +99,8 @@ public static class TarjetaMappers
         };
     }
     
-    public static List<Models.Tarjeta> ToModelList(this List<TarjetaEntity> entities)
+    public static List<TarjetaResponse> ToResponseList(this List<TarjetaEntity> entities)
     {
-        return entities.Select(entity => entity.ToModelFromEntity()).ToList();
+        return entities.Select(entity => entity.ToResponseFromEntity()).ToList();
     }
 }

@@ -108,7 +108,7 @@ public class BackupServiceTests
 
 
         _tarjetaServiceMock.Setup(s => s.GetAllAsync())
-            .ReturnsAsync(new List<Tarjeta> { new Tarjeta() });
+            .ReturnsAsync(new List<TarjetaResponse> { new TarjetaResponse() });
     }
 
     [Test]

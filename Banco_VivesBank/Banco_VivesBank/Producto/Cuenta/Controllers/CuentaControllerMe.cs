@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
@@ -24,7 +26,15 @@ public class CuentaControllerMe: ControllerBase
         string guid
         )
     {
-        return Ok(await _cuentaService.GetByClientGuidAsync(guid));
+        try
+        {
+            return Ok(await _cuentaService.GetByClientGuidAsync(guid));
+        }
+        catch (Exception e)
+        {
+            return BadRequest( new { message = "Error obteniendo las cuentas.", details = e.Message });
+        }
+        
     }
     
     [HttpGet("/iban/{iban:length(34)}")]
@@ -33,10 +43,24 @@ public class CuentaControllerMe: ControllerBase
         string iban
         )
     {
-        var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
-        if (iban.Length!= 34) return BadRequest($"El iban debe tener 34 caracteres");
-        if (cuentaByIban is null) return NotFound($"Cuenta no encontrada con iban {iban}");
-        return Ok(cuentaByIban);
+        try
+        {
+            var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
+            if (iban.Length!= 34) return BadRequest(new {menssage = $"El iban debe tener 34 caracteres"});
+            if (cuentaByIban is null) return NotFound(new {menssage =$"Cuenta no encontrada con iban {iban}"});
+            return Ok(cuentaByIban);
+        }
+        catch (Exception e)
+        {
+            return BadRequest( new { message = "Error obteniendo las cuentas.", details = e.Message });
+        }/*
+        catch (ClienteException e)
+        {
+            return NotFound( new { message = "Cuenta no encontrada del cliente.", details = e.Message });
+
+        }
+        */
+        
     }
     
     [HttpPost]
@@ -45,12 +69,27 @@ public class CuentaControllerMe: ControllerBase
         //[FromServices] ClaimsPrincipal user,
         [FromBody] CuentaRequest cuentaRequest)
     {
-        //var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        
-        //var cuenta = await _cuentaService.CreateAsync(userId,cuentaRequest);
-        var cuenta = await _cuentaService.CreateAsync(cuentaRequest);
 
-        return Ok(cuenta);
+        try
+        {
+            //var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            
+            //var cuenta = await _cuentaService.CreateAsync(userId,cuentaRequest);
+            var cuenta = await _cuentaService.CreateAsync(cuentaRequest);
+
+            return Ok(cuenta);
+        }
+        catch (BaseNotExistException e)
+        {
+            return NotFound( new { message = "Tipo de producto no existente.", details = e.Message });
+        
+        }
+        catch (Exception e)
+        {
+            return BadRequest( new { message = "Error creando cuenta.", details = e.Message });
+
+        }
+        
     }
     
     [HttpPut("{guid:length(12)}")]
@@ -65,12 +104,24 @@ public class CuentaControllerMe: ControllerBase
         {
              //var cuenta = await _cuentaService.UpdateAsync(userId,guid,cuentaRequest);
              var cuenta = await _cuentaService.UpdateAsync(guid,cuentaRequest);
-
+             if (cuenta is null) return NotFound(new {message = $"Cuenta no encontrada con guid {guid}"});
              return Ok(cuenta);
         }
-        catch (CuentaException e)
+        catch (CuentaNoPertenecienteAlUsuarioException e)
         {
-            return BadRequest(e.Message);
+            return NotFound( new { message = "Cuenta no asociada al cliente.", details = e.Message });
+        }
+        catch (SaldoInsuficienteException e)
+        {
+            return BadRequest( new { message = "Saldo Insuficiente.", details = e.Message });
+        }
+        catch (SaldoInvalidoException e)
+        {
+            return BadRequest( new { message = "Saldo no valido.", details = e.Message });
+        }
+        catch (Exception e)
+        {
+            return BadRequest( new { message = "Error actualizando la cuenta.", details = e.Message });
         }
     }
     

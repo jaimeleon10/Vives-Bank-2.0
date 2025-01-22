@@ -23,7 +23,7 @@ public class GeneralDbContext : DbContext
         modelBuilder.Ignore<Cliente.Models.Cliente>();
         modelBuilder.Ignore<BaseModel>();
         modelBuilder.Ignore<Cuenta>();
-        modelBuilder.Ignore<Tarjeta>();
+        modelBuilder.Ignore<TarjetaModel>();
         
         /*
         // User Entity
@@ -68,6 +68,9 @@ public class GeneralDbContext : DbContext
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnUpdate();
         });
         */
+        modelBuilder.Entity<CuentaEntity>()
+            .HasKey(c => c.Id); 
+        
         modelBuilder.Entity<CuentaEntity>()
             .HasOne(c => c.Cliente) 
             .WithMany() 
