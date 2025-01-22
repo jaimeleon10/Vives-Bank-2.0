@@ -12,7 +12,7 @@ public class TarjetaResponse
     public double LimiteDiario { get; set; }
     public double LimiteSemanal { get; set; }
     public double LimiteMensual { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public string CreatedAt { get; set; }
+    public string UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }
 }
