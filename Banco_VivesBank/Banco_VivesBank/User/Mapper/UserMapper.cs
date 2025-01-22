@@ -4,9 +4,9 @@ using Banco_VivesBank.User.Models;
 
 namespace Banco_VivesBank.User.Mapper
 {
-    public class UserMapper
+    public static class UserMapper
     {
-        public static Models.User ToModelFromRequest(UserRequest userRequest)
+        public static Models.User ToModelFromRequest(this UserRequest userRequest)
         {
             return new Models.User
             {
@@ -18,7 +18,7 @@ namespace Banco_VivesBank.User.Mapper
         }
 
 
-        public static Models.User ToModelFromEntity(UserEntity userEntity)
+        public static Models.User ToModelFromEntity(this UserEntity userEntity)
         {
             return new Models.User
             {
@@ -33,7 +33,7 @@ namespace Banco_VivesBank.User.Mapper
             };
         }
         
-        public static UserEntity ToEntityFromModel(Models.User usuario)
+        public static UserEntity ToEntityFromModel(this Models.User usuario)
         {
             return new UserEntity
             {
@@ -48,7 +48,7 @@ namespace Banco_VivesBank.User.Mapper
             };
         }
 
-        public static UserResponse ToResponseFromModel(Models.User usuario)
+        public static UserResponse ToResponseFromModel(this Models.User usuario)
         {
             return new UserResponse
             {
@@ -61,7 +61,7 @@ namespace Banco_VivesBank.User.Mapper
             };
         }
         
-        public static UserResponse ToResponseFromEntity(UserEntity userEntity)
+        public static UserResponse ToResponseFromEntity(this UserEntity userEntity)
         {
             return new UserResponse
             {
@@ -74,7 +74,7 @@ namespace Banco_VivesBank.User.Mapper
             };
         }
         
-        public static IEnumerable<UserResponse> ToResponseListFromEntityList(IEnumerable<UserEntity> userEntityList)
+        public static IEnumerable<UserResponse> ToResponseListFromEntityList(this IEnumerable<UserEntity> userEntityList)
         {
             return userEntityList.Select(userEntity => ToResponseFromEntity(userEntity));
         }
