@@ -407,18 +407,14 @@ public class ClienteService : IClienteService
         }
 
         var clienteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
-            if (clienteEntity != null)
-            {
-                _logger.LogInformation($"Cliente encontrado con guid: {guid}");
-                var clienteModel = clienteEntity.ToModelFromEntity();
-                _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
-                var serializedCliente = JsonSerializer.Serialize(clienteModel);
-                await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
-                return clienteModel;
-            }
-
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
-            return null;
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con guid: {guid}");
+            var clienteModel = clienteEntity.ToModelFromEntity();
+            _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+            var serializedCliente = JsonSerializer.Serialize(clienteModel);
+            await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
+            return clienteModel;
         }
 
         _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
