@@ -19,4 +19,6 @@ public interface IClienteService
     public Task<Models.Cliente?> GetClienteModelById(long id);
     
     public Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellido, string? dni, PageRequest pageRequest);
+
+    public Task<IEnumerable<Models.Cliente>> GetAllForStorage();
 }

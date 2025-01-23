@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Dto;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Services;
 
@@ -11,6 +11,7 @@ public interface ITarjetaService
     public Task<TarjetaResponse?> UpdateAsync(string id, TarjetaRequest dto);
     public Task<TarjetaResponse?> DeleteAsync(string id);
     
-    public Task<Models.TarjetaModel?> GetTarjetaModelByGuidAsync(string guid);
-    public Task<Models.TarjetaModel?> GetTarjetaModelByIdAsync(long id);
+    public Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid);
+    public Task<Models.Tarjeta?> GetTarjetaModelById(long id);
+    public Task<List<Models.Tarjeta>> GetAllForStorage();
 }
