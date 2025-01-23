@@ -34,7 +34,7 @@ public class UserMapperTest
             Guid = "guid",
             Username = "test",
             Password = "test",
-            Role = Banco_VivesBank.User.Models.Role.USER,
+            Role = Banco_VivesBank.User.Models.Role.User,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -60,7 +60,7 @@ public class UserMapperTest
         {
             Guid = "guid",
             Username = "test",
-            Role = Banco_VivesBank.User.Models.Role.USER,
+            Role = Banco_VivesBank.User.Models.Role.User,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false

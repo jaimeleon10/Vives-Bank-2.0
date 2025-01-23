@@ -42,11 +42,11 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
         {
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow,
                 Domiciliacion = new DomiciliacionConcreta
                 {
-                    Cliente = cuenta.Cliente,
+                    ClienteGuid = cuenta.Cliente.Guid,
                     IbanEmpresa = cuenta.Iban,
                     IbanCliente = "ES00998877665544332211",
                     Importe = new BigInteger(50000),
@@ -59,20 +59,20 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
             },
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
                 IngresoNomina = new IngresoNominaConcreta
                 {
                     NombreEmpresa = "hola",
                     CifEmpresa = "123456",
                     Importe = 1000,
-                    IbanDestino = "4567899876456789876567",
-                    IbanOrigen = cuenta.Iban
+                    IbanEmpresa = "4567899876456789876567",
+                    IbanCliente = cuenta.Iban
                 }
             },
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-2),
                 PagoConTarjeta = new PagoConTarjetaConcreto
                 {
@@ -83,7 +83,7 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
             },
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 Transferencia = new TransferenciaConcreta
                 {

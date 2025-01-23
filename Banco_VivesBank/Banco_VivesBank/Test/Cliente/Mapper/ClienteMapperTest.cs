@@ -31,7 +31,7 @@ public class ClienteMapperTest
             Guid = "user-guid",
             Username = "test",
             Password ="test",
-            Role = Role.USER
+            Role = Role.User
         };
             
         var result = ClienteMapper.ToModelFromRequest(clienteRequest, user);
@@ -80,7 +80,7 @@ public class ClienteMapperTest
                 Guid = "user-guid",
                 Username = "test",
                 Password = "test",
-                Role = Role.USER
+                Role = Role.User
             },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -134,7 +134,7 @@ public class ClienteMapperTest
                 Guid = "user-guid",
                 Username = "test",
                 Password = "test",
-                Role = Role.USER
+                Role = Role.User
             },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -165,7 +165,7 @@ public class ClienteMapperTest
             Guid = "user-guid",
             Username = "test",
             Password = "test",
-            Role = Role.USER
+            Role = Role.User
         };
         var clienteEntity = new ClienteEntity
         {

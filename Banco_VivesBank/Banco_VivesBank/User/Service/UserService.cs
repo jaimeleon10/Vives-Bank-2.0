@@ -226,7 +226,7 @@ namespace Banco_VivesBank.User.Service
             return UserMapper.ToResponseFromEntity(userExistenteEntity);
         }
 
-        public async Task<Models.User?> GetUserModelByGuid(string guid)
+        public async Task<Models.User?> GetUserModelByGuidAsync(string guid)
         {
             _logger.LogInformation($"Buscando usuario con guid: {guid}");
 
@@ -265,7 +265,7 @@ namespace Banco_VivesBank.User.Service
             return null;  
         }
             
-    public async Task<Models.User?> GetUserModelById(long id)
+    public async Task<Models.User?> GetUserModelByIdAsync(long id)
     {
         _logger.LogInformation($"Buscando usuario con id: {id}");
         

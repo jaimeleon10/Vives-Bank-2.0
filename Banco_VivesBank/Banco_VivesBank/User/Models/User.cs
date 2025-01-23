@@ -20,7 +20,7 @@ public class User
     [MinLength(5, ErrorMessage = "Password debe tener al menos 5 caracteres")]
     public  string Password { get; set; }
 
-    [Required] public Role Role { get; set; } = Role.USER;
+    [Required] public Role Role { get; set; } = Role.User;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
