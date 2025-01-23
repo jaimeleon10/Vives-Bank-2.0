@@ -1,12 +1,8 @@
-using Banco_VivesBank.Cliente.Dto;
-using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
-using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Models;
-using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 
@@ -136,7 +132,7 @@ public class BaseService : IBaseService
     public async Task<BaseResponse> CreateAsync(BaseRequest baseRequest)
     {
         _logger.LogInformation("Creando un nuevo producto base");
-        _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
+
         if (await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == baseRequest.Nombre.ToLower()))
         {
             _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");

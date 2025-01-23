@@ -67,10 +67,7 @@ public class BaseController : ControllerBase
     public async Task<ActionResult<BaseResponse>> Create([FromBody] BaseRequest request)
     {
         
-        if (string.IsNullOrEmpty(request.Nombre))
-        {
-            return BadRequest("El nombre del producto es requerido.");
-        }
+
         
         if (!ModelState.IsValid)
         {

@@ -9,8 +9,6 @@ public class BaseRequest
     [MaxLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres.")]
     public string Nombre { get; set; }
     
-    public string Guid { get; set; } = GuidGenerator.GenerarId();
-    
     [Required(ErrorMessage = "El campo descripcion es obligatorio")]
     [MaxLength(1000, ErrorMessage = "La descripcion no puede exceder los 1000 caracteres.")]
     public string Descripcion { get; set; }

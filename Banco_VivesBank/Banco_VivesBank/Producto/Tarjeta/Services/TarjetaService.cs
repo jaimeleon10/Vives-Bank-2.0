@@ -168,10 +168,6 @@ public class TarjetaService : ITarjetaService
     public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest)
     {
         _logger.LogDebug("Creando una nueva tarjeta");
-        if (string.IsNullOrEmpty(tarjetaRequest.Pin))
-        {
-            _logger.LogDebug("El nombre del producto es requerido.");
-        }
         
         var tarjeta = tarjetaRequest.ToModelFromRequest();
         
