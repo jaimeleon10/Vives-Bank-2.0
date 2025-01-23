@@ -14,13 +14,14 @@ public static class DomiciliacionMapper
         
         return new DomiciliacionResponse()
         {
-            ClienteGuid = domiciliacion.Cliente.Guid,
+            ClienteGuid = domiciliacion.ClienteGuid,
+            Acreedor = domiciliacion.Acreedor,
             IbanEmpresa = domiciliacion.IbanEmpresa,
             IbanCliente = domiciliacion.IbanCliente,
-            Importe = domiciliacion.Importe,
-            Acreedor = domiciliacion.Acreedor,
+            Importe = domiciliacion.Importe.ToString(),
             Periodicidad = domiciliacion.Periodicidad.ToString(),
             Activa = domiciliacion.Activa,
+            FechaInicio = domiciliacion.FechaInicio.ToString("dd/MM/yyyy - HH:mm:ss"),
             UltimaEjecuccion = domiciliacion.UltimaEjecucion.ToString("dd/MM/yyyy - HH:mm:ss")
         };
     }

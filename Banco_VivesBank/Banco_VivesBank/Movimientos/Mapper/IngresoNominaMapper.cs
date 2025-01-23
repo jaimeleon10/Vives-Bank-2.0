@@ -13,11 +13,11 @@ public static class IngresoNominaMapper
         }
         return new IngresoNominaResponse()
         {
-            IbanOrigen = ingresoNomina.IbanOrigen,
-            IbanDestino = ingresoNomina.IbanDestino,
-            Importe = ingresoNomina.Importe,
             NombreEmpresa = ingresoNomina.NombreEmpresa,
-            CifEmpresa = ingresoNomina.CifEmpresa
+            CifEmpresa = ingresoNomina.CifEmpresa,
+            IbanEmpresa = ingresoNomina.IbanEmpresa,
+            IbanCliente = ingresoNomina.IbanCliente,
+            Importe = ingresoNomina.Importe.ToString(),
         };
     }
 }

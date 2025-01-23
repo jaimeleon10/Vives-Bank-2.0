@@ -15,13 +15,12 @@ public static class MovimientoMapper
     {
         return new MovimientoResponse()
         {
-            ClienteGuid = movimiento.Cliente.Guid,
+            ClienteGuid = movimiento.ClienteGuid,
             Domiciliacion = domiciliacionResponse,
             IngresoNomina = ingresoNominaResponse,
             PagoConTarjeta = pagoConTarjetaResponse,
             Transferencia = transferenciaResponse,
-            CreatedAt = movimiento.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            IsDeleted = movimiento.IsDeleted
+            CreatedAt = movimiento.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss")
         };
     }
 }

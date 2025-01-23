@@ -14,9 +14,9 @@ public static class TransferenciaMapper
         return new TransferenciaResponse()
         {
             IbanOrigen = transferencia.IbanOrigen,
+            NombreBeneficiario = transferencia.NombreBeneficiario,
             IbanDestino = transferencia.IbanDestino,
-            Importe = transferencia.Importe,
-            NombreBeneficiario = transferencia.NombreBeneficiario
+            Importe = transferencia.Importe.ToString(),
         };
     }
 }
