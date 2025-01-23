@@ -14,8 +14,8 @@ public sealed class MovimientoQuery : ObjectGraphType
         Field<ListGraphType<MovimientoType>>("movimientos")
             .ResolveAsync(async context =>
             {
-                var movimientos = await _movimientoService.GetAllAsync();
-                return movimientos;
+                var movimientosResponse = await _movimientoService.GetAllAsync();
+                return movimientosResponse;
             });
 
         Field<MovimientoType>("movimientoByGuid")
@@ -23,8 +23,8 @@ public sealed class MovimientoQuery : ObjectGraphType
             )).ResolveAsync(async context =>
             {
                 var guid = context.GetArgument<string>("guid");
-                var movimiento = await _movimientoService.GetByGuidAsync(guid);
-                return movimiento;
+                var movimientoResponse = await _movimientoService.GetByGuidAsync(guid);
+                return movimientoResponse;
             });
         
         Field<MovimientoType>("movimientoByClienteGuid")
@@ -32,8 +32,8 @@ public sealed class MovimientoQuery : ObjectGraphType
             )).ResolveAsync(async context =>
             {
                 var clienteGuid = context.GetArgument<string>("clienteGuid");
-                var movimiento = await _movimientoService.GetByClienteGuidAsync(clienteGuid);
-                return movimiento;
+                var movimientosResponse = await _movimientoService.GetByClienteGuidAsync(clienteGuid);
+                return movimientosResponse;
             });
     }
 }
