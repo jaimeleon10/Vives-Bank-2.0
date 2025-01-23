@@ -65,7 +65,7 @@ public class TarjetaService : ITarjetaService
         
         var totalPages = (int)Math.Ceiling(totalElements / (double)pageSize);
         
-        var contentResponse = content.Select(TarjetaMappers.ToResponseFromEntity).ToList();
+        var contentResponse = content.Select(TarjetaMapper.ToResponseFromEntity).ToList();
         
         return new PageResponse<TarjetaResponse>
         {
@@ -179,7 +179,7 @@ public class TarjetaService : ITarjetaService
         return tarjeta.ToResponseFromEntity();
     }
     
-    public async Task<Models.TarjetaModel?> GetTarjetaModelByGuid(string guid)
+    public async Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando Tarjeta con guid: {guid}");
 
@@ -187,14 +187,14 @@ public class TarjetaService : ITarjetaService
         if (tarjetaEntity != null)
         {
             _logger.LogInformation($"Tarjeta encontrada con guid: {guid}");
-            return TarjetaMappers.ToModelFromEntity(tarjetaEntity);
+            return TarjetaMapper.ToModelFromEntity(tarjetaEntity);
         }
 
         _logger.LogInformation($"Tarjeta no encontrada con guid: {guid}");
         return null;
     }
         
-    public async Task<Models.TarjetaModel?> GetTarjetaModelById(long id)
+    public async Task<Models.Tarjeta?> GetTarjetaModelById(long id)
     {
         _logger.LogInformation($"Buscando Tarjeta con id: {id}");
 
@@ -202,7 +202,7 @@ public class TarjetaService : ITarjetaService
         if (tarjetaEntity != null)
         {
             _logger.LogInformation($"Tarjeta encontrada con id: {id}");
-            return TarjetaMappers.ToModelFromEntity(tarjetaEntity);
+            return TarjetaMapper.ToModelFromEntity(tarjetaEntity);
         }
 
         _logger.LogInformation($"Tarjeta no encontrada con id: {id}");

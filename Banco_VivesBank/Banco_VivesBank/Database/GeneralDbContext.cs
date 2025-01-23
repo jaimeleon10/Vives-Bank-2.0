@@ -23,7 +23,7 @@ public class GeneralDbContext : DbContext
         modelBuilder.Ignore<Cliente.Models.Cliente>();
         modelBuilder.Ignore<BaseModel>();
         modelBuilder.Ignore<Cuenta>();
-        modelBuilder.Ignore<TarjetaModel>();
+        modelBuilder.Ignore<Tarjeta>();
         
         /*
         // User Entity

@@ -4,9 +4,9 @@ using Banco_VivesBank.Producto.Base.Models;
 
 namespace Banco_VivesBank.Producto.Base.Mappers;
 
-public class BaseMapper
+public static class BaseMapper
 {
-    public static BaseModel ToModelFromRequest(BaseRequest d)
+    public static BaseModel ToModelFromRequest(this BaseRequest d)
     {
         return new BaseModel
         {
@@ -21,7 +21,7 @@ public class BaseMapper
         };
     }
 
-    public static BaseModel ToModelFromEntity(BaseEntity entity)
+    public static BaseModel ToModelFromEntity(this BaseEntity entity)
     {
         return new BaseModel
         {
@@ -36,7 +36,7 @@ public class BaseMapper
         };
     }
     
-    public static BaseEntity ToEntityFromModel(BaseModel model)
+    public static BaseEntity ToEntityFromModel(this BaseModel model)
     {
         return new BaseEntity
         {
@@ -52,7 +52,7 @@ public class BaseMapper
 
     }
 
-    public static BaseResponse ToResponseFromModel(BaseModel model)
+    public static BaseResponse ToResponseFromModel(this BaseModel model)
     {
         return new BaseResponse
         {
@@ -66,7 +66,7 @@ public class BaseMapper
         };
     }
     
-    public static BaseResponse ToResponseFromEntity(BaseEntity entity)
+    public static BaseResponse ToResponseFromEntity(this BaseEntity entity)
     {
         return new BaseResponse
         {
@@ -80,7 +80,7 @@ public class BaseMapper
         };
     }
     
-    public static IEnumerable<BaseResponse> ToResponseListFromEntityList(IEnumerable<BaseEntity> entities)
+    public static IEnumerable<BaseResponse> ToResponseListFromEntityList(this IEnumerable<BaseEntity> entities)
     {
         return entities.Select(entity => ToResponseFromEntity(entity));
     }

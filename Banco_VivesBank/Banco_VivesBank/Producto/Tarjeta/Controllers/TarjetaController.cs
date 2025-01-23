@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using Banco_VivesBank.Producto.Tarjeta.Dto;
+﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
-using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
@@ -28,7 +26,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PageResponse<TarjetaModel>>>> GetAllTarjetas(
+    public async Task<ActionResult<IEnumerable<PageResponse<Models.Tarjeta>>>> GetAllTarjetas(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
         [FromQuery] string sortBy = "id",
@@ -61,7 +59,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<TarjetaModel>> CreateTarjeta([FromBody] TarjetaRequest dto)
+    public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
         if (!ModelState.IsValid)
         {

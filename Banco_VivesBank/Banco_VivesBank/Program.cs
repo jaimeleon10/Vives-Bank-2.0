@@ -101,6 +101,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
+    myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     

@@ -28,7 +28,7 @@ public class BaseService : IBaseService
     {
         _logger.LogDebug("Obteniendo todos los productos");
         var baseEntityList = await _context.ProductoBase.ToListAsync();
-        return BaseMapper.ToResponseListFromEntityList(baseEntityList);
+        return baseEntityList.ToResponseListFromEntityList();
     }
 
     public async Task<PageResponse<BaseResponse>> GetAllPagedAsync(PageRequest page)
@@ -94,7 +94,7 @@ public class BaseService : IBaseService
              return cachedBase.ToResponseFromModel();
              */
             _logger.LogInformation($"Producto encontrado con guid: {guid}");
-            return BaseMapper.ToResponseFromEntity(baseEntity);
+            return baseEntity.ToResponseFromEntity();
         }
         
         _logger.LogInformation($"Producto no encontrado con guid: {guid}");
@@ -124,7 +124,7 @@ public class BaseService : IBaseService
             return cachedBase;*/
             
             _logger.LogInformation($"Producto encontrado con el tipo: {tipo}");
-            return BaseMapper.ToResponseFromEntity(baseEntity);
+            return baseEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Producto no encontrado con el tipo: {tipo}");
@@ -150,14 +150,11 @@ public class BaseService : IBaseService
         }
         
         var baseModel = BaseMapper.ToModelFromRequest(baseRequest);
-        
-        baseModel.Guid = GuidGenerator.GenerarId();
-        
         _context.ProductoBase.Add(BaseMapper.ToEntityFromModel(baseModel));
         await _context.SaveChangesAsync();
         
         _logger.LogInformation($"Producto creado correctamente con id: {baseModel.Id}");
-        return BaseMapper.ToResponseFromModel(baseModel);
+        return baseModel.ToResponseFromModel();
 
     }
 
@@ -196,7 +193,7 @@ public class BaseService : IBaseService
         */
 
         _logger.LogInformation($"Producto actualizado correctamente con guid: {guid}");
-        return BaseMapper.ToResponseFromEntity(baseEntityExistente);
+        return baseEntityExistente.ToResponseFromEntity();
     }
 
     public async Task<BaseResponse?> DeleteAsync(string guid)
@@ -222,7 +219,7 @@ public class BaseService : IBaseService
         */
 
         _logger.LogInformation($"Producto borrado logico correctamente con guid: {guid}");
-        return BaseMapper.ToResponseFromEntity(baseExistenteEntity);
+        return baseExistenteEntity.ToResponseFromEntity();
     }
     
     public async Task<BaseModel?> GetBaseModelByGuid(string guid)
@@ -233,7 +230,7 @@ public class BaseService : IBaseService
         if (productoEntity != null)
         {
             _logger.LogInformation($"producto encontrado con guid: {guid}");
-            return BaseMapper.ToModelFromEntity(productoEntity);
+            return productoEntity.ToModelFromEntity();
         }
 
         _logger.LogInformation($"producto no encontrado con guid: {guid}");
@@ -248,10 +245,25 @@ public class BaseService : IBaseService
         if (productoEntity != null)
         {
             _logger.LogInformation($"producto encontrado con id: {id}");
-            return BaseMapper.ToModelFromEntity(productoEntity);
+            return productoEntity.ToModelFromEntity();
         }
 
         _logger.LogInformation($"producto no encontrado con id: {id}");
         return null;
     }
+    
+    //Acemos un GetAllByStorage que es un get all pero sin filtrado ni paginacion que devuelve en modelo
+    public async Task<IEnumerable<BaseModel>> GetAllForStorage()
+    {
+        _logger.LogInformation("Obteniendo todos los productos");
+        var productoEntityList = await _context.ProductoBase.ToListAsync();
+        //hacemos un bucle para mapear uno a uno
+        var baseModelList = new List<BaseModel>();
+        foreach (var productoEntity in productoEntityList)
+        {
+            baseModelList.Add(BaseMapper.ToModelFromEntity(productoEntity));
+        }
+        return baseModelList;
+    }
+
 }

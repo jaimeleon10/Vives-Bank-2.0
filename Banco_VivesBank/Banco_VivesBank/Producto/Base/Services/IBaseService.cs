@@ -16,4 +16,6 @@ public interface IBaseService
     
     public Task<BaseModel?> GetBaseModelByGuid(string guid);
     public Task<BaseModel?> GetBaseModelById(long id);
+    public Task<IEnumerable<BaseModel>> GetAllForStorage();
+
 }
