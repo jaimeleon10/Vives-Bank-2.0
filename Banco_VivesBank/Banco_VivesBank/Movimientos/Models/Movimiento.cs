@@ -16,7 +16,7 @@ public class Movimiento
     public string Guid { get; set; } = GuidGenerator.GenerarId();
 
     [JsonPropertyName("cliente")]
-    public required Cliente.Models.Cliente Cliente { get; set; }
+    public required string ClienteGuid { get; set; }
 
     [JsonPropertyName("domiciliacion")]
     public Domiciliacion? Domiciliacion { get; set; }
@@ -30,9 +30,6 @@ public class Movimiento
     [JsonPropertyName("transferencia")]
     public Transferencia? Transferencia { get; set; } 
 
-    [JsonPropertyName("isDeleted")]
-    public bool IsDeleted { get; set; } = false;
-    
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

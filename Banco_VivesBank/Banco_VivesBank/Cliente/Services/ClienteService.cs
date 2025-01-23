@@ -166,7 +166,7 @@ public class ClienteService : IClienteService
         ValidateEmailExistente(clienteRequest.Email);
         ValidateTelefonoExistente(clienteRequest.Telefono);
         
-        var user = await _userService.GetUserModelByGuid(clienteRequest.UserGuid);
+        var user = await _userService.GetUserModelByGuidAsync(clienteRequest.UserGuid);
         if (user == null)
         {
             _logger.LogInformation($"Usuario no encontrado con guid: {clienteRequest.UserGuid}");
@@ -262,7 +262,7 @@ public class ClienteService : IClienteService
     {
         _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
         
-        var user = await _userService.GetUserModelByGuid(userGuid);
+        var user = await _userService.GetUserModelByGuidAsync(userGuid);
         if (user == null)
         {
             _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
@@ -407,20 +407,19 @@ public class ClienteService : IClienteService
         }
 
         var clienteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
-            if (clienteEntity != null)
-            {
-                _logger.LogInformation($"Cliente encontrado con guid: {guid}");
-                var clienteModel = clienteEntity.ToModelFromEntity();
-                _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
-                var serializedCliente = JsonSerializer.Serialize(clienteModel);
-                await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
-                return clienteModel;
-            }
-
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
-            return null;
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con guid: {guid}");
+            var clienteModel = clienteEntity.ToModelFromEntity();
+            _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+            var serializedCliente = JsonSerializer.Serialize(clienteModel);
+            await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
+            return clienteModel;
         }
-    
+
+        _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+        return null;
+    }
 
     public async Task<Models.Cliente?> GetClienteModelById(long id)
     {

@@ -12,7 +12,7 @@ public class UserRequest
     [MinLength(5, ErrorMessage = "La contraseña debe tener al menos 5 caracteres")]
     public string Password { get; set; } = null!;
 
-    public string Role { get; set; } = Models.Role.USER.GetType().ToString();
+    public string Role { get; set; } = Models.Role.User.GetType().ToString();
 
     public bool IsDeleted { get; set; } = false;
 
