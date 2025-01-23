@@ -1,34 +1,35 @@
-﻿using Banco_VivesBank.Cliente.Services;
-using Banco_VivesBank.Database;
+﻿using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
-using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using NUnit.Framework;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
-namespace Banco_VivesBank.Test.Producto.Tarjeta.Services;
+namespace Test;
 
 [TestFixture]
 public class TarjetaServiceTest
 {
-    
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private TarjetaService _tarjetaService;
+    private Mock<TarjetaGenerator> _tarjetaGeneratorMock;
+    private Mock<CvvGenerator> _cvvGeneratorMock;
+    private Mock<ExpDateGenerator> _expDateGeneratorMock;
+    private Mock<CardLimitValidators> _cardLimitValidatorsMock;
     private Mock<IConnectionMultiplexer> _redisConnectionMock;
     private Mock<IMemoryCache> _memoryCacheMock;
+
     [OneTimeSetUp]
     public async Task Setup()
     {
+        // Configuración del contenedor PostgreSQL
         _postgreSqlContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
             .WithDatabase("testdb")
@@ -45,17 +46,25 @@ public class TarjetaServiceTest
 
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
-        
+
+        // Crear mocks
+        _tarjetaGeneratorMock = new Mock<TarjetaGenerator>();
+        _cvvGeneratorMock = new Mock<CvvGenerator>();
+        _expDateGeneratorMock = new Mock<ExpDateGenerator>();
+        _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
+        _redisConnectionMock = new Mock<IConnectionMultiplexer>();
+        _memoryCacheMock = new Mock<IMemoryCache>();
+
+        // Crear instancia del servicio con los mocks
         _tarjetaService = new TarjetaService(
-            _dbContext, 
+            _dbContext,
             NullLogger<TarjetaService>.Instance,
             NullLogger<CardLimitValidators>.Instance,
-            _redisConnectionMock.Object,
-            _memoryCacheMock.Object
-            
-            );
+            _redisConnectionMock.Object, // Mock de IConnectionMultiplexer
+            _memoryCacheMock.Object      // Mock de IMemoryCache
+        );
     }
-    
+
     [OneTimeTearDown]
     public async Task Teardown()
     {
@@ -74,7 +83,7 @@ public class TarjetaServiceTest
     [Test]
     public async Task GetAll()
     {
-        
+
         await _dbContext.Tarjetas.ExecuteDeleteAsync();
         var tarjeta1 = new TarjetaEntity
         {
@@ -90,15 +99,15 @@ public class TarjetaServiceTest
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
-            
-          
+
+
         };
 
         _dbContext.Tarjetas.Add(tarjeta1);
         await _dbContext.SaveChangesAsync();
 
         var tarjetas = await _tarjetaService.GetAllAsync();
-        
+
         Console.WriteLine(tarjetas.ToString());
         Assert.That(tarjetas.Count, Is.EqualTo(1));
     }
@@ -188,7 +197,7 @@ public class TarjetaServiceTest
         await _dbContext.SaveChangesAsync();
 
         var tarjetaActualizada = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
-        
+
         Assert.That(tarjetaActualizada.Pin, Is.EqualTo("1234"));
         Assert.That(tarjetaActualizada.LimiteDiario, Is.EqualTo(1000));
     }
@@ -249,5 +258,5 @@ public class TarjetaServiceTest
         Assert.That(tarjetaNoExiste, Is.Null);
 
     }
-    
+
 }

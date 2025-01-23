@@ -4,16 +4,15 @@ using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.User.Controller;
+namespace Test;
 [TestFixture]
 public class UserControllerTest
 {
     private Mock<IUserService> _userServiceMock;
     private UserController _userController;
     
-    /*
+    
     [SetUp]
     public void Setup()
     {
@@ -134,7 +133,7 @@ public class UserControllerTest
 
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
     }
-   [Test]
+   /*[Test]
     public async Task UpdateUser_ThrowsUserException_ReturnsBadRequest()
     {
         var guid = "valid-guid";
@@ -154,7 +153,7 @@ public class UserControllerTest
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
-    
+    */
     [Test]
     public async Task DeleteByGuid_ValidGuid_ReturnsOk()
     {
@@ -258,5 +257,4 @@ public class UserControllerTest
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
-    */
 }

@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Banco_VivesBank.Cliente.Dto;
+﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
@@ -12,10 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using NUnit.Framework;
 using Testcontainers.PostgreSql;
 
-namespace Banco_VivesBank.Test.Cliente.Services;
+namespace Test;
 
 [TestFixture]
 public class ClienteServiceTests
@@ -48,7 +46,7 @@ public class ClienteServiceTests
         await _dbContext.Database.EnsureCreatedAsync();
 
         _userServiceMock = new Mock<IUserService>();
-       // _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCache);
+        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCache);
     }
 
     [OneTimeTearDown]

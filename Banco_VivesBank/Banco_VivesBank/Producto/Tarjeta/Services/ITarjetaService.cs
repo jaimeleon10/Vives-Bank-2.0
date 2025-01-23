@@ -14,4 +14,5 @@ public interface ITarjetaService
     
     public Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid);
     public Task<Models.Tarjeta?> GetTarjetaModelById(long id);
+    public Task<List<Models.Tarjeta>> GetAllForStorage();
 }

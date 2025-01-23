@@ -12,12 +12,14 @@ using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 using IDatabase = StackExchange.Redis.IDatabase;
 
 namespace Banco_VivesBank.Cliente.Services;
 
 public class ClienteService : IClienteService
 {
+    private readonly IConnectionMultiplexer _redis;
     private readonly GeneralDbContext _context;
     private readonly ILogger<ClienteService> _logger;
     private readonly IUserService _userService;
@@ -26,13 +28,15 @@ public class ClienteService : IClienteService
     private readonly IDatabase _database;
     private const string CacheKeyPrefix = "Cliente:";
 
-    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService, IFileStorageService storageService, IMemoryCache memoryCache)
+    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService, IFileStorageService storageService, IMemoryCache memoryCache, IConnectionMultiplexer redis)
     {
         _context = context;
         _logger = logger;
         _userService = userService;
         _fileStorageService = storageService;
         _memoryCache = memoryCache;
+        _redis = redis;
+        _database = _redis.GetDatabase(); 
     }
     
     public async Task<IEnumerable<ClienteResponse>> GetAllAsync()
@@ -170,12 +174,13 @@ public class ClienteService : IClienteService
         }
         
         var clienteModel = clienteRequest.ToModelFromRequest(user);
-        _context.Clientes.Add(clienteModel.ToEntityFromModel()); 
+        var clienteEntity = clienteModel.ToEntityFromModel();
+        _context.Clientes.Add(clienteEntity); 
         await _context.SaveChangesAsync();
 
-        var cacheKey = CacheKeyPrefix + clienteModel.Dni;
+        var cacheKey = CacheKeyPrefix + clienteRequest.Dni;
+        var redisValue = JsonSerializer.Serialize(clienteModel);
         _memoryCache.Set(cacheKey, clienteModel);
-        var redisValue = JsonSerializer.Serialize(clienteModel.ToResponseFromModel());
         await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
         _logger.LogInformation("Cliente creado con éxito");

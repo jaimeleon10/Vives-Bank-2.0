@@ -61,6 +61,10 @@ public class TarjetaController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
+        if (string.IsNullOrEmpty(dto.Pin))
+        {
+            return BadRequest("El nombre del producto es requerido.");
+        }
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
