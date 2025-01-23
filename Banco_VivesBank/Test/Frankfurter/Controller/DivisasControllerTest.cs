@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test;
+namespace Test.Divisas;
 
 public class DivisasControllerTest
 {

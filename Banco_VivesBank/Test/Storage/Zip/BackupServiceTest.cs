@@ -1,5 +1,4 @@
 ﻿using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.Storage.Backup.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Base.Services;
@@ -12,11 +11,11 @@ using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
-
+using Banco_VivesBank.Storage.Backup.Service;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
+using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
 namespace Test.Storage;
 

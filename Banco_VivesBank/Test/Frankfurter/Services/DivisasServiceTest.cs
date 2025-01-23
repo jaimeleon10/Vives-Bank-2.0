@@ -5,7 +5,7 @@ using System.Text;
 using Banco_VivesBank.Frankfurter.Exceptions;
 using Banco_VivesBank.Frankfurter.Services;
 
-namespace Test;
+namespace Test.Divisas;
 
 public class DivisasServiceTest
 {
@@ -20,6 +20,13 @@ public class DivisasServiceTest
         _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
         _divisasService = new DivisasService(_httpClient);
     }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _httpClient.Dispose();
+    }
+
 
     [Test]
     public void ObtenerCambioException()

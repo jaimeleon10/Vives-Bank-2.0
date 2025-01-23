@@ -7,7 +7,7 @@ using Banco_VivesBank.Storage.Pdf.Services;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace Test;
+namespace Test.Storage;
 
 [TestFixture]
 public class PdfStorageTests

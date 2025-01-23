@@ -4,7 +4,7 @@ using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Storage;
 using Microsoft.Extensions.Logging;
 
-namespace Test;
+namespace Test.Storage;
 
 public class StorageProductosTests
 {
