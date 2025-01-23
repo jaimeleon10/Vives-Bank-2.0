@@ -15,7 +15,4 @@ public class MovimientoResponse
     public TransferenciaResponse? Transferencia { get; set; } = null;
     
     public required string CreatedAt { get; set; }
-
-    public required Boolean IsDeleted { get; set; }
-
 }

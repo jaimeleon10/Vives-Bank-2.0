@@ -4,9 +4,9 @@ namespace Banco_VivesBank.Movimientos.Dto;
 
 public class PagoConTarjetaResponse
 {
-    public string NumeroTarjeta { get; set; }
-    
-    public BigInteger Importe { get; set; }
-    
     public string NombreComercio { get; set; }
+    
+    public string Importe { get; set; }
+    
+    public string NumeroTarjeta { get; set; }
 }

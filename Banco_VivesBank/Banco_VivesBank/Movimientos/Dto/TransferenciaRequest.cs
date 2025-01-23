@@ -9,12 +9,13 @@ public class TransferenciaRequest
     [IbanValidator]
     public string IbanOrigen { get; set; }
     
+    [Required(ErrorMessage = "El nombre del beneficiario es un campo obligatorio")]
+    public string NombreBeneficiario { get; set; }
+    
     [IbanValidator]
     public string IbanDestino { get; set; }
 
-    [BigIntegerValidation]
-    public BigInteger Importe { get; set; }
-    
-    [Required(ErrorMessage = "El nombre del beneficiario es un campo obligatorio")]
-    public string NombreBeneficiario { get; set; }
+    [Required(ErrorMessage = "El importe es un campo obligatorio.")]
+    [RegularExpression(@"^-?\d+(\.\d{1,2})?$", ErrorMessage = "El importe debe ser un número entero válido.")]
+    public string Importe { get; set; }
 }

@@ -15,5 +15,4 @@ public class MovimientoRequest
     public PagoConTarjeta? PagoConTarjeta { get; set; } = null;
 
     public Transferencia? Transferencia { get; set; } = null;
-
 }
