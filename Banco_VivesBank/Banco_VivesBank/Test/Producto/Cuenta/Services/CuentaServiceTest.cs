@@ -1,4 +1,5 @@
-/*using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Mappers;
@@ -48,7 +49,9 @@ public class CuentaServiceTests
         await _dbContext.Database.EnsureCreatedAsync();
 
         var baseService = new Mock<IBaseService>().Object;
-        _cuentaService = new CuentaService(_dbContext, NullLogger<CuentaService>.Instance, new Mock<IBaseService>().Object);
+        var clienteService = new Mock<IClienteService>().Object;
+
+        _cuentaService = new CuentaService(_dbContext, NullLogger<CuentaService>.Instance,baseService,clienteService);
     }
 
     [OneTimeTearDown]
@@ -104,7 +107,7 @@ public class CuentaServiceTests
             Direction = "ASC"
         };
 
-        var result = await _cuentaService.GetAll(1500, 500, "Ahorro", pageRequest);
+        var result = await _cuentaService.GetAllAsync(1500, 500, "Ahorro", pageRequest);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Content.Count, Is.EqualTo(1));
@@ -120,7 +123,7 @@ public class CuentaServiceTests
             PageSize = 10
         };
         
-        var result = await _cuentaService.GetAll(5000, 4000, "NoExistente", pageRequest);
+        var result = await _cuentaService.GetAllAsync(5000, 4000, "NoExistente", pageRequest);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Content.Count, Is.EqualTo(0));
@@ -157,7 +160,7 @@ public class CuentaServiceTests
         _dbContext.Cuentas.AddRange(cuenta1, cuenta2);
         await _dbContext.SaveChangesAsync();
         
-        var result = await _cuentaService.getByClientGuid(clientGuid);
+        var result = await _cuentaService.GetByClientGuidAsync(clientGuid);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.EqualTo(2));
@@ -166,8 +169,8 @@ public class CuentaServiceTests
         Assert.That(firstCuenta.Guid, Is.EqualTo("cuenta1"));
         Assert.That(firstCuenta.Iban, Is.EqualTo("IBAN001"));
         Assert.That(firstCuenta.Saldo, Is.EqualTo(1000));
-        Assert.That(firstCuenta.ClienteId, Is.EqualTo(1));
-        Assert.That(firstCuenta.ProductoId, Is.EqualTo(1));
+        Assert.That(firstCuenta.ClienteGuid, Is.EqualTo(1));
+        Assert.That(firstCuenta.ProductoGuid, Is.EqualTo(1));
     }
 
     [Test]
@@ -175,7 +178,7 @@ public class CuentaServiceTests
     {
         var invalidGuid = "noexiste";
         
-        var result = await _cuentaService.getByClientGuid(invalidGuid);
+        var result = await _cuentaService.GetByClientGuidAsync(invalidGuid);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.EqualTo(0));
@@ -190,7 +193,7 @@ public class CuentaServiceTests
         _dbContext.Cuentas.Add(cuenta);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _cuentaService.getByGuid(cuentaGuid);
+        var result = await _cuentaService.GetByGuidAsync(cuentaGuid);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Guid, Is.EqualTo(cuentaGuid));
@@ -199,7 +202,7 @@ public class CuentaServiceTests
     [Test]
     public async Task GetByIban()
     {
-        var result = await _cuentaService.getByIban("ES1234567890123456789012");
+        var result = await _cuentaService.GetByIbanAsync("ES1234567890123456789012");
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
@@ -210,21 +213,21 @@ public class CuentaServiceTests
     public async Task GetByIban_CuentaNotExits()
     {
         var ex = Assert.ThrowsAsync<CuentaNoEncontradaException>(async () =>
-            await _cuentaService.getByIban("ES0000000000000000000000"));
+            await _cuentaService.GetByIbanAsync("ES0000000000000000000000"));
 
         Assert.That(ex.Message, Is.EqualTo("Cuenta con IBAN ES0000000000000000000000 no encontrada."));
     }
 
-    /*[Test]
+    [Test]
     public async Task Save()
     {
-        var cuentaRequest = new CuentaRequest { TipoCuenta = "Ahorro" };
-        var clientGuid = "client1";
-        var result = await _cuentaService.save(clientGuid, cuentaRequest);
+        var cuentaRequest = new CuentaRequest { TipoCuenta = "Ahorro", ClienteGuid = "client1"};
+        
+        var result = await _cuentaService.CreateAsync(cuentaRequest);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.TipoCuenta, Is.EqualTo("Ahorro"));
-    }#1#
+        Assert.That(result.Guid, Is.EqualTo("Ahorro"));
+    }
 
     [Test]
         public async Task Update_SaldoInsuficienteException()
@@ -335,4 +338,4 @@ public class CuentaServiceTests
             Assert.That(ex, Is.Not.Null);
             Assert.That(ex.Message, Is.EqualTo($"Cuenta con IBAN: null  no le pertenece"));
         }
-}*/
+}

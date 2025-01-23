@@ -23,7 +23,6 @@ public class CuentaService : ICuentaService
     private readonly GeneralDbContext _context;
     private readonly IBaseService _baseService;
     private readonly ILogger<CuentaService> _logger;
-    private readonly ITarjetaService _tarjetaService;
     private readonly IClienteService _clienteService;
     private readonly IMemoryCache _memoryCache;
     private readonly IDatabase _database;
