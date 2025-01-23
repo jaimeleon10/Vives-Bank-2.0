@@ -1,22 +1,17 @@
 using System.IO.Compression;
 using Banco_VivesBank.Cliente.Dto;
-using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
-using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
-using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.Storage.Backup.Exceptions;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.User.Dto;
-using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
-using Banco_VivesBank.Utils.Generators;
-using Banco_VivesBank.Utils.Pagination;
+
+namespace Banco_VivesBank.Storage.Backup.Service;
 
 public class BackupService : IBackupService
 {
