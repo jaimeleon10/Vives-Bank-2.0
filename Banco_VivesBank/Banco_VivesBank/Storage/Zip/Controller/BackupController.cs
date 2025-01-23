@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Banco_VivesBank.Storage.Backup.Service;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Banco_VivesBank.Storage.Backup.Controller;
 
 [ApiController]
-public class BackupController
+[Route("api/[controller]")]
+public class BackupController : ControllerBase
 {
     private readonly ILogger<BackupService> _logger;
     private readonly IBackupService _backupService;
@@ -12,18 +16,16 @@ public class BackupController
         _backupService = backupService;
     }
 
-    private string GetDataDirectory()
-    {
-        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
-    }
+    public virtual string GetDataDirectory() => 
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
 
-    private string GetBackupFilePath()
-    {
-        return Path.Combine(GetDataDirectory(), "backup.zip");
-    }
+    public virtual string GetBackupFilePath() => 
+        Path.Combine(GetDataDirectory(), "backup.zip");
 
     [HttpGet("exportar-zip")]
-    public async Task ExportToZip()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportToZip()
     {
         try
         {
@@ -32,16 +34,20 @@ public class BackupController
 
             await _backupService.ExportToZip(sourceDirectory, zipFilePath);
             _logger.LogInformation($"Exportación de datos a ZIP completada con éxito. Archivo: {zipFilePath}");
+
+            return Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al exportar datos a ZIP.");
-            throw;
+            return StatusCode(StatusCodes.Status500InternalServerError, "Error al exportar datos");
         }
     }
 
     [HttpGet("importar-zip")]
-    public async Task ImportFromZip()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ImportFromZip()
     {
         try
         {
@@ -50,11 +56,13 @@ public class BackupController
 
             await _backupService.ImportFromZip(zipFilePath, destinationDirectory);
             _logger.LogInformation($"Importación de datos desde ZIP completada con éxito. Archivo: {zipFilePath}");
+
+            return Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al importar datos desde ZIP.");
-            throw;
+            return StatusCode(StatusCodes.Status500InternalServerError, "Error al importar datos");
         }
     }
 }
