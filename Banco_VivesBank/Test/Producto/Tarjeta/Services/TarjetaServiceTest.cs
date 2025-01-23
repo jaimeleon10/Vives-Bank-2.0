@@ -11,7 +11,7 @@ using Moq;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
-namespace Test;
+namespace Test.Producto.Tarjeta.Services;
 
 [TestFixture]
 public class TarjetaServiceTest

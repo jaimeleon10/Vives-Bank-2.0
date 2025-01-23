@@ -1,11 +1,11 @@
-﻿using Moq;
-using Moq.Protected;
 using System.Net;
 using System.Text;
 using Banco_VivesBank.Frankfurter.Exceptions;
 using Banco_VivesBank.Frankfurter.Services;
+using Moq;
+using Moq.Protected;
 
-namespace Test.Divisas;
+namespace Test.Frankfurter.Services;
 
 public class DivisasServiceTest
 {

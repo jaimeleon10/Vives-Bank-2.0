@@ -2,9 +2,8 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Models;
-using NUnit.Framework;
 
-namespace Test;
+namespace Test.Cliente.Mapper;
 
 [TestFixture]
 public class ClienteMapperTest
@@ -31,7 +30,7 @@ public class ClienteMapperTest
             Guid = "user-guid",
             Username = "test",
             Password ="test",
-            Role = Role.USER
+            Role = Role.User
         };
             
         var result = ClienteMapper.ToModelFromRequest(clienteRequest, user);
@@ -80,7 +79,7 @@ public class ClienteMapperTest
                 Guid = "user-guid",
                 Username = "test",
                 Password = "test",
-                Role = Role.USER
+                Role = Role.User
             },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -134,7 +133,7 @@ public class ClienteMapperTest
                 Guid = "user-guid",
                 Username = "test",
                 Password = "test",
-                Role = Role.USER
+                Role = Role.User
             },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -165,7 +164,7 @@ public class ClienteMapperTest
             Guid = "user-guid",
             Username = "test",
             Password = "test",
-            Role = Role.USER
+            Role = Role.User
         };
         var clienteEntity = new ClienteEntity
         {

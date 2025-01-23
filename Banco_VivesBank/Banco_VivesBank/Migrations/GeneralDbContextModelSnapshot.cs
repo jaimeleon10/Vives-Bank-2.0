@@ -23,6 +23,65 @@ namespace Banco_VivesBank.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Banco_VivesBank.Cliente.Models.Cliente", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Apellidos")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasAnnotation("Relational:JsonPropertyName", "createdAt");
+
+                    b.Property<string>("Dni")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FotoDni")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "fotoDni");
+
+                    b.Property<string>("FotoPerfil")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "fotopPerfil");
+
+                    b.Property<string>("Guid")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasAnnotation("Relational:JsonPropertyName", "isDeleted");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasAnnotation("Relational:JsonPropertyName", "updatedAt");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cliente");
+                });
+
             modelBuilder.Entity("Banco_VivesBank.Database.Entities.BaseEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -117,7 +176,6 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
@@ -125,6 +183,9 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Clientes");
                 });
@@ -142,6 +203,7 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnName("cliente_id");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Guid")
@@ -167,9 +229,17 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnName("tarjeta_id");
 
                     b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("TarjetaId")
+                        .IsUnique();
 
                     b.ToTable("Cuentas");
                 });
@@ -238,7 +308,6 @@ namespace Banco_VivesBank.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Guid")
@@ -256,7 +325,6 @@ namespace Banco_VivesBank.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Username")
@@ -266,6 +334,258 @@ namespace Banco_VivesBank.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("Banco_VivesBank.Producto.Base.Models.BaseModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Relational:JsonPropertyName", "id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasAnnotation("Relational:JsonPropertyName", "createdAt");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "descripcion");
+
+                    b.Property<string>("Guid")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "guid ");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasAnnotation("Relational:JsonPropertyName", "isDeleted");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "nombre");
+
+                    b.Property<double>("Tae")
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "tae");
+
+                    b.Property<string>("TipoProducto")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "tipo_producto");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasAnnotation("Relational:JsonPropertyName", "updatedAt");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BaseModel");
+                });
+
+            modelBuilder.Entity("Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Relational:JsonPropertyName", "id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasAnnotation("Relational:JsonPropertyName", "createdAt");
+
+                    b.Property<string>("Cvv")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "cvv");
+
+                    b.Property<string>("FechaVencimiento")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "fecha_vencimiento");
+
+                    b.Property<string>("Guid")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "Guid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasAnnotation("Relational:JsonPropertyName", "is_deleted");
+
+                    b.Property<double>("LimiteDiario")
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "limiteDiario");
+
+                    b.Property<double>("LimiteMensual")
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "limiteMensual");
+
+                    b.Property<double>("LimiteSemanal")
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "limiteSemanal");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "numero");
+
+                    b.Property<string>("Pin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "pin");
+
+                    b.Property<string>("Titular")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasAnnotation("Relational:JsonPropertyName", "titular");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasAnnotation("Relational:JsonPropertyName", "updatedAt");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TarjetaModel");
+                });
+
+            modelBuilder.Entity("Banco_VivesBank.Cliente.Models.Cliente", b =>
+                {
+                    b.OwnsOne("Banco_VivesBank.Cliente.Models.Direccion", "Direccion", b1 =>
+                        {
+                            b1.Property<long>("ClienteId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Calle")
+                                .IsRequired()
+                                .HasMaxLength(150)
+                                .HasColumnType("character varying(150)")
+                                .HasAnnotation("Relational:JsonPropertyName", "calle");
+
+                            b1.Property<string>("CodigoPostal")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasAnnotation("Relational:JsonPropertyName", "codigoPostal");
+
+                            b1.Property<string>("Letra")
+                                .IsRequired()
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)")
+                                .HasAnnotation("Relational:JsonPropertyName", "letra");
+
+                            b1.Property<string>("Numero")
+                                .IsRequired()
+                                .HasMaxLength(5)
+                                .HasColumnType("character varying(5)")
+                                .HasAnnotation("Relational:JsonPropertyName", "numero");
+
+                            b1.Property<string>("Piso")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasAnnotation("Relational:JsonPropertyName", "piso");
+
+                            b1.HasKey("ClienteId");
+
+                            b1.ToTable("Cliente");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ClienteId");
+                        });
+
+                    b.Navigation("Direccion")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Banco_VivesBank.Database.Entities.ClienteEntity", b =>
+                {
+                    b.HasOne("Banco_VivesBank.Database.Entities.UserEntity", "User")
+                        .WithOne()
+                        .HasForeignKey("Banco_VivesBank.Database.Entities.ClienteEntity", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Banco_VivesBank.Cliente.Models.Direccion", "Direccion", b1 =>
+                        {
+                            b1.Property<long>("ClienteEntityId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Calle")
+                                .IsRequired()
+                                .HasMaxLength(150)
+                                .HasColumnType("character varying(150)")
+                                .HasColumnName("Calle")
+                                .HasAnnotation("Relational:JsonPropertyName", "calle");
+
+                            b1.Property<string>("CodigoPostal")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("CodigoPostal")
+                                .HasAnnotation("Relational:JsonPropertyName", "codigoPostal");
+
+                            b1.Property<string>("Letra")
+                                .IsRequired()
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)")
+                                .HasColumnName("Letra")
+                                .HasAnnotation("Relational:JsonPropertyName", "letra");
+
+                            b1.Property<string>("Numero")
+                                .IsRequired()
+                                .HasMaxLength(5)
+                                .HasColumnType("character varying(5)")
+                                .HasColumnName("Numero")
+                                .HasAnnotation("Relational:JsonPropertyName", "numero");
+
+                            b1.Property<string>("Piso")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasColumnName("Piso")
+                                .HasAnnotation("Relational:JsonPropertyName", "piso");
+
+                            b1.HasKey("ClienteEntityId");
+
+                            b1.ToTable("Clientes");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ClienteEntityId");
+                        });
+
+                    b.Navigation("Direccion")
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Banco_VivesBank.Database.Entities.CuentaEntity", b =>
+                {
+                    b.HasOne("Banco_VivesBank.Cliente.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Banco_VivesBank.Producto.Base.Models.BaseModel", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Banco_VivesBank.Producto.Tarjeta.Models.TarjetaModel", "Tarjeta")
+                        .WithOne()
+                        .HasForeignKey("Banco_VivesBank.Database.Entities.CuentaEntity", "TarjetaId");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Tarjeta");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,19 +12,28 @@ public sealed class MovimientoQuery : ObjectGraphType
         _movimientoService = movimientoService;
 
         Field<ListGraphType<MovimientoType>>("movimientos")
-            .Resolve(context =>
+            .ResolveAsync(async context =>
             {
-                var movimientos = _movimientoService.GetAllAsync();
-                return movimientos;
+                var movimientosResponse = await _movimientoService.GetAllAsync();
+                return movimientosResponse;
             });
 
-        Field<MovimientoType>("movimiento")
-            .Arguments(new QueryArguments(new QueryArgument<NonNullGraphType<IdGraphType>> { Name = "id" }
-            )).Resolve(context =>
+        Field<MovimientoType>("movimientoByGuid")
+            .Arguments(new QueryArguments(new QueryArgument<NonNullGraphType<IdGraphType>> { Name = "guid" }
+            )).ResolveAsync(async context =>
             {
-                var id = context.GetArgument<string>("id");
-                var movimiento = _movimientoService.GetByIdAsync(id);
-                return movimiento;
+                var guid = context.GetArgument<string>("guid");
+                var movimientoResponse = await _movimientoService.GetByGuidAsync(guid);
+                return movimientoResponse;
+            });
+        
+        Field<MovimientoType>("movimientoByClienteGuid")
+            .Arguments(new QueryArguments(new QueryArgument<NonNullGraphType<IdGraphType>> { Name = "clienteGuid" }
+            )).ResolveAsync(async context =>
+            {
+                var clienteGuid = context.GetArgument<string>("clienteGuid");
+                var movimientosResponse = await _movimientoService.GetByClienteGuidAsync(clienteGuid);
+                return movimientosResponse;
             });
     }
 }

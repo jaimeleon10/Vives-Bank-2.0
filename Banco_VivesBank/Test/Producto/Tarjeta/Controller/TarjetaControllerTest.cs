@@ -1,5 +1,4 @@
-﻿
-using Banco_VivesBank.Database;
+﻿using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Controllers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Testcontainers.PostgreSql;
 
-namespace Test;
+namespace Test.Producto.Tarjeta.Controller;
 
 public class TarjetaControllerTest
 {
