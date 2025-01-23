@@ -27,16 +27,14 @@ public class CuentaService : ICuentaService
     private readonly GeneralDbContext _context;
     private readonly IBaseService _baseService;
     private readonly ILogger<CuentaService> _logger;
-    private readonly ITarjetaService _tarjetaService;
     private readonly IClienteService _clienteService;
 
-    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService, IClienteService clienteService, ITarjetaService tarjetaService)
+    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService, IClienteService clienteService)
     {
         _context = context;
         _logger = logger;
         _baseService = baseService;
         _clienteService = clienteService;
-        _tarjetaService = tarjetaService;
     }
 
     
