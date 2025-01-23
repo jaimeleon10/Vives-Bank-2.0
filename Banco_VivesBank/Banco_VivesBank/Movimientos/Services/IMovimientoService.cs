@@ -8,12 +8,10 @@ public interface IMovimientoService
     public Task<IEnumerable<MovimientoResponse>> GetAllAsync();
     public Task<MovimientoResponse?> GetByGuidAsync(string guid);
     public Task<IEnumerable<MovimientoResponse?>> GetByClienteGuidAsync(string clienteGuid);
-    public Task<MovimientoResponse> CreateAsync(MovimientoRequest movimientoRequest);
-    public Task<MovimientoResponse> CreateDomiciliacionAsync(DomiciliacionRequest domiciliacionRequest);
-    public Task<MovimientoResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNomina);
-    public Task<MovimientoResponse> CreatePagoConTarjetaAsync(PagoConTarjetaRequest pagoConTarjeta);
-    public Task<MovimientoResponse> CreateTransferenciaAsync(TransferenciaRequest transferencia);
-    public Task<MovimientoResponse> RevocarTransferencia(String movimientoGuid);
-    public Task<MovimientoResponse?> UpdateAsync(string id, MovimientoRequest movimientoRequest);
-    public Task<MovimientoResponse?> DeleteAsync(string id);
+    public Task CreateAsync(MovimientoRequest movimientoRequest);
+    public Task<DomiciliacionResponse> CreateDomiciliacionAsync(DomiciliacionRequest domiciliacionRequest);
+    public Task<IngresoNominaResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNomina);
+    public Task<PagoConTarjetaResponse> CreatePagoConTarjetaAsync(PagoConTarjetaRequest pagoConTarjeta);
+    public Task<TransferenciaResponse> CreateTransferenciaAsync(TransferenciaRequest transferencia);
+    public Task<TransferenciaResponse> RevocarTransferenciaAsync(String movimientoGuid);
 }
