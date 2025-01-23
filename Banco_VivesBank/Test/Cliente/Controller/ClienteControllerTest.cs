@@ -9,7 +9,7 @@ using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
-namespace Test;
+namespace Test.Cliente.Controller;
 
 [TestFixture]
 public class ClienteControllerTest

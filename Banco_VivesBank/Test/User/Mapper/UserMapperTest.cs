@@ -1,7 +1,7 @@
 ﻿using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Mapper;
 
-namespace Test;
+namespace Test.User.Mapper;
 [TestFixture]
 public class UserMapperTest
 {
