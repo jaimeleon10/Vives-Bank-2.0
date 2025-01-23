@@ -46,7 +46,7 @@ public class BackupControllerTests
     }
 
     [Test]
-    public async Task ExportToZip_Successful()
+    public async Task ExportToZip()
     {
         _backupServiceMock
             .Setup(s => s.ExportToZip(It.IsAny<string>(), It.IsAny<string>()))
@@ -65,7 +65,7 @@ public class BackupControllerTests
 
 
     [Test]
-    public async Task ExportToZip_ThrowsException()
+    public async Task ExportToZipException()
     {
         _backupServiceMock
             .Setup(s => s.ExportToZip(It.IsAny<string>(), It.IsAny<string>()))
@@ -79,7 +79,7 @@ public class BackupControllerTests
     }
 
     [Test]
-    public async Task ImportFromZip_Successful()
+    public async Task ImportFromZip()
     {
         _backupServiceMock
             .Setup(s => s.ImportFromZip(
@@ -107,7 +107,7 @@ public class BackupControllerTests
 
 
     [Test]
-    public async Task ImportFromZip_ThrowsException()
+    public async Task ImportFromZipException()
     {
         _backupServiceMock
             .Setup(s => s.ImportFromZip(It.IsAny<string>(), It.IsAny<string>()))

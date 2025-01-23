@@ -9,18 +9,26 @@ public class BackupController : ControllerBase
 {
     private readonly ILogger<BackupService> _logger;
     private readonly IBackupService _backupService;
+    private readonly string _dataDirectory;
+    private readonly string _backupFilePath;
 
-    public BackupController(ILogger<BackupService> logger, IBackupService backupService)
+    public BackupController(
+        ILogger<BackupService> logger, 
+        IBackupService backupService,
+        string dataDirectory,
+        string backupFilePath)
     {
         _logger = logger;
         _backupService = backupService;
+        _dataDirectory = dataDirectory;
+        _backupFilePath = backupFilePath;
     }
 
     protected virtual string GetDataDirectory() => 
-        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
+        _dataDirectory;
 
     protected virtual string GetBackupFilePath() => 
-        Path.Combine(GetDataDirectory(), "backup.zip");
+        _backupFilePath;
 
     [HttpGet("exportar-zip")]
     [ProducesResponseType(StatusCodes.Status200OK)]
