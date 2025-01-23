@@ -5,12 +5,12 @@ namespace Banco_VivesBank.Movimientos.Models;
 
 public class PagoConTarjeta
 {
-    [JsonPropertyName("numeroTarjeta")]
-    public required string NumeroTarjeta { get; set; }
+    [JsonPropertyName("nombreComercio")]
+    public required string NombreComercio { get; set; }
     
     [JsonPropertyName("importe")]
     public required BigInteger Importe { get; set; }
     
-    [JsonPropertyName("nombreComercio")]
-    public required string NombreComercio { get; set; }
+    [JsonPropertyName("numeroTarjeta")]
+    public required string NumeroTarjeta { get; set; }
 }

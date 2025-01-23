@@ -5,18 +5,18 @@ namespace Banco_VivesBank.Movimientos.Models;
 
 public class IngresoNomina
 {
-    [JsonPropertyName("ibanOrigen")]
-    public required string IbanOrigen { get; set; }
-    
-    [JsonPropertyName("ibanDestino")]
-    public required string IbanDestino { get; set; }
-    
-    [JsonPropertyName("importe")]
-    public required BigInteger Importe { get; set; }
-    
     [JsonPropertyName("nombreEmpresa")]
     public required string NombreEmpresa { get; set; }
     
     [JsonPropertyName("cifEmpresa")]
     public required string CifEmpresa { get; set; }
+    
+    [JsonPropertyName("ibanOrigen")]
+    public required string IbanEmpresa { get; set; }
+    
+    [JsonPropertyName("ibanDestino")]
+    public required string IbanCliente { get; set; }
+    
+    [JsonPropertyName("importe")]
+    public required BigInteger Importe { get; set; }
 }

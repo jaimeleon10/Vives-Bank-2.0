@@ -17,7 +17,10 @@ public class Domiciliacion
     public string Guid = GuidGenerator.GenerarId();
     
     [JsonPropertyName("cliente")]
-    public required Cliente.Models.Cliente Cliente { get; set; }
+    public required string ClienteGuid { get; set; }
+    
+    [JsonPropertyName("acreedor")]
+    public required string Acreedor { get; set; }
     
     [JsonPropertyName("ibanEmpresa")]
     public required string IbanEmpresa { get; set; }
@@ -27,18 +30,15 @@ public class Domiciliacion
     
     [JsonPropertyName("importe")]
     public required BigInteger Importe { get; set; }
-    
-    [JsonPropertyName("acreedor")]
-    public required string Acreedor { get; set; }
-    
-    [JsonPropertyName("fechaInicio")]
-    public DateTime FechaInicio { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("periodicidad")]
     public Periodicidad Periodicidad { get; set; } = Periodicidad.Mensual;
     
     [JsonPropertyName("activa")]
     public bool Activa { get; set; } = true;
+    
+    [JsonPropertyName("fechaInicio")]
+    public DateTime FechaInicio { get; set; } = DateTime.UtcNow;
     
     [JsonPropertyName("ultimaEjecucion")]
     public DateTime UltimaEjecucion { get; set; } = DateTime.UtcNow;
