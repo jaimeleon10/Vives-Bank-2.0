@@ -28,13 +28,15 @@ public class BackupControllerTests
         _testDataDirectory = Path.Combine(Path.GetTempPath(), "test_backup_" + Guid.NewGuid());
         Directory.CreateDirectory(_testDataDirectory);
         _testZipPath = Path.Combine(_testDataDirectory, "backup.zip");
-        
-        var controllerMock = new Mock<BackupController>(_loggerMock.Object, _backupServiceMock.Object);
-        controllerMock.Setup(c => c.GetDataDirectory()).Returns(_testDataDirectory);
-        controllerMock.Setup(c => c.GetBackupFilePath()).Returns(_testZipPath);
 
-        _controller = new BackupController(_loggerMock.Object, _backupServiceMock.Object);
+        _controller = new BackupController(
+            _loggerMock.Object, 
+            _backupServiceMock.Object, 
+            _testDataDirectory, 
+            _testZipPath
+        );
     }
+
 
     [TearDown]
     public void Cleanup()
@@ -86,11 +88,14 @@ public class BackupControllerTests
             ))
             .Returns(Task.CompletedTask);
 
-        var scope = new Mock<BackupController>(_loggerMock.Object, _backupServiceMock.Object) { CallBase = true };
-        scope.Setup(c => c.GetDataDirectory()).Returns(_testDataDirectory);
-        scope.Setup(c => c.GetBackupFilePath()).Returns(_testZipPath);
+        var controller = new BackupController(
+            _loggerMock.Object, 
+            _backupServiceMock.Object, 
+            _testDataDirectory, 
+            _testZipPath
+        );
 
-        var result = await scope.Object.ImportFromZip();
+        var result = await controller.ImportFromZip();
 
         Assert.That(result, Is.Not.Null, "El resultado es nulo.");
         Assert.That(result, Is.InstanceOf<OkResult>(), "El resultado no es un OkResult.");
@@ -99,6 +104,7 @@ public class BackupControllerTests
             Times.Once, "El método ImportFromZip no fue invocado correctamente."
         );
     }
+
 
     [Test]
     public async Task ImportFromZip_ThrowsException()
