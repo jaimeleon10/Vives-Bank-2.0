@@ -1,9 +1,9 @@
 ﻿using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Dto;
+using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Models;
 
-namespace Test;
+namespace Test.Producto.Base.Mappers;
 
 public class BaseMapperTests
 {

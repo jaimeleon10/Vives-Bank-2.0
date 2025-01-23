@@ -16,7 +16,9 @@ public class MovimientosMongoConfig
     
     public string ConnectionString { get; set; } = string.Empty;
     public string DatabaseName { get; set; } = string.Empty;
-    public string CategoriasCollectionName { get; set; } = string.Empty;
+    public string MovimientosCollectionName { get; set; } = string.Empty;
+    public string DomiciliacionesCollectionName { get; set; } = string.Empty;
+
     
     public void TryConnection()
     {

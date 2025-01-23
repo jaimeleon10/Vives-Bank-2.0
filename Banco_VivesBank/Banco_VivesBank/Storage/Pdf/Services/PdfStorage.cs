@@ -175,14 +175,14 @@ public class PdfStorage : IPdfStorage
         {
             { Domiciliacion: not null } => (
                 "Domiciliación",
-                movimiento.Domiciliacion.IbanOrigen,
-                movimiento.Domiciliacion.IbanDestino,
+                movimiento.Domiciliacion.IbanEmpresa,
+                movimiento.Domiciliacion.IbanCliente,
                 movimiento.Domiciliacion.Importe.ToString("F2")
             ),
             { IngresoNomina: not null } => (
                 "Ingreso Nómina",
-                movimiento.IngresoNomina.IbanOrigen,
-                movimiento.IngresoNomina.IbanDestino,
+                movimiento.IngresoNomina.IbanEmpresa,
+                movimiento.IngresoNomina.IbanCliente,
                 movimiento.IngresoNomina.Importe.ToString("F2")
             ),
             { PagoConTarjeta: not null } => (

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
-namespace Test;
+namespace Test.Storage.Json;
 
 [TestFixture]
 public class StorageJsonTest
@@ -41,7 +41,7 @@ public class StorageJsonTest
             Guid = "guid",
             Username = "username",
             Password = "password",
-            Role = Role.USER,
+            Role = Role.User,
             CreatedAt = DateTime.Parse("2025-01-14 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-14 10:30:00"),
             IsDeleted = false
@@ -53,7 +53,7 @@ public class StorageJsonTest
             Guid = "guid2",
             Username = "username2",
             Password = "password2",
-            Role = Role.USER,
+            Role = Role.User,
             CreatedAt = DateTime.Parse("2025-01-13 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-13 10:30:00"),
             IsDeleted = false
@@ -119,7 +119,7 @@ public class StorageJsonTest
             Guid = "guid",
             Username = "username",
             Password = "password",
-            Role = Role.USER,
+            Role = Role.User,
             CreatedAt = DateTime.Parse("2025-01-14 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-14 10:30:00"),
             IsDeleted = false
@@ -131,7 +131,7 @@ public class StorageJsonTest
             Guid = "guid2",
             Username = "username2",
             Password = "password2",
-            Role = Role.USER,
+            Role = Role.User,
             CreatedAt = DateTime.Parse("2025-01-13 10:30:00"),
             UpdatedAt = DateTime.Parse("2025-01-13 10:30:00"),
             IsDeleted = false

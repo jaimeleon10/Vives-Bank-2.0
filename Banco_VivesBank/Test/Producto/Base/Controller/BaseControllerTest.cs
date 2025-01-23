@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test;
+namespace Test.Producto.Base.Controller;
 
 public class BaseControllerTests
     {

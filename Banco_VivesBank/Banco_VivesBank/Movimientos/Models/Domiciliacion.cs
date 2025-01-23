@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Banco_VivesBank.Movimientos.Models;
 
-public abstract class Domiciliacion
+public class Domiciliacion
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
@@ -17,28 +17,28 @@ public abstract class Domiciliacion
     public string Guid = GuidGenerator.GenerarId();
     
     [JsonPropertyName("cliente")]
-    public required Cliente.Models.Cliente Cliente { get; set; }
-    
-    [JsonPropertyName("ibanOrigen")]
-    public required string IbanOrigen { get; set; }
-    
-    [JsonPropertyName("ibanDestino")]
-    public required string IbanDestino { get; set; }
-    
-    [JsonPropertyName("importe")]
-    public required BigInteger Importe { get; set; }
+    public required string ClienteGuid { get; set; }
     
     [JsonPropertyName("acreedor")]
     public required string Acreedor { get; set; }
     
-    [JsonPropertyName("fechaInicio")]
-    public DateTime FechaInicio { get; set; } = DateTime.UtcNow;
+    [JsonPropertyName("ibanEmpresa")]
+    public required string IbanEmpresa { get; set; }
+    
+    [JsonPropertyName("ibanCliente")]
+    public required string IbanCliente { get; set; }
+    
+    [JsonPropertyName("importe")]
+    public required BigInteger Importe { get; set; }
 
     [JsonPropertyName("periodicidad")]
     public Periodicidad Periodicidad { get; set; } = Periodicidad.Mensual;
     
     [JsonPropertyName("activa")]
     public bool Activa { get; set; } = true;
+    
+    [JsonPropertyName("fechaInicio")]
+    public DateTime FechaInicio { get; set; } = DateTime.UtcNow;
     
     [JsonPropertyName("ultimaEjecucion")]
     public DateTime UltimaEjecucion { get; set; } = DateTime.UtcNow;

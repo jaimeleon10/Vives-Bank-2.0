@@ -24,7 +24,7 @@ namespace Banco_VivesBank.Database.Entities
         public string Password { get; set; } = null!;
 
         [Required]
-        public Role Role { get; set; } = Role.USER;
+        public Role Role { get; set; } = Role.User;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

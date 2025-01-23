@@ -93,12 +93,12 @@ WebApplicationBuilder InitServices()
     TryConnectionDataBase();
     
     // Services
-    myBuilder.Services.AddSingleton<IMovimientoService, MovimientoService>();
     myBuilder.Services.AddScoped<IUserService, UserService>();
     myBuilder.Services.AddScoped<IClienteService, ClienteService>();
     myBuilder.Services.AddScoped<IBaseService, BaseService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
+    myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>();
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
@@ -113,9 +113,9 @@ WebApplicationBuilder InitServices()
         options.UseNpgsql(myBuilder.Configuration.GetConnectionString("DefaultConnection")));
     
     // GraphQL
-    myBuilder.Services.AddSingleton<MovimientoQuery>();
-    myBuilder.Services.AddSingleton<MovimientoSchema>();
-    myBuilder.Services.AddSingleton<MovimientoType>();
+    myBuilder.Services.AddScoped<MovimientoQuery>();
+    myBuilder.Services.AddScoped<MovimientoSchema>();
+    myBuilder.Services.AddScoped<MovimientoType>();
     
     myBuilder.Services.AddGraphQL(graphQlBuilder =>
     {

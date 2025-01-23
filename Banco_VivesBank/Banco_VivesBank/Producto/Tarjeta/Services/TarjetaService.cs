@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
@@ -139,6 +139,32 @@ public class TarjetaService : ITarjetaService
         return null;
     }
 
+    public async Task<TarjetaResponse?> GetByNumeroTarjetaAsync(string numeroTarjeta)
+    {
+        _logger.LogDebug($"Obteniendo tarjeta con número de tarjeta: {numeroTarjeta}");
+        
+        /*var cacheKey = CacheKeyPrefix + id;
+        if (_cache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
+        {
+            _logger.LogDebug("Tarjeta obtenida de cache");
+            return cachedTarjeta.ToResponseFromModel();
+        }*/
+        
+        _logger.LogDebug("Buscando tarjeta en la base de datos");
+        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Numero == numeroTarjeta);
+        if (tarjeta == null)
+        {
+            _logger.LogDebug("Tarjeta no encontrada");
+            return null;
+        }
+        
+        _logger.LogDebug("Tarjeta obtenida de la base de datos");
+        /*
+        _cache.Set(cacheKey, tarjeta.ToModelFromEntity());
+        */
+        return tarjeta.ToModelFromEntity().ToResponseFromModel();
+    }
+
     public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest)
     {
         _logger.LogDebug("Creando una nueva tarjeta");
@@ -170,7 +196,7 @@ public class TarjetaService : ITarjetaService
         return tarjetaEntity.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponse> UpdateAsync(string id, TarjetaRequest dto)
+    public async Task<TarjetaResponse?> UpdateAsync(string id, TarjetaRequest dto)
     {
         _logger.LogDebug($"Actualizando tarjeta con id: {id}");
         var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == id);

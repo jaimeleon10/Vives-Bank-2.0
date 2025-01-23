@@ -235,6 +235,36 @@ public class CuentaService : ICuentaService
         _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
         return null;
     }
+
+    public async Task<CuentaResponse?> GetByTarjetaGuidAsync(string tarjetaGuid)
+    {
+        _logger.LogInformation($"Buscando cuenta por guid de tarjeta: {tarjetaGuid} en la base de datos");
+        
+        /*
+        var cacheKey = CacheKeyPrefix + iban;
+        if (_cache.TryGetValue(cacheKey, out Cuenta? cachedCuenta))
+        {
+            _logger.LogDebug("Cuenta obtenida de cache");
+            return cachedCuenta;
+        }
+        */
+        
+        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta != null && c.Tarjeta.Guid == tarjetaGuid);
+
+        if (cuentaEntity != null)
+        {
+            /*
+             cachedCuenta = CuentaMapper.ToModelFromEntity(cuentaEntity);
+             _cache.Set(cacheKey, cachedCuenta, TimeSpan.FromMinutes(30));
+             return cachedCuenta.ToResponseFromModel();
+             */
+            _logger.LogInformation($"Cuenta encontrada con guid de tarjeta: {tarjetaGuid}");
+            return cuentaEntity.ToResponseFromEntity();
+        }
+
+        _logger.LogInformation($"Cuenta no encontrada con guid de tarjeta: {tarjetaGuid}");
+        return null;
+    }
     /*
     public async Task<CuentaResponse?> GetMeByIbanAsync(string guid, string iban)
     {
@@ -481,7 +511,7 @@ public class CuentaService : ICuentaService
         return cuentaExistenteEntity.ToResponseFromEntity();
     }
 
-    public async Task<Models.Cuenta?> GetCuentaModelByGuid(string guid)
+    public async Task<Models.Cuenta?> GetCuentaModelByGuidAsync(string guid)
     {
         _logger.LogInformation($"Buscando cuenta con guid: {guid}");
 
@@ -521,7 +551,7 @@ public class CuentaService : ICuentaService
         return null;
     }
         
-    public async Task<Models.Cuenta?> GetCuentaModelById(long id)
+    public async Task<Models.Cuenta?> GetCuentaModelByIdAsync(long id)
     {
         _logger.LogInformation($"Buscando usuario con id: {id}");
 
