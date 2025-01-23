@@ -16,10 +16,10 @@ public class BackupController : ControllerBase
         _backupService = backupService;
     }
 
-    public virtual string GetDataDirectory() => 
+    protected virtual string GetDataDirectory() => 
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
 
-    public virtual string GetBackupFilePath() => 
+    protected virtual string GetBackupFilePath() => 
         Path.Combine(GetDataDirectory(), "backup.zip");
 
     [HttpGet("exportar-zip")]
