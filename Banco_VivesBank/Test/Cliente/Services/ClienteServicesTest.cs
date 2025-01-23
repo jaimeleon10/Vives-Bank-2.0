@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Testcontainers.PostgreSql;
 
-namespace Test;
+namespace Test.Cliente.Services;
 
 [TestFixture]
 public class ClienteServiceTests

@@ -16,7 +16,7 @@ using Banco_VivesBank.User.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test;
+namespace Test.Storage.Zip;
 
 [TestFixture]
 public class BackupServiceTests

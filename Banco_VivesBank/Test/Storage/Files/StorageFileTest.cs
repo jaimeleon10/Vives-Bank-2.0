@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace Test;
+namespace Test.Storage.Files;
 
 public class StorageFileTest
 {

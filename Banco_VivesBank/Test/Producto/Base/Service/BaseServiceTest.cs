@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
-using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Services;
+﻿using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Dto;
+using Banco_VivesBank.Producto.Base.Exceptions;
+using Banco_VivesBank.Producto.Base.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Testcontainers.PostgreSql;
-using Banco_VivesBank.Database;
 
-namespace Test;
+namespace Test.Producto.Base.Service;
 
 [TestFixture]
 [TestOf(typeof(BaseService))]
