@@ -1,0 +1,267 @@
+﻿using System.Text;
+using Banco_VivesBank.Producto.Base.Controllers;
+using Banco_VivesBank.Producto.Base.Dto;
+using Banco_VivesBank.Producto.Base.Exceptions;
+using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Producto.Base.Services;
+using Banco_VivesBank.Producto.Base.Storage;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace Test;
+
+public class BaseControllerTests
+    {
+        private Mock<ILogger<BaseController>> _loggerMock;
+        private Mock<IBaseService> _baseServiceMock;
+        private Mock<IStorageProductos> _storageProductosMock;
+        private BaseController _controller;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _loggerMock = new Mock<ILogger<BaseController>>();
+            _baseServiceMock = new Mock<IBaseService>();
+            _storageProductosMock = new Mock<IStorageProductos>();
+
+            _controller = new BaseController(
+                _loggerMock.Object,
+                _baseServiceMock.Object,
+                _storageProductosMock.Object
+            );
+        }
+
+        [Test]
+        public async Task GetAll()
+        {
+            var expectedProducts = new List<BaseResponse>
+            {
+                new() { Nombre = "Producto1", Descripcion = "Descripcion1", Tae = 5.5, TipoProducto = "Tipo1" },
+                new() { Nombre = "Producto2", Descripcion = "Descripcion2", Tae = 6.5, TipoProducto = "Tipo2" }
+            };
+
+            _baseServiceMock.Setup(s => s.GetAllAsync())
+                .ReturnsAsync(expectedProducts);
+
+            var result = await _controller.GetAll();
+
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+            var returnValue = (result.Result as OkObjectResult)?.Value as IEnumerable<BaseResponse>;
+            Assert.That(returnValue, Is.EqualTo(expectedProducts));
+        }
+
+        [Test]
+        public async Task GetByGuid()
+        {
+            var guid = "testGuid";
+            var expectedProduct = new BaseResponse
+            {
+                Nombre = "Producto1",
+                Descripcion = "Descripcion1",
+                Tae = 5.5,
+                TipoProducto = "Tipo1"
+            };
+
+            _baseServiceMock.Setup(s => s.GetByGuidAsync(guid))
+                .ReturnsAsync(expectedProduct);
+
+            var result = await _controller.GetByGuid(guid);
+
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+            var returnValue = (result.Result as OkObjectResult)?.Value as BaseResponse;
+            Assert.That(returnValue, Is.EqualTo(expectedProduct));
+
+        }
+
+        [Test]
+        public async Task GetByGuidNotFound()
+        {
+            var guid = "non-existing-guid";
+            _baseServiceMock.Setup(s => s.GetByGuidAsync(guid))
+                .ReturnsAsync((BaseResponse)null);
+
+            var result = await _controller.GetByGuid(guid);
+
+            Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        }
+
+        [Test]
+        public async Task Create()
+        {
+            var request = new BaseRequest
+            {
+                Nombre = "nuevo producto",
+                Descripcion = "nueva descripcion",
+                Tae = 5.5,
+                TipoProducto = "nuevo tipo"
+            };
+
+            var expectedResponse = new BaseResponse
+            {
+                Nombre = request.Nombre,
+                Descripcion = request.Descripcion,
+                Tae = request.Tae,
+                TipoProducto = request.TipoProducto
+            };
+
+            _baseServiceMock.Setup(s => s.CreateAsync(request))
+                .ReturnsAsync(expectedResponse);
+
+            var result = await _controller.Create(request);
+            
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+            var returnValue = (result.Result as OkObjectResult)?.Value as BaseResponse;
+            Assert.That(returnValue, Is.EqualTo(expectedResponse));
+        }
+
+        [Test]
+        public async Task CreateBaseRequestInvalido()
+        {
+            var request = new BaseRequest();
+            _controller.ModelState.AddModelError("Nombre", "Required");
+
+            var result = await _controller.Create(request);
+
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        }
+
+        [Test]
+        public async Task CreateException()
+        {
+            var request = new BaseRequest
+            {
+                Nombre = "nuevo producto",
+                Descripcion = "nueva Descripcion",
+                Tae = 5.5,
+                TipoProducto = "nuevo tipo"
+            };
+
+            _baseServiceMock.Setup(s => s.CreateAsync(request))
+                .ThrowsAsync(new BaseException("Error message"));
+
+            var result = await _controller.Create(request);
+
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        }
+
+        [Test]
+        public async Task Update()
+        {
+            var guid = "testGuid";
+            var updateDto = new BaseUpdateDto
+            {
+                Nombre = "Producto actualizado",
+                Descripcion = "Descripcion actualizada",
+                Tae = 6.5,
+                TipoProducto = "Tipo Actualizado"
+            };
+
+            var expectedResponse = new BaseResponse
+            {
+                Nombre = updateDto.Nombre,
+                Descripcion = updateDto.Descripcion,
+                Tae = updateDto.Tae,
+                TipoProducto = updateDto.TipoProducto
+            };
+
+            _baseServiceMock.Setup(s => s.UpdateAsync(guid, updateDto))
+                            .ReturnsAsync(expectedResponse);
+
+            var result = await _controller.Update(guid, updateDto);
+
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+            var returnValue = okResult?.Value as BaseResponse;
+            Assert.That(returnValue, Is.EqualTo(expectedResponse));
+        }
+
+        [Test]
+        public async Task Delete()
+        {
+            var guid = "testGuid";
+            var expectedResponse = new BaseResponse
+            {
+                Nombre = "Producto",
+                Descripcion = "Descripcion",
+                Tae = 5.5,
+                TipoProducto = "Tipo"
+            };
+
+            _baseServiceMock.Setup(s => s.DeleteAsync(guid))
+                .ReturnsAsync(expectedResponse);
+
+            var result = await _controller.DeleteByGuid(guid);
+
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+            var returnValue = (result.Result as OkObjectResult)?.Value as BaseResponse;
+            Assert.That(returnValue, Is.EqualTo(expectedResponse));
+        }
+
+        [Test]
+        public async Task ImportFromCsv()
+        {
+            var fileContent = "Nombre,Descripcion,TipoProducto,Tae\nProducto1,Desc1,Tipo1,5.5";
+            var fileName = "test.csv";
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+            var formFile = new Mock<IFormFile>();
+            formFile.Setup(f => f.FileName).Returns(fileName);
+            formFile.Setup(f => f.Length).Returns(stream.Length);
+            formFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Callback<Stream, CancellationToken>((stream, token) =>
+                {
+                    stream.Write(Encoding.UTF8.GetBytes(fileContent), 0, fileContent.Length);
+                })
+                .Returns(Task.CompletedTask);
+
+            var importedProducts = new List<BaseModel>
+            {
+                new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
+            };
+
+            _storageProductosMock.Setup(s => s.ImportProductosFromCsv(It.IsAny<FileInfo>()))
+                .Returns(importedProducts);
+
+            var expectedResponse = new BaseResponse
+            {
+                Nombre = "Producto1",
+                Descripcion = "Desc1",
+                TipoProducto = "Tipo1",
+                Tae = 5.5
+            };
+
+            _baseServiceMock.Setup(s => s.CreateAsync(It.IsAny<BaseRequest>()))
+                .ReturnsAsync(expectedResponse);
+
+            var result = await _controller.ImportFromCsv(formFile.Object);
+
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+            var okObjectResult = result.Result as OkObjectResult;
+            var returnValue = okObjectResult?.Value as List<BaseResponse>;
+            Assert.That(returnValue?.Count, Is.EqualTo(1));
+            Assert.That(returnValue?[0], Is.EqualTo(expectedResponse));
+        }
+
+        [Test]
+        public async Task ExportToCsv()
+        {
+            var products = new List<BaseResponse>
+            {
+                new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
+            };
+
+            _baseServiceMock.Setup(s => s.GetAllAsync())
+                .ReturnsAsync(products);
+
+            var result = await _controller.ExportToCsv();
+
+            Assert.That(result, Is.TypeOf<FileContentResult>());
+            var fileResult = result as FileContentResult;
+            Assert.That(fileResult.ContentType, Is.EqualTo("text/csv"));
+            Assert.That(fileResult.FileDownloadName, Does.StartWith("productos_export_"));
+            Assert.That(fileResult.FileDownloadName, Does.EndWith(".csv"));
+        }
+    }
