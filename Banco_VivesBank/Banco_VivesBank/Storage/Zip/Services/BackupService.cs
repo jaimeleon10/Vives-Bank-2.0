@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Services;
+using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
@@ -11,7 +13,7 @@ using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 
-namespace Banco_VivesBank.Storage.Backup.Service;
+namespace Banco_VivesBank.Storage.Zip.Services;
 
 public class BackupService : IBackupService
 {
@@ -23,7 +25,7 @@ public class BackupService : IBackupService
     private readonly IBaseService _baseService;
     private readonly ICuentaService _cuentaService;
     private readonly ITarjetaService _tarjetaService;
-    //private readonly IMovimientoService _movimientoService;
+    private readonly IMovimientoService _movimientoService;
 
     
     //storageJson
@@ -35,7 +37,7 @@ public class BackupService : IBackupService
         IBaseService baseService, 
         ICuentaService cuentaService, 
         ITarjetaService tarjetaService,
-        //IMovimientoService movimientoService
+        IMovimientoService movimientoService,
         IStorageJson storageJson
         )
     {
@@ -47,7 +49,7 @@ public class BackupService : IBackupService
         _baseService = baseService;
         _cuentaService = cuentaService;
         _tarjetaService = tarjetaService;
-        //_movimientoService = movimientoService;
+        _movimientoService = movimientoService;
         
         //inicializamos el storageJson
         _storageJson = storageJson;
@@ -76,12 +78,14 @@ public class BackupService : IBackupService
         var bases = await _baseService.GetAllForStorage();
         var cuentas = await _cuentaService.GetAllForStorage();
         var tarjetas = await _tarjetaService.GetAllForStorage();
+        var movimientos = await _movimientoService.GetAllAsync();
 
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "bases.json")), bases.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.ToList());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos.ToList());
 
         using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
         {
@@ -90,6 +94,7 @@ public class BackupService : IBackupService
             zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "bases.json"), "bases.json");
             zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "cuentas.json"), "cuentas.json");
             zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "tarjetas.json"), "tarjetas.json");
+            zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "movimientos.json"), "movimientos.json");
         }
 
         _logger.LogInformation("Exportación de datos a ZIP finalizada.");
@@ -121,6 +126,7 @@ public class BackupService : IBackupService
             var basesFile = new FileInfo(Path.Combine(destinationDirectory, "bases.json"));
             var cuentasFile = new FileInfo(Path.Combine(destinationDirectory, "cuentas.json"));
             var tarjetasFile = new FileInfo(Path.Combine(destinationDirectory, "tarjetas.json"));
+            var movimientosFile = new FileInfo(Path.Combine(destinationDirectory, "movimientos.json"));
 
             if (usuariosFile.Exists)
             {
@@ -165,6 +171,67 @@ public class BackupService : IBackupService
                 foreach (var tarjetaDto in tarjetas)
                 {
                     await _tarjetaService.CreateAsync(tarjetaDto);
+                }
+            }
+            
+            if (movimientosFile.Exists)
+            {
+                var movimientos = _storageJson.ImportJson<MovimientoRequest>(movimientosFile);
+                //buscamos primero que timpo de movimiento es y lo guardamos con su propio metodo
+
+                foreach (var movimiento in movimientos)
+                {
+                    if (movimiento.Domiciliacion != null)
+                    {
+                        var domiciliacionRequest = new DomiciliacionRequest
+                        {
+                            ClienteGuid = movimiento.Domiciliacion.ClienteGuid,
+                            Acreedor = movimiento.Domiciliacion.Acreedor,
+                            IbanEmpresa = movimiento.Domiciliacion.IbanEmpresa,
+                            IbanCliente = movimiento.Domiciliacion.IbanCliente,
+                            Importe = movimiento.Domiciliacion.Importe.ToString(),
+                            Periodicidad = movimiento.Domiciliacion.Periodicidad.ToString(),
+                            Activa = movimiento.Domiciliacion.Activa
+                        };
+    
+                        await _movimientoService.CreateDomiciliacionAsync(domiciliacionRequest);
+                    }
+
+                    if (movimiento.PagoConTarjeta != null)
+                    {
+                        var pagoConTarjetaRequest = new PagoConTarjetaRequest
+                        {
+                            NombreComercio = movimiento.PagoConTarjeta.NombreComercio,
+                            Importe = movimiento.PagoConTarjeta.Importe.ToString(),
+                            NumeroTarjeta = movimiento.PagoConTarjeta.NumeroTarjeta
+                        };
+                        await _movimientoService.CreatePagoConTarjetaAsync(pagoConTarjetaRequest);
+                    }
+
+                    if (movimiento.Transferencia != null)
+                    {
+                        var transferenciaRequest = new TransferenciaRequest
+                        {
+                            IbanOrigen = movimiento.Transferencia.IbanOrigen,
+                            NombreBeneficiario = movimiento.Transferencia.NombreBeneficiario,
+                            IbanDestino = movimiento.Transferencia.IbanDestino,
+                            Importe = movimiento.Transferencia.Importe.ToString()
+                        };
+                        await _movimientoService.CreateTransferenciaAsync(transferenciaRequest);
+                    }
+
+                    if (movimiento.IngresoNomina != null )
+                    {
+                        var ingresoNominaRequest = new IngresoNominaRequest
+                        {
+                            NombreEmpresa = movimiento.IngresoNomina.NombreEmpresa,
+                            CifEmpresa = movimiento.IngresoNomina.CifEmpresa,
+                            IbanEmpresa = movimiento.IngresoNomina.IbanEmpresa,
+                            IbanCliente = movimiento.IngresoNomina.IbanCliente,
+                            Importe = movimiento.IngresoNomina.Importe.ToString()
+                        };
+                        await _movimientoService.CreateIngresoNominaAsync(ingresoNominaRequest);
+                    }
                 }
             }
 
