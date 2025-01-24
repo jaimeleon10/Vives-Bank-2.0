@@ -97,11 +97,10 @@ public class TarjetaController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
-
         try
         {
+            var tarjeta = await _tarjetaService.GetByGuidAsync(id);
+            if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
             var updatedTarjeta = await _tarjetaService.UpdateAsync(id, dto);
             return Ok(updatedTarjeta);
         }
