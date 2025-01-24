@@ -6,9 +6,9 @@ namespace Banco_VivesBank.Producto.Base.Mappers;
 
 public static class BaseMapper
 {
-    public static BaseModel ToModelFromRequest(this BaseRequest d)
+    public static Models.Base ToModelFromRequest(this BaseRequest d)
     {
-        return new BaseModel
+        return new Models.Base
         {
             Nombre = d.Nombre,
             Descripcion = d.Descripcion,
@@ -20,9 +20,9 @@ public static class BaseMapper
         };
     }
 
-    public static BaseModel ToModelFromEntity(this BaseEntity entity)
+    public static Models.Base ToModelFromEntity(this BaseEntity entity)
     {
-        return new BaseModel
+        return new Models.Base
         {
             Id = entity.Id,
             Guid = entity.Guid,
@@ -36,7 +36,7 @@ public static class BaseMapper
         };
     }
     
-    public static BaseEntity ToEntityFromModel(this BaseModel model)
+    public static BaseEntity ToEntityFromModel(this Models.Base model)
     {
         return new BaseEntity
         {
@@ -53,7 +53,7 @@ public static class BaseMapper
 
     }
 
-    public static BaseResponse ToResponseFromModel(this BaseModel model)
+    public static BaseResponse ToResponseFromModel(this Models.Base model)
     {
         return new BaseResponse
         {

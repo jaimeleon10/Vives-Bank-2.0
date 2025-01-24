@@ -90,7 +90,7 @@ public class BackupServiceTests
             .ReturnsAsync(new List<Banco_VivesBank.Cliente.Models.Cliente>());
 
         _baseServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<BaseModel>());
+            .ReturnsAsync(new List<Base>());
 
         _cuentaServiceMock.Setup(s => s.GetAllForStorage())
             .ReturnsAsync(new List<Cuenta>());
@@ -140,7 +140,7 @@ public class BackupServiceTests
             It.IsAny<List<Banco_VivesBank.Cliente.Models.Cliente>>()), Times.Once);
         _storageJsonMock.Verify(s => s.ExportJson(
             It.Is<FileInfo>(f => f.Name == "bases.json"), 
-            It.IsAny<List<BaseModel>>()), Times.Once);
+            It.IsAny<List<Base>>()), Times.Once);
         _storageJsonMock.Verify(s => s.ExportJson(
             It.Is<FileInfo>(f => f.Name == "cuentas.json"), 
             It.IsAny<List<Cuenta>>()), Times.Once);

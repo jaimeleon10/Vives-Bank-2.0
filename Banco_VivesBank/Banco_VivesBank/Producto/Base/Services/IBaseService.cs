@@ -14,8 +14,8 @@ public interface IBaseService
     public Task<BaseResponse?> DeleteAsync(string guid);
     public Task<PageResponse<BaseResponse>> GetAllPagedAsync(PageRequest pageRequest);
     
-    public Task<BaseModel?> GetBaseModelByGuid(string guid);
-    public Task<BaseModel?> GetBaseModelById(long id);
-    public Task<IEnumerable<BaseModel>> GetAllForStorage();
+    public Task<Models.Base?> GetBaseModelByGuid(string guid);
+    public Task<Models.Base?> GetBaseModelById(long id);
+    public Task<IEnumerable<Models.Base>> GetAllForStorage();
 
 }

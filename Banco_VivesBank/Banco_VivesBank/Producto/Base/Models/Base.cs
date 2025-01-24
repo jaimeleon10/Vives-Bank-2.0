@@ -3,7 +3,7 @@ using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.Producto.Base.Models;
 
-public class BaseModel
+public class Base
 {
     
     [JsonPropertyName("id")]
