@@ -31,7 +31,7 @@ using BigInteger = System.Numerics.BigInteger;
 using Direccion = Banco_VivesBank.Cliente.Models.Direccion;
 using Role = Banco_VivesBank.User.Models.Role;
 
-namespace Banco_VivesBank.Test.Producto.Cuenta.Services;
+namespace Test.Producto.Cuenta.Services;
 
 [TestFixture]
 [TestOf(typeof(CuentaService))]
