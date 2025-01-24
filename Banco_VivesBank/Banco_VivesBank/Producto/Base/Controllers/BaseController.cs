@@ -161,7 +161,7 @@ public class BaseController : ControllerBase
         {
             var products = await _baseService.GetAllAsync();
             if (!products.Any())
-                return NotFound("No hay productos para exportar");
+                return Ok("No hay productos para exportar");
 
             var tempFilePath = Path.GetTempFileName();
             var fileInfo = new FileInfo(tempFilePath);

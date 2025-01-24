@@ -4,7 +4,7 @@ using Banco_VivesBank.Producto.Base.Storage;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.Producto.Base.Storage;
+namespace Test.Storage;
 
 public class StorageProductosTests
 {
@@ -22,7 +22,7 @@ public class StorageProductosTests
     [Test]
     public void ImportProductos()
     {
-        var csvContent = "id,nombre,descripcion,tipoProducto,tae\n1,Cuenta,Cuenta Corriente,Cuenta,1.5";
+        var csvContent = "nombre,descripcion,tipoProducto,tae\nCuenta,Cuenta Corriente,Cuenta,1.5";
         var filePath = Path.Combine(_tempPath, "test.csv");
         File.WriteAllText(filePath, csvContent, Encoding.UTF8);
         var fileInfo = new FileInfo(filePath);
