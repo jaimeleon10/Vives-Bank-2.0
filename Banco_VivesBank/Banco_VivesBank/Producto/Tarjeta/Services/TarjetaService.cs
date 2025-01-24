@@ -40,6 +40,7 @@ public class TarjetaService : ITarjetaService
         _cvvGenerator = new CvvGenerator();
         _expDateGenerator = new ExpDateGenerator();
         _cardLimitValidators = new CardLimitValidators(_log);
+        _database = _redis.GetDatabase();
     }
 
     public async Task<List<TarjetaResponse>> GetAllAsync()
@@ -143,26 +144,45 @@ public class TarjetaService : ITarjetaService
     {
         _logger.LogDebug($"Obteniendo tarjeta con número de tarjeta: {numeroTarjeta}");
         
-        /*var cacheKey = CacheKeyPrefix + id;
-        if (_cache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
-        {
-            _logger.LogDebug("Tarjeta obtenida de cache");
-            return cachedTarjeta.ToResponseFromModel();
-        }*/
+        var cacheKey = CacheKeyPrefix + numeroTarjeta;
         
-        _logger.LogDebug("Buscando tarjeta en la base de datos");
-        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Numero == numeroTarjeta);
-        if (tarjeta == null)
+        if (_memoryCache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
         {
-            _logger.LogDebug("Tarjeta no encontrada");
-            return null;
+            _logger.LogDebug("Tarjeta obtenida de cache en memoria");
+            return cachedTarjeta.ToResponseFromModel();
         }
         
-        _logger.LogDebug("Tarjeta obtenida de la base de datos");
-        /*
-        _cache.Set(cacheKey, tarjeta.ToModelFromEntity());
-        */
-        return tarjeta.ToModelFromEntity().ToResponseFromModel();
+        var redisCache = await _database.StringGetAsync(cacheKey);
+        if (!string.IsNullOrEmpty(redisCache))
+        {
+            _logger.LogInformation("Tarjeta obtenida desde Redis");
+            var tarjetaResponseFromRedis = JsonSerializer.Deserialize<TarjetaResponse>(redisCache);
+            if (tarjetaResponseFromRedis != null)
+            {
+                _memoryCache.Set(cacheKey, tarjetaResponseFromRedis, TimeSpan.FromMinutes(30));
+            }
+
+            return tarjetaResponseFromRedis;
+        }
+        
+        _logger.LogDebug("Buscando tarjeta en la base de datos");
+        var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Numero == numeroTarjeta);
+        if (tarjetaEntity != null)
+        {
+            var tarjetaResponse = tarjetaEntity.ToResponseFromEntity();
+            var tarjeta = tarjetaEntity.ToModelFromEntity();
+            
+            _memoryCache.Set(cacheKey, tarjeta, TimeSpan.FromMinutes(30));
+
+            var redisValue = JsonSerializer.Serialize(tarjetaResponse);
+            await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
+            
+            _logger.LogInformation($"Tarjeta encontrada con numero: {numeroTarjeta}");
+            return tarjetaResponse;
+        }
+        
+        _logger.LogInformation($"Tarjeta no encontrada con numero: {numeroTarjeta}");
+        return null;
     }
 
     public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest)
@@ -180,13 +200,13 @@ public class TarjetaService : ITarjetaService
         _context.Tarjetas.Add(tarjetaEntity);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + tarjetaRequest;
-
+        var tarjetaModel = tarjetaEntity.ToModelFromEntity();
+        var cacheKey = CacheKeyPrefix + tarjetaModel.Guid;
+        _memoryCache.Set(cacheKey, tarjetaModel);
+        
         // Guardar la tarjeta 
-        var serializedUser = JsonSerializer.Serialize(tarjeta);
-        _memoryCache.Set(cacheKey, tarjeta, TimeSpan.FromMinutes(30));
+        var serializedUser = JsonSerializer.Serialize(tarjetaModel.ToResponseFromModel());
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
-
         
         _logger.LogDebug($"Tarjeta creada correctamente con id: {tarjetaEntity.Id}");
 
