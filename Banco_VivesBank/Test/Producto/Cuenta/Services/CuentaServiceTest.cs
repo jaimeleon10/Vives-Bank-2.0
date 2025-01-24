@@ -270,7 +270,7 @@ public class CuentaServiceTests
                 Telefono = "600000000",
                 IsDeleted = false
             },
-            Producto = new BaseModel
+            Producto = new Base
             {
                 Guid = "producto-guid",
                 Nombre = "Producto1",
@@ -432,7 +432,7 @@ public class CuentaServiceTests
                 Telefono = "600000000",
                 IsDeleted = false
             },
-            Producto = new BaseModel
+            Producto = new Base
             {
                 Guid = "producto-guid",
                 Nombre = "Producto1",
@@ -573,7 +573,7 @@ public class CuentaServiceTests
             ClienteGuid = "cliente-guid"
         };
 
-        var tipoCuenta = new BaseModel
+        var tipoCuenta = new Base
         {
             Guid = "producto-guid",
             Nombre = "Producto1",
@@ -688,7 +688,7 @@ public class CuentaServiceTests
             ClienteGuid = "cliente-inexistente"
         };
 
-        var tipoCuenta = new BaseModel
+        var tipoCuenta = new Base
         {
             Guid = "producto-guid",
             Nombre = "Producto1",

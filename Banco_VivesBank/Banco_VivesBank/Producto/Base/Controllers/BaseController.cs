@@ -166,7 +166,7 @@ public class BaseController : ControllerBase
             var tempFilePath = Path.GetTempFileName();
             var fileInfo = new FileInfo(tempFilePath);
 
-            var productsToExport = products.Select(p => new BaseModel
+            var productsToExport = products.Select(p => new Models.Base
             {
                 Nombre = p.Nombre,
                 Descripcion = p.Descripcion,

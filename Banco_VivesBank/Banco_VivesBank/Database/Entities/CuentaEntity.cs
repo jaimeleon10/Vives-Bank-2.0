@@ -42,7 +42,7 @@ public class CuentaEntity
     [Column("producto_id")]  
     [Required] 
     public long ProductoId { get; set; }
-    public BaseModel Producto { get; set; } 
+    public Base Producto { get; set; } 
     
     [Required]
     [DefaultValue(false)]

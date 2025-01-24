@@ -264,7 +264,7 @@ public class BaseControllerTests
                 })
                 .Returns(Task.CompletedTask);
 
-            var importedProducts = new List<BaseModel>
+            var importedProducts = new List<Banco_VivesBank.Producto.Base.Models.Base>
             {
                 new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
             };
