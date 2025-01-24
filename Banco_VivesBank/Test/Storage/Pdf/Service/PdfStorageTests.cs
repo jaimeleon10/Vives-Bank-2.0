@@ -1,13 +1,13 @@
 ﻿using System.Numerics;
-using System.Text;
+using Moq;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Storage.Pdf.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
+using System.Text;
 using Microsoft.Extensions.Logging;
-using Moq;
 
-namespace Test.Storage.Pdf.Service;
+namespace Test.Storage;
 
 [TestFixture]
 public class PdfStorageTests
@@ -148,13 +148,13 @@ public class PdfStorageTests
         {
             new Movimiento
             {
-                Cliente = _cuenta.Cliente,
+                ClienteGuid = _cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow,
                 Domiciliacion = new DomiciliacionConcreta
                 {
-                    Cliente = _cuenta.Cliente,
-                    IbanOrigen = _cuenta.Iban,
-                    IbanDestino = "ES00998877665544332211",
+                    ClienteGuid = _cuenta.Cliente.Guid,
+                    IbanEmpresa = _cuenta.Iban,
+                    IbanCliente = "ES00998877665544332211",
                     Importe = new BigInteger(50000),
                     Acreedor = "Compañía Eléctrica",
                     FechaInicio = new DateTime(2024, 1, 1),
@@ -165,20 +165,20 @@ public class PdfStorageTests
             },
             new Movimiento
             {
-                Cliente = _cuenta.Cliente,
+                ClienteGuid = _cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
                 IngresoNomina = new IngresoNominaConcreta
                 {
                     NombreEmpresa = "Empresa ABC",
                     CifEmpresa = "B12345678",
                     Importe = new BigInteger(200000),
-                    IbanDestino = _cuenta.Iban,
-                    IbanOrigen = "ES11223344556677889900"
+                    IbanCliente = _cuenta.Iban,
+                    IbanEmpresa = "ES11223344556677889900"
                 }
             },
             new Movimiento
             {
-                Cliente = _cuenta.Cliente,
+                ClienteGuid = _cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-2),
                 PagoConTarjeta = new PagoConTarjetaConcreto
                 {
@@ -189,7 +189,7 @@ public class PdfStorageTests
             },
             new Movimiento
             {
-                Cliente = _cuenta.Cliente,
+                ClienteGuid = _cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 Transferencia = new TransferenciaConcreta
                 {
