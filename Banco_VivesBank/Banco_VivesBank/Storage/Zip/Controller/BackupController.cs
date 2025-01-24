@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Storage.Backup.Service;
+﻿using Banco_VivesBank.Storage.Zip.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Storage.Backup.Controller;
@@ -14,14 +14,16 @@ public class BackupController : ControllerBase
 
     public BackupController(
         ILogger<BackupService> logger, 
-        IBackupService backupService,
-        string dataDirectory,
-        string backupFilePath)
+        IBackupService backupService)
     {
         _logger = logger;
         _backupService = backupService;
-        _dataDirectory = dataDirectory;
-        _backupFilePath = backupFilePath;
+
+        _dataDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Backup");
+        _backupFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Backup", "backup.zip");
+
+        Directory.CreateDirectory(_dataDirectory);
+        Directory.CreateDirectory(Path.GetDirectoryName(_backupFilePath)!);
     }
 
     protected virtual string GetDataDirectory() => 
