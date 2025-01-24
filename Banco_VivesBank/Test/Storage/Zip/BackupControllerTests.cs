@@ -1,14 +1,10 @@
 ﻿using Banco_VivesBank.Storage.Backup.Controller;
 using Banco_VivesBank.Storage.Backup.Service;
-
-namespace Test.Storage;
-
-using Moq;
-using NUnit.Framework;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace Test.Storage.Zip;
 
 [TestFixture]
 public class BackupControllerTests
