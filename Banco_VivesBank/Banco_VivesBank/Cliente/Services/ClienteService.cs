@@ -279,27 +279,23 @@ public class ClienteService : IClienteService
         return "Datos del cliente eliminados de la base de datos";
     }
     
-    private ClienteEntity DeleteData(ClienteEntity entityCliente)
+    private async Task<ClienteEntity> DeleteData(ClienteEntity entityCliente)
     {
-        entityCliente.Dni = "";
-        entityCliente.Nombre = "";
-        entityCliente.Apellidos = "";
-        entityCliente.Direccion.Calle = "";
-        entityCliente.Direccion.Numero = "";
-        entityCliente.Direccion.CodigoPostal = "";
-        entityCliente.Direccion.Piso = "";
-        entityCliente.Direccion.Letra = "";
-        entityCliente.Email = "";
-        entityCliente.Telefono = "";
-        _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
-        _fileStorageService.DeleteFileAsync(entityCliente.FotoDni);
-        entityCliente.FotoPerfil= "";
-        entityCliente.FotoDni = "";
+        entityCliente.Dni = entityCliente.Nombre = entityCliente.Apellidos = entityCliente.Email = entityCliente.Telefono = string.Empty;
+        entityCliente.Direccion = new Direccion
+        {
+            Calle = string.Empty, Numero = string.Empty, CodigoPostal = string.Empty, Piso = string.Empty, Letra = string.Empty
+        };
+        await _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
+        await _fileStorageService.DeleteFileAsync(entityCliente.FotoDni);
+        entityCliente.FotoPerfil = entityCliente.FotoDni = string.Empty;
         entityCliente.IsDeleted = true;
-        entityCliente.UpdatedAt = DateTime.Now;
+        entityCliente.UpdatedAt = DateTime.UtcNow;
+
 
         return entityCliente;
     }
+
     
     private void ValidateDniExistente(string dni)
     {

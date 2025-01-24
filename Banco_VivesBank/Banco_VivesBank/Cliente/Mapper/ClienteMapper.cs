@@ -100,7 +100,7 @@ public static class ClienteMapper
               Guid =   cliente.User.Guid,
               Username = cliente.User.Username,
               Role = cliente.User.Role.ToString(),
-              CreatedAt  = cliente.User.CreatedAt.ToString("dd/M,/yyyy - HH:mm:ss"),
+              CreatedAt  = cliente.User.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
               UpdatedAt = cliente.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), IsDeleted = cliente.User.IsDeleted
             },
             CreatedAt = cliente.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
