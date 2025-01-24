@@ -137,7 +137,7 @@ public class ClienteController : ControllerBase
     {
         var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
         
-        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto de perfil del cliente con guid: {guid}");
+        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto del dni del cliente con guid: {guid}");
         return Ok(clienteResponse);
     }
 }

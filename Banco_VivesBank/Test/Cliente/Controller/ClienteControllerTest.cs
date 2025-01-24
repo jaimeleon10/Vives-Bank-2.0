@@ -6,6 +6,7 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -385,5 +386,130 @@ public class ClienteControllerTest
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha podido borrar el usuario con guid: {guid}"));
+    }
+
+    [Test]
+    public async Task PatchFotoPerfil()
+    {
+        var guid = "valid-guid";
+        var clienteResponse = new ClienteResponse
+        {
+            Guid = "guid",
+            Nombre = "nombreTest",
+            Apellidos =  "apellidosTest",
+            Direccion = new Direccion {
+                Calle = "calleTest",
+                Numero = "numeroTest",
+                CodigoPostal = "codigoPostalTest",
+                Piso = "pisoTest",
+                Letra = "letraTest"
+            },
+            Email = "emailTest",
+            Telefono = "telefonoTest",
+            FotoPerfil = "fotoPerfilTest",
+            FotoDni = "fotoDniTest",
+            UserResponse = new UserResponse
+            {
+                Guid = "userGuid",
+                Username = "usernameTest",
+                Role = "roleTest",
+                CreatedAt = "createdAtTest",
+                UpdatedAt = "updatedAtTest",
+                IsDeleted = false
+            },
+            CreatedAt = "createdAtTest",
+            UpdatedAt = "updatedAtTest",
+            IsDeleted = false
+        };
+
+        var file = CreateMockFile("foto_perfil.jpg", "image/.jpeg");
+
+        _clienteServiceMock.Setup(service => service.UpdateFotoPerfil(guid, It.IsAny<IFormFile>()))
+            .ReturnsAsync(clienteResponse);
+
+        var result = await _clienteController.PatchFotoPerfil(guid, file);
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.EqualTo(clienteResponse));
+
+    }
+
+    [Test]
+    public async Task PatchFotoPerfil_NotFound()
+    {
+        // Arrange
+        var guid = "non-existent-guid";
+        var mockFile = CreateMockFile("foto_perfil.jpg", "image/jpeg");
+
+        _clienteServiceMock
+            .Setup(service => service.UpdateFotoPerfil(It.IsAny<string>(), It.IsAny<IFormFile>()))
+            .ReturnsAsync((ClienteResponse)null);
+
+        // Act
+        var result = await _clienteController.PatchFotoPerfil(guid, mockFile);
+
+        // Assert
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult?.Value, Is.EqualTo("No se ha podido actualizar la foto de perfil del cliente con guid: non-existent-guid"));
+    }
+    
+    [Test]
+    public async Task PatchFotoDni()
+    {
+        // Arrange
+        var guid = "cliente-guid";
+        var mockFile = CreateMockFile("foto_dni.jpg", "image/jpeg");
+        var expectedResponse = new ClienteResponse { Guid = guid, Nombre = "Juan" };
+
+        _clienteServiceMock
+            .Setup(service => service.UpdateFotoDni(It.IsAny<string>(), It.IsAny<IFormFile>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _clienteController.PatchFotoDni(guid, mockFile);
+
+        // Assert
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.EqualTo(expectedResponse));
+    }
+    
+    [Test]
+    public async Task PatchFotoDni_NotFound()
+    {
+        // Arrange
+        var guid = "non-existent-guid";
+        var mockFile = CreateMockFile("foto_dni.jpg", "image/jpeg");
+
+        _clienteServiceMock
+            .Setup(service => service.UpdateFotoDni(guid, It.IsAny<IFormFile>()))
+            .ReturnsAsync((ClienteResponse)null);
+
+        // Act
+        var result = await _clienteController.PatchFotoDni(guid, mockFile);
+
+        // Assert
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult?.Value, Is.EqualTo("No se ha podido actualizar la foto del dni del cliente con guid: non-existent-guid"));
+    }
+    
+    
+    private IFormFile CreateMockFile(string fileName, string contentType)
+    {
+        var content = "Fake file content";
+        var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
+        var formFile = new Mock<IFormFile>();
+        
+        formFile.Setup(f => f.FileName).Returns(fileName);
+        formFile.Setup(f => f.Length).Returns(stream.Length);
+        formFile.Setup(f => f.OpenReadStream()).Returns(stream);
+        formFile.Setup(f => f.ContentType).Returns(contentType);
+        
+        return formFile.Object;
     }
 }
