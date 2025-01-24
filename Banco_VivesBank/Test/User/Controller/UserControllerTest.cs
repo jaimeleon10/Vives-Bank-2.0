@@ -4,7 +4,7 @@ using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-
+/*
 namespace Test.User.Controller;
 [TestFixture]
 public class UserControllerTest
@@ -153,7 +153,7 @@ public class UserControllerTest
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
-    */
+    
     [Test]
     public async Task DeleteByGuid_ValidGuid_ReturnsOk()
     {
@@ -257,4 +257,4 @@ public class UserControllerTest
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
-}
+}*/

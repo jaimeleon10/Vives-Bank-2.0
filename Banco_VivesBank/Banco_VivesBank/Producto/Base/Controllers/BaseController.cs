@@ -3,6 +3,7 @@ using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Base.Storage;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Producto.Base.Controllers;
@@ -14,18 +15,40 @@ public class BaseController : ControllerBase
     private readonly ILogger<BaseController> _logger;
     private readonly IBaseService _baseService;
     private readonly IStorageProductos _storageProductos;
+    private readonly PaginationLinksUtils _paginationLinksUtils;
 
-    public BaseController(ILogger<BaseController> logger, IBaseService baseService, IStorageProductos storageProductos)
+    public BaseController(ILogger<BaseController> logger, IBaseService baseService, IStorageProductos storageProductos, PaginationLinksUtils pagination)
     {
         _logger = logger;
         _baseService = baseService;
         _storageProductos = storageProductos;
+        _paginationLinksUtils = pagination;
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BaseResponse>>> GetAll()
+    public async Task<ActionResult<IEnumerable<PageResponse<BaseResponse>>>> GetAll(
+        [FromQuery] int page = 0,
+        [FromQuery] int size = 10,
+        [FromQuery] string sortBy = "id",
+        [FromQuery] string direction = "asc")
     {
-        return Ok(await _baseService.GetAllAsync());
+        
+        var pageRequest = new PageRequest
+        {
+            PageNumber = page,
+            PageSize = size,
+            SortBy = sortBy,
+            Direction = direction
+        };
+        var pageResult = await _baseService.GetAllPagedAsync(pageRequest);
+            
+        var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
+        var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
+            
+        Response.Headers.Add("link", linkHeader);
+            
+        return Ok(pageResult);
+
     }
 
     [HttpGet("{guid}")]
