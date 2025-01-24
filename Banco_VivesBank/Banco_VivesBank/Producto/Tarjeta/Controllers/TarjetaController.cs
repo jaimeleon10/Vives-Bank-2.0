@@ -81,7 +81,7 @@ public class TarjetaController : ControllerBase
         {
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
             
-            return CreatedAtAction(nameof(GetTarjetaByGuid), new {id = tarjetaModel.Id}, tarjetaModel);
+            return Ok(tarjetaModel);
         }
         catch (Exception e)
         {
