@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Models;
@@ -7,19 +6,17 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Storage.Files.Service;
-using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using NUnit.Framework;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
-namespace Banco_VivesBank.Test.Cliente.Services;
+namespace Test.Cliente.Services;
 
 [TestFixture]
 public class ClienteServiceTests
@@ -189,7 +186,7 @@ public class ClienteServiceTests
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
         
-        _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
+        _userServiceMock.Setup(x => x.GetUserModelByIdAsync(cliente.UserId)).ReturnsAsync(user);
 
         _redisDatabaseMock
             .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
@@ -317,7 +314,7 @@ public class ClienteServiceTests
             IsDeleted = false
         };
 
-        _userServiceMock.Setup(x => x.GetUserModelByGuid(clienteRequest.UserGuid)).ReturnsAsync(user);
+        _userServiceMock.Setup(x => x.GetUserModelByGuidAsync(clienteRequest.UserGuid)).ReturnsAsync(user);
         
         var result = await _clienteService.CreateAsync(clienteRequest);
         
@@ -345,7 +342,7 @@ public class ClienteServiceTests
             IsDeleted = false
         };
 
-        _userServiceMock.Setup(x => x.GetUserModelByGuid(clienteRequest.UserGuid)).ReturnsAsync((Banco_VivesBank.User.Models.User?)null);
+        _userServiceMock.Setup(x => x.GetUserModelByGuidAsync(clienteRequest.UserGuid)).ReturnsAsync((Banco_VivesBank.User.Models.User?)null);
         
         var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => await _clienteService.CreateAsync(clienteRequest));
         Assert.That(ex.Message, Is.EqualTo($"Usuario no encontrado con guid: {clienteRequest.UserGuid}"));
@@ -392,7 +389,7 @@ public class ClienteServiceTests
         _dbContext.Usuarios.Add(userE);
         await _dbContext.SaveChangesAsync();
         _userServiceMock
-            .Setup(u => u.GetUserModelByGuid(clienteRequest.UserGuid))
+            .Setup(u => u.GetUserModelByGuidAsync(clienteRequest.UserGuid))
             .ReturnsAsync(user);
 
         // Simulamos que ya existe un cliente con ese DNI
@@ -456,7 +453,7 @@ public class ClienteServiceTests
         await _dbContext.SaveChangesAsync();
 
         var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
-        _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
+        _userServiceMock.Setup(x => x.GetUserModelByIdAsync(cliente.UserId)).ReturnsAsync(user);
 
         var updateRequest = new ClienteRequestUpdate
         {
@@ -598,7 +595,7 @@ public class ClienteServiceTests
         await _dbContext.SaveChangesAsync();
 
         var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
-        _userServiceMock.Setup(x => x.GetUserModelById(cliente.UserId)).ReturnsAsync(user);
+        _userServiceMock.Setup(x => x.GetUserModelByIdAsync(cliente.UserId)).ReturnsAsync(user);
         
         var result = await _clienteService.DeleteByGuidAsync(cliente.Guid);
 
@@ -652,7 +649,7 @@ public class ClienteServiceTests
         // Arrange
         var userGuid = Guid.NewGuid().ToString();
         _userServiceMock
-            .Setup(us => us.GetUserModelByGuid(userGuid))
+            .Setup(us => us.GetUserModelByGuidAsync(userGuid))
             .ReturnsAsync((Banco_VivesBank.User.Models.User?)null);
 
         // Act & Assert
@@ -676,7 +673,7 @@ public class ClienteServiceTests
         var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
 
         _userServiceMock
-            .Setup(us => us.GetUserModelByGuid(cliente.Guid))
+            .Setup(us => us.GetUserModelByGuidAsync(cliente.Guid))
             .ReturnsAsync(user);
 
         // Act

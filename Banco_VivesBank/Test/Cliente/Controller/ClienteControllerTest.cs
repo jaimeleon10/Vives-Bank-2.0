@@ -6,11 +6,11 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Cliente.Controller;
+namespace Test.Cliente.Controller;
 
 [TestFixture]
 public class ClienteControllerTest

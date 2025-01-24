@@ -1,7 +1,6 @@
 using Banco_VivesBank.Cliente.Dto;
-using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Cliente.Dto;
+namespace Test.Cliente.Dto;
 
 [TestFixture]
 public class ClienteRequestUpdateTest
