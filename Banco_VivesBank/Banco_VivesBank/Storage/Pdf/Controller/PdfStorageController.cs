@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿/*using System.Numerics;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Storage.Pdf.Services;
@@ -99,4 +99,4 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
         
         return Ok("PDF generado");
     }
-}
+}*/

@@ -1,22 +1,23 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+﻿using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Producto.Tarjeta.Models;
+using Banco_VivesBank.Producto.Base.Services;
+using Banco_VivesBank.Storage.Json.Service;
+using Banco_VivesBank.Producto.Cuenta.Models;
+
+using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Models;
-using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
-using Banco_VivesBank.Producto.Cuenta.Models;
-using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
-using Banco_VivesBank.Producto.Tarjeta.Models;
-using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.Storage.Backup.Exceptions;
-using Banco_VivesBank.Storage.Json.Service;
+using Banco_VivesBank.Storage.Backup.Service;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.Storage.Zip;
+namespace Test.Storage;
 
 [TestFixture]
 public class BackupServiceTests
@@ -81,18 +82,21 @@ public class BackupServiceTests
 
     private void SetupMockResponses()
     {
-        // Mock de respuestas de servicios
+        // Ensure all services return empty lists instead of null
         _userServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<Banco_VivesBank.User.Models.User> { new Banco_VivesBank.User.Models.User() });
+            .ReturnsAsync(new List<Banco_VivesBank.User.Models.User>());
 
         _clienteServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<Banco_VivesBank.Cliente.Models.Cliente> { new Banco_VivesBank.Cliente.Models.Cliente() });
+            .ReturnsAsync(new List<Banco_VivesBank.Cliente.Models.Cliente>());
 
         _baseServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<BaseModel> { new BaseModel() });
+            .ReturnsAsync(new List<BaseModel>());
+
+        _cuentaServiceMock.Setup(s => s.GetAllForStorage())
+            .ReturnsAsync(new List<Cuenta>());
 
         _tarjetaServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<Tarjeta> { new Tarjeta() });
+            .ReturnsAsync(new List<Tarjeta>());
     }
 
     [Test]
@@ -110,41 +114,56 @@ public class BackupServiceTests
     }
 
     [Test]
-    public async Task ExportToZip_ARREGLAR()
+    public async Task ExportToZip_Successful()
     {
+        File.WriteAllText(Path.Combine(_testSourceDirectory, "usuarios.json"), "[]");
+        File.WriteAllText(Path.Combine(_testSourceDirectory, "clientes.json"), "[]");
+        File.WriteAllText(Path.Combine(_testSourceDirectory, "bases.json"), "[]");
+        File.WriteAllText(Path.Combine(_testSourceDirectory, "cuentas.json"), "[]");
+        File.WriteAllText(Path.Combine(_testSourceDirectory, "tarjetas.json"), "[]");
+
         await _backupService.ExportToZip(_testSourceDirectory, _testZipPath);
 
         Assert.That(File.Exists(_testZipPath), Is.True, "El archivo ZIP no fue creado");
-        
+    
         _userServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
         _clienteServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
         _baseServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
-        _cuentaServiceMock.Verify(s => s.GetAllForStorage(), Times.Never);
+        _cuentaServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
         _tarjetaServiceMock.Verify(s => s.GetAllForStorage(), Times.Once);
-        
+    
         _storageJsonMock.Verify(s => s.ExportJson(
-            It.IsAny<FileInfo>(), 
-            It.IsAny<List<UserResponse>>()), Times.Once);
+            It.Is<FileInfo>(f => f.Name == "usuarios.json"), 
+            It.IsAny<List<Banco_VivesBank.User.Models.User>>()), Times.Once);
         _storageJsonMock.Verify(s => s.ExportJson(
-            It.IsAny<FileInfo>(), 
-            It.IsAny<List<ClienteResponse>>()), Times.Once);
+            It.Is<FileInfo>(f => f.Name == "clientes.json"), 
+            It.IsAny<List<Banco_VivesBank.Cliente.Models.Cliente>>()), Times.Once);
+        _storageJsonMock.Verify(s => s.ExportJson(
+            It.Is<FileInfo>(f => f.Name == "bases.json"), 
+            It.IsAny<List<BaseModel>>()), Times.Once);
+        _storageJsonMock.Verify(s => s.ExportJson(
+            It.Is<FileInfo>(f => f.Name == "cuentas.json"), 
+            It.IsAny<List<Cuenta>>()), Times.Once);
+        _storageJsonMock.Verify(s => s.ExportJson(
+            It.Is<FileInfo>(f => f.Name == "tarjetas.json"), 
+            It.IsAny<List<Tarjeta>>()), Times.Once);
     }
-
+    
     [Test]
-    public async Task ImportFromZip_ARREGLAR()
+    public async Task ImportFromZip_Successful()
     {
         await CreateTestZipFile();
 
-        _storageJsonMock.Setup(s => s.ImportJson<Banco_VivesBank.User.Models.User>(It.IsAny<FileInfo>()))
-            .Returns(new List<Banco_VivesBank.User.Models.User> { new Banco_VivesBank.User.Models.User() });
-        _storageJsonMock.Setup(s => s.ImportJson<Banco_VivesBank.Cliente.Models.Cliente>(It.IsAny<FileInfo>()))
-            .Returns(new List<Banco_VivesBank.Cliente.Models.Cliente> { new Banco_VivesBank.Cliente.Models.Cliente() });
-        _storageJsonMock.Setup(s => s.ImportJson<BaseModel>(It.IsAny<FileInfo>()))
-            .Returns(new List<BaseModel> { new BaseModel() });
-        _storageJsonMock.Setup(s => s.ImportJson<Cuenta>(It.IsAny<FileInfo>()))
-            .Returns(new List<Cuenta> { new Cuenta() });
-        _storageJsonMock.Setup(s => s.ImportJson<Tarjeta>(It.IsAny<FileInfo>()))
-            .Returns(new List<Tarjeta> { new Tarjeta() });
+        _storageJsonMock.Setup(s => s.ImportJson<UserRequest>(It.IsAny<FileInfo>()))
+            .Returns(new List<UserRequest> { new UserRequest() });
+        _storageJsonMock.Setup(s => s.ImportJson<ClienteRequest>(It.IsAny<FileInfo>()))
+            .Returns(new List<ClienteRequest> { new ClienteRequest() });
+        _storageJsonMock.Setup(s => s.ImportJson<BaseRequest>(It.IsAny<FileInfo>()))
+            .Returns(new List<BaseRequest> { new BaseRequest() });
+        _storageJsonMock.Setup(s => s.ImportJson<CuentaRequest>(It.IsAny<FileInfo>()))
+            .Returns(new List<CuentaRequest> { new CuentaRequest() });
+        _storageJsonMock.Setup(s => s.ImportJson<TarjetaRequest>(It.IsAny<FileInfo>()))
+            .Returns(new List<TarjetaRequest> { new TarjetaRequest() });
 
         await _backupService.ImportFromZip(_testZipPath, _testDestinationDirectory);
 
