@@ -54,11 +54,19 @@ public class BaseController : ControllerBase
     [HttpGet("{guid}")]
     public async Task<ActionResult<BaseResponse>> GetByGuid(string guid)
     {
-        var baseByGuid = await _baseService.GetByGuidAsync(guid);
+        try
+        {
+            var baseByGuid = await _baseService.GetByGuidAsync(guid);
         
-        if (baseByGuid is null) return NotFound($"Producto con guid: {guid} no encontrado");
+            if (baseByGuid is null) return NotFound($"Producto con guid: {guid} no encontrado");
 
-        return Ok(baseByGuid);
+            return Ok(baseByGuid);
+        }
+        catch (BaseException e)
+        {
+            return BadRequest(e.Message);
+        }
+        
     }
     
     [HttpPost]
@@ -91,7 +99,7 @@ public class BaseController : ControllerBase
         try
         {
             var baseResponse = await _baseService.UpdateAsync(guid, dto);
-            if (baseResponse is null) return NotFound($"No se ha podido actualizar el producto con guid: {guid}");
+            if (baseResponse is null) return NotFound($"No se ha encontrado el producto con guid: {guid}");
             return Ok(baseResponse);
         }
         catch (BaseException e)

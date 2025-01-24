@@ -202,16 +202,14 @@ public class BaseControllerTests
             {
                 Nombre = "Producto actualizado",
                 Descripcion = "Descripcion actualizada",
-                Tae = 6.5,
-                TipoProducto = "Tipo Actualizado"
+                Tae = 6.5
             };
 
             var expectedResponse = new BaseResponse
             {
                 Nombre = updateDto.Nombre,
                 Descripcion = updateDto.Descripcion,
-                Tae = updateDto.Tae,
-                TipoProducto = updateDto.TipoProducto
+                Tae = updateDto.Tae
             };
 
             _baseServiceMock.Setup(s => s.UpdateAsync(guid, updateDto))
