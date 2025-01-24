@@ -14,7 +14,8 @@ public class Tarjeta
     [JsonPropertyName("numero")]
     public string Numero { get; set; }
 
-    [JsonPropertyName("titular")] public string Titular { get; set; } = string.Empty;
+    [JsonPropertyName("titular")] 
+    public string Titular { get; set; } = string.Empty;
     
     [JsonPropertyName("fecha_vencimiento")]
     public string FechaVencimiento { get; set; }
