@@ -1,14 +1,12 @@
-﻿using Banco_VivesBank.Storage.Backup.Controller;
-using Banco_VivesBank.Storage.Backup.Service;
-
-namespace Test.Storage;
-
-using Moq;
+using Banco_VivesBank.Storage.Backup.Controller;
+using Banco_VivesBank.Storage.Zip.Services;
 using NUnit.Framework;
-using Microsoft.Extensions.Logging;
+using Banco_VivesBank.Storage.Backup.Service;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace Test.Storage.Zip;
 
 [TestFixture]
 public class BackupControllerTests
@@ -31,12 +29,14 @@ public class BackupControllerTests
 
         _controller = new BackupController(
             _loggerMock.Object, 
-            _backupServiceMock.Object, 
-            _testDataDirectory, 
-            _testZipPath
+            _backupServiceMock.Object
         );
+        
+        typeof(BackupController).GetField("_dataDirectory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(_controller, _testDataDirectory);
+        typeof(BackupController).GetField("_backupFilePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .SetValue(_controller, _testZipPath);
     }
-
 
     [TearDown]
     public void Cleanup()
@@ -88,14 +88,7 @@ public class BackupControllerTests
             ))
             .Returns(Task.CompletedTask);
 
-        var controller = new BackupController(
-            _loggerMock.Object, 
-            _backupServiceMock.Object, 
-            _testDataDirectory, 
-            _testZipPath
-        );
-
-        var result = await controller.ImportFromZip();
+        var result = await _controller.ImportFromZip();
 
         Assert.That(result, Is.Not.Null, "El resultado es nulo.");
         Assert.That(result, Is.InstanceOf<OkResult>(), "El resultado no es un OkResult.");
@@ -104,7 +97,6 @@ public class BackupControllerTests
             Times.Once, "El método ImportFromZip no fue invocado correctamente."
         );
     }
-
 
     [Test]
     public async Task ImportFromZipException()
