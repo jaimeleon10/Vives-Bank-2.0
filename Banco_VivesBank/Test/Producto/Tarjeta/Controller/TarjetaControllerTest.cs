@@ -161,11 +161,11 @@ public class TarjetaControllerTest
         var guid = "Guid-Prueba";
         // Act
         _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync((TarjetaResponse)null);
-        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaController.GetTarjetaByGuid(guid));
+        
+        var result =  await  _tarjetaController.GetTarjetaByGuid(guid);
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
     }
 
     [Test]
@@ -185,8 +185,8 @@ public class TarjetaControllerTest
         
 
         // Assert
-        Assert.That(result.Result, Is.TypeOf<CreatedAtActionResult>());
-        var returnValue = (result.Result as CreatedAtActionResult)?.Value as TarjetaResponse;
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var returnValue = (result.Result as OkObjectResult)?.Value as TarjetaResponse;
         Assert.That(returnValue, Is.Not.Null);
     }
 
@@ -320,10 +320,11 @@ public class TarjetaControllerTest
         _tarjetaService.Setup(s => s.DeleteAsync(guid)).ReturnsAsync((TarjetaResponse)null);
         
 
-        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () => await  _tarjetaController.DeleteTarjeta(guid));
+        var result =  await  _tarjetaController.DeleteTarjeta(guid);
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
+        Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
+
 
     }
 }

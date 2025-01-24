@@ -419,10 +419,10 @@ public class CuentaService : ICuentaService
         _context.Cuentas.Update(cuentaEntityExistente);
         await _context.SaveChangesAsync();
 
-        var cuentaModel = cuentaEntityExistente.ToModelFromEntity();
-
         var cacheKey = CacheKeyPrefix + cuentaEntityExistente.Guid;
         _memoryCache.Remove(cacheKey);
+        
+        var cuentaModel = cuentaEntityExistente.ToModelFromEntity();
         var redisValue = JsonSerializer.Serialize(cuentaModel.ToResponseFromModel());
         await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
         

@@ -5,7 +5,7 @@ using Banco_VivesBank.Producto.Cuenta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Producto.Cuenta;
+namespace Test.Producto.Cuenta;
 
 [TestFixture]
 public class CuentaMapperTest

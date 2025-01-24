@@ -54,11 +54,19 @@ public class BaseController : ControllerBase
     [HttpGet("{guid}")]
     public async Task<ActionResult<BaseResponse>> GetByGuid(string guid)
     {
-        var baseByGuid = await _baseService.GetByGuidAsync(guid);
+        try
+        {
+            var baseByGuid = await _baseService.GetByGuidAsync(guid);
         
-        if (baseByGuid is null) return NotFound($"Producto con guid: {guid} no encontrado");
+            if (baseByGuid is null) return NotFound($"Producto con guid: {guid} no encontrado");
 
-        return Ok(baseByGuid);
+            return Ok(baseByGuid);
+        }
+        catch (BaseException e)
+        {
+            return BadRequest(e.Message);
+        }
+        
     }
     
     [HttpPost]
@@ -87,10 +95,20 @@ public class BaseController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var baseResponse = await _baseService.UpdateAsync(guid, dto);
+        
+        try
+        {
+            var baseResponse = await _baseService.UpdateAsync(guid, dto);
+            if (baseResponse is null) return NotFound($"No se ha encontrado el producto con guid: {guid}");
+            return Ok(baseResponse);
+        }
+        catch (BaseException e)
+        {
+            return BadRequest(e.Message);
+        }
+        
 
-        if (baseResponse is null) return NotFound($"No se ha podido actualizar el producto con guid: {guid}");
-        return Ok(baseResponse);
+        
     }
 
     [HttpDelete("{guid}")]
@@ -161,7 +179,7 @@ public class BaseController : ControllerBase
         {
             var products = await _baseService.GetAllAsync();
             if (!products.Any())
-                return NotFound("No hay productos para exportar");
+                return Ok("No hay productos para exportar");
 
             var tempFilePath = Path.GetTempFileName();
             var fileInfo = new FileInfo(tempFilePath);

@@ -6,11 +6,9 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Producto.Cuenta.Controller;
+namespace Test.Producto.Cuenta.Controller;
 
 public class CuentaAdminControllerTests
 {

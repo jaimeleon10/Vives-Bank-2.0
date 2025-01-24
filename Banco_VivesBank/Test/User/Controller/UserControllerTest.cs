@@ -1,11 +1,14 @@
 ﻿using Banco_VivesBank.User.Controller;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-/*
-namespace Test.User.Controller;
+using NUnit.Framework;
+
+namespace Banco_VivesBank.Test.User.Controller;
 [TestFixture]
 public class UserControllerTest
 {
@@ -13,35 +16,57 @@ public class UserControllerTest
     private UserController _userController;
     
     
+    
     [SetUp]
     public void Setup()
     {
         _userServiceMock = new Mock<IUserService>();
-        _userController = new UserController(_userServiceMock.Object);
+        _userController = new UserController(_userServiceMock.Object, new PaginationLinksUtils());
     }
     
     [Test]
     public async Task GetAll()
     {
-        var userResponse = new UserResponse
+        var pageRequest = new PageRequest
         {
-            Guid = "guid",
-            Username = "username",
-            Role = "USER",
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "Id",
+            Direction = "asc"
         };
         
-        _userServiceMock.Setup(x => x.GetAllAsync()).ReturnsAsync(new List<UserResponse> { userResponse });
+        var pageResponse = new PageResponse<UserResponse>
+        {
+            TotalPages = 1
+        };
         
-        var result = await _userController.GetAll();
+        _userServiceMock.Setup(x => x.GetAllAsync(It.IsAny<string>(), It.IsAny<Role?>(), It.IsAny<PageRequest>())).ReturnsAsync(pageResponse);
+        
+        var result = await _userController.Getall();
+        
+        
     }
     
     
     [Test]
     public async Task GetAll_EmptyList()
     {
-        _userServiceMock.Setup(x => x.GetAllAsync()).ReturnsAsync(new List<UserResponse>());
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "Id",
+            Direction = "asc"
+        };
         
-        var result = await _userController.GetAll();
+        var pageResponse = new PageResponse<UserResponse>
+        {
+            TotalPages = 0
+        };
+        
+        _userServiceMock.Setup(x => x.GetAllAsync(It.IsAny<string>(), It.IsAny<Role?>(), It.IsAny<PageRequest>())).ReturnsAsync(pageResponse);
+        
+        var result = await _userController.Getall();
     }
     
     [Test]
@@ -153,7 +178,7 @@ public class UserControllerTest
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
-    
+    */
     [Test]
     public async Task DeleteByGuid_ValidGuid_ReturnsOk()
     {
@@ -257,4 +282,4 @@ public class UserControllerTest
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
-}*/
+}

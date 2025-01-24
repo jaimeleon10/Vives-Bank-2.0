@@ -237,10 +237,12 @@ namespace Banco_VivesBank.User.Service
             _memoryCache.Remove(cacheKey);  
             await _database.KeyDeleteAsync(cacheKey);  
 
+            var userModel = userEntityExistente.ToModelFromEntity();
+
             // Guardar el usuario actualizado en la cache
-            var serializedUser = JsonSerializer.Serialize(userEntityExistente);
-            _memoryCache.Set(cacheKey, userEntityExistente, TimeSpan.FromMinutes(30));  
-            await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30)); 
+            var serializedUser = JsonSerializer.Serialize(userModel);
+            _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));  
+            await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
 
             _logger.LogInformation($"Usuario actualizado con guid: {guid}");
             return userEntityExistente.ToResponseFromEntity();
