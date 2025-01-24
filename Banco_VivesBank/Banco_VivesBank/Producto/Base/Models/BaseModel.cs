@@ -9,7 +9,7 @@ public class BaseModel
     [JsonPropertyName("id")]
     public long Id { get; set; } = 0;
 
-    [JsonPropertyName("guid ")] 
+    [JsonPropertyName("Guid ")] 
     public string Guid { get; set; } = GuidGenerator.GenerarId();
 
     [JsonPropertyName("nombre")]

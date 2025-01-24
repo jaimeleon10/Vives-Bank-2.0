@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Banco_VivesBank.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class VivesBank : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

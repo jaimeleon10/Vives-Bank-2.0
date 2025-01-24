@@ -103,6 +103,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
+    myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();

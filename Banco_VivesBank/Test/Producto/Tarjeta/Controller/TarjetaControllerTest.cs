@@ -6,6 +6,7 @@ using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Generators;
+using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,10 +22,7 @@ public class TarjetaControllerTest
     private GeneralDbContext _dbContext;
     private Mock<ITarjetaService> _tarjetaService;
     private TarjetaController _tarjetaController;
-    private Mock<TarjetaGenerator> _tarjetaGeneratorMock;
-    private Mock<CvvGenerator> _cvvGeneratorMock;
-    private Mock<ExpDateGenerator> _expDateGeneratorMock;
-    private Mock<CardLimitValidators> _cardLimitValidatorsMock;
+    private Mock<PaginationLinksUtils> _paginationLinksUtils;
     
     [OneTimeSetUp]
     public async Task Setup()
@@ -45,16 +43,14 @@ public class TarjetaControllerTest
 
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
-
-        _tarjetaGeneratorMock = new Mock<TarjetaGenerator>();
-        _cvvGeneratorMock = new Mock<CvvGenerator>();
-        _expDateGeneratorMock = new Mock<ExpDateGenerator>();
-        _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
+        
         _tarjetaService = new Mock<ITarjetaService>();
+        _paginationLinksUtils = new Mock<PaginationLinksUtils>();
         
         _tarjetaController = new TarjetaController(
             _tarjetaService.Object,
-            NullLogger<CardLimitValidators>.Instance
+            NullLogger<CardLimitValidators>.Instance,
+            _paginationLinksUtils.Object
         );
     }
     
