@@ -61,7 +61,7 @@ public class BaseMapperTests
     [Test]
     public void ToEntityFromModel()
     {
-        var model = new BaseModel
+        var model = new Banco_VivesBank.Producto.Base.Models.Base
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -89,7 +89,7 @@ public class BaseMapperTests
     [Test]
     public void ToResponseFromModel()
     {
-        var model = new BaseModel
+        var model = new Banco_VivesBank.Producto.Base.Models.Base
         {
             Id = 1,
             Nombre = "Test Producto",

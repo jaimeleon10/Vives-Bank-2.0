@@ -28,7 +28,7 @@ public class Cuenta
     public Cliente.Models.Cliente Cliente { get; set; }
     
     [JsonPropertyName("producto")] 
-    public BaseModel Producto { get; set; }
+    public Base.Models.Base Producto { get; set; }
 
     [JsonPropertyName("isDeleted")]
     public bool IsDeleted { get; set; } = false;
