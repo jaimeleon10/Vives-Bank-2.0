@@ -216,13 +216,14 @@ public class ClienteService : IClienteService
             ValidateTelefonoExistente(clienteRequestUpdate.Telefono);
         }
         var clienteUpdated = clienteEntityExistente.ToModelFromRequestUpdate(clienteRequestUpdate);
-        var clienteModel = clienteUpdated.ToModelFromEntity();
         
         _context.Clientes.Update(clienteUpdated);
         await _context.SaveChangesAsync();
         
         var cacheKey = CacheKeyPrefix + clienteUpdated.Dni;
         _memoryCache.Remove(cacheKey);
+        
+        var clienteModel = clienteUpdated.ToModelFromEntity();
         var redisValue = JsonSerializer.Serialize(clienteModel.ToResponseFromModel());
         await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
