@@ -51,11 +51,11 @@ public class TarjetaController : ControllerBase
         return Ok(pageResult);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<TarjetaResponse>> GetTarjetaById(string id)
+    [HttpGet("{guid}")]
+    public async Task<ActionResult<TarjetaResponse>> GetTarjetaByGuid(string guid)
     {
-        var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
+        var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
+        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con guid: {guid} no se ha encontrado");
         return Ok(tarjeta);
     }
 
@@ -81,7 +81,7 @@ public class TarjetaController : ControllerBase
         {
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
             
-            return CreatedAtAction(nameof(GetTarjetaById), new {id = tarjetaModel.Id}, tarjetaModel);
+            return CreatedAtAction(nameof(GetTarjetaByGuid), new {id = tarjetaModel.Id}, tarjetaModel);
         }
         catch (Exception e)
         {
