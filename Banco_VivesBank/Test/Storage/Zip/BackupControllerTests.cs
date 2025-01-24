@@ -1,7 +1,5 @@
 using Banco_VivesBank.Storage.Backup.Controller;
 using Banco_VivesBank.Storage.Zip.Services;
-using NUnit.Framework;
-using Banco_VivesBank.Storage.Backup.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
