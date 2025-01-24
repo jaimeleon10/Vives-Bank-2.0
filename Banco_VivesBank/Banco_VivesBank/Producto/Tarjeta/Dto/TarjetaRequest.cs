@@ -5,7 +5,7 @@ namespace Banco_VivesBank.Producto.Tarjeta.Dto;
 public class TarjetaRequest
 {
     [Required(ErrorMessage = "Es necesario definir un Pin")]
-    [MaxLength(4, ErrorMessage = "El pin debe tener una longitud de 4 caracteres")]
+    [Length(4, 4, ErrorMessage = "El pin debe tener una longitud de 4 caracteres")]
     public string Pin { get; set; }
 
     [Required(ErrorMessage = "Debes establecer un limite diario superior a 0")]

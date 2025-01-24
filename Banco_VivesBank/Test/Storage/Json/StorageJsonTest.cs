@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
-namespace Test.Storage;
+namespace Test.Storage.Json;
 
 [TestFixture]
 public class StorageJsonTest
