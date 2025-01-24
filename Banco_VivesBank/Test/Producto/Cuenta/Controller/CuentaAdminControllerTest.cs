@@ -1,10 +1,12 @@
-﻿/*using System.Numerics;
+﻿using System.Numerics;
 using Banco_VivesBank.Producto.Cuenta.Controllers;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
@@ -13,7 +15,6 @@ namespace Banco_VivesBank.Test.Producto.Cuenta.Controller;
 public class CuentaAdminControllerTests
 {
     private Mock<PaginationLinksUtils> _paginationLinks;
-    private Mock<ILogger<CuentaControllerAdmin>> _mockLogger;
     private Mock<ICuentaService> _cuentaService;
     private CuentaControllerAdmin _cuentaController;
 
@@ -21,9 +22,8 @@ public class CuentaAdminControllerTests
     public void SetUp()
     {
         _paginationLinks = new Mock<PaginationLinksUtils>();
-        _mockLogger = new Mock<ILogger<CuentaControllerAdmin>>();
         _cuentaService = new Mock<ICuentaService>();
-        _cuentaController = new CuentaControllerAdmin(_cuentaService.Object, _paginationLinks.Object, _mockLogger.Object);
+        _cuentaController = new CuentaControllerAdmin(_cuentaService.Object, _paginationLinks.Object);
     }
     
     [Test]
@@ -38,7 +38,7 @@ public class CuentaAdminControllerTests
         };
 
         _cuentaService
-            .Setup(service => service.GetAll(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+            .Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ReturnsAsync(expectedResponse);
 
         var baseUri = new Uri("https://localhost");
@@ -56,7 +56,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAllNotFound()
     {
-        _cuentaService.Setup(service => service.GetAll(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ThrowsAsync(new CuentaNoEncontradaException("No se han encontrado las cuentas."));
 
         var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
@@ -69,7 +69,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAll500()
     {
-        _cuentaService.Setup(service => service.GetAll(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
 
         var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
@@ -84,18 +84,21 @@ public class CuentaAdminControllerTests
     {
         var cuenta = new CuentaResponse
         {
-            Guid = "guid",
-            Iban = "ES12345678901234567890",
+            Guid = "cuenta-guid",
+            Iban = "ES1234567890123456789012",
             Saldo = 1000,
-            TarjetaId = 1,
-            ClienteId = 1,
-            ProductoId = 1
+            TarjetaGuid = null,
+            ClienteGuid = "cliente-guid",
+            ProductoGuid = "producto-guid",
+            CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            IsDeleted = false
         };
         var cuentas = new List<CuentaResponse> { cuenta };
-        _cuentaService.Setup(service => service.getByClientGuid(It.IsAny<string>()))
+        _cuentaService.Setup(service => service.GetByClientGuidAsync(It.IsAny<string>()))
             .ReturnsAsync(cuentas);
 
-        var result = await _cuentaController.GetAllByClientGuid("123456789012");
+        var result = await _cuentaController.GetAllByClientGuid("cuenta-guid");
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
 
         var okResult = result.Result as OkObjectResult;
@@ -108,7 +111,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAllByClienteGuidBadRequest()
     {
-        _cuentaService.Setup(service => service.getByClientGuid("???"))
+        _cuentaService.Setup(service => service.GetByClientGuidAsync("???"))
             .ThrowsAsync(new CuentaInvalidaException("Cuentas no encontradas por guid del cliente invalido."));
 
         var result = await _cuentaController.GetAllByClientGuid("???");
@@ -121,7 +124,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAllByClienteGuidNotFound()
     {
-        _cuentaService.Setup(service => service.getByClientGuid("clienteGuid"))
+        _cuentaService.Setup(service => service.GetByClientGuidAsync("cliente-Guid"))
             .ThrowsAsync(new CuentaNoEncontradaException("No se han encontrado las cuentas del cliente."));
 
         var result = await _cuentaController.GetAllByClientGuid("clienteGuid");
@@ -134,7 +137,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAllByClienteGuid500()
     {
-        _cuentaService.Setup(service => service.getByClientGuid("clienteGuid"))
+        _cuentaService.Setup(service => service.GetByClientGuidAsync("clienteGuid"))
             .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
 
         var result = await _cuentaController.GetAllByClientGuid("clienteGuid");
@@ -149,14 +152,17 @@ public class CuentaAdminControllerTests
     {
         var cuenta = new CuentaResponse
         {
-            Guid = "guid",
-            Iban = "ES12345678901234567890",
+            Guid = "cuenta-guid",
+            Iban = "ES1234567890123456789012",
             Saldo = 1000,
-            TarjetaId = 1,
-            ClienteId = 1,
-            ProductoId = 1
+            TarjetaGuid = null,
+            ClienteGuid = "cliente-guid",
+            ProductoGuid = "producto-guid",
+            CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            IsDeleted = false
         };
-        _cuentaService.Setup(service => service.getByGuid(It.IsAny<string>()))
+        _cuentaService.Setup(service => service.GetByGuidAsync(It.IsAny<string>()))
             .ReturnsAsync(cuenta);
 
         var result = await _cuentaController.GetByGuid("123456789012");
@@ -172,7 +178,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetByGuidBadRequest()
     {
-        _cuentaService.Setup(service => service.getByGuid("???"))
+        _cuentaService.Setup(service => service.GetByGuidAsync("???"))
             .ThrowsAsync(new CuentaInvalidaException("Cuenta no encontrada por guid invalido."));
 
         var result = await _cuentaController.GetByGuid("???");
@@ -185,7 +191,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetByGuidNotFound()
     {
-        _cuentaService.Setup(service => service.getByGuid("guid"))
+        _cuentaService.Setup(service => service.GetByGuidAsync("guid"))
             .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
 
         var result = await _cuentaController.GetByGuid("guid");
@@ -198,7 +204,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetByGuid500()
     {
-        _cuentaService.Setup(service => service.getByGuid("guid"))
+        _cuentaService.Setup(service => service.GetByGuidAsync("guid"))
             .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
 
         var result = await _cuentaController.GetByGuid("guid");
@@ -213,14 +219,17 @@ public class CuentaAdminControllerTests
     {
         var cuenta = new CuentaResponse
         {
-            Guid = "guid",
-            Iban = "ES12345678901234567890",
+            Guid = "cuenta-guid",
+            Iban = "ES1234567890123456789012",
             Saldo = 1000,
-            TarjetaId = 1,
-            ClienteId = 1,
-            ProductoId = 1
+            TarjetaGuid = null,
+            ClienteGuid = "cliente-guid",
+            ProductoGuid = "producto-guid",
+            CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            IsDeleted = false
         };
-        _cuentaService.Setup(service => service.getByIban(It.IsAny<string>()))
+        _cuentaService.Setup(service => service.GetByIbanAsync(It.IsAny<string>()))
             .ReturnsAsync(cuenta);
 
         var result = await _cuentaController.GetByIban("ES12345678901234567890123456");
@@ -236,7 +245,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetByIbanBadRequest()
     {
-        _cuentaService.Setup(service => service.getByIban("???"))
+        _cuentaService.Setup(service => service.GetByIbanAsync("???"))
             .ThrowsAsync(new CuentaInvalidaException("Cuenta no encontrada por iban invalido."));
 
         var result = await _cuentaController.GetByIban("???");
@@ -249,7 +258,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetByIbanNotFound()
     {
-        _cuentaService.Setup(service => service.getByIban("iban"))
+        _cuentaService.Setup(service => service.GetByIbanAsync("iban"))
             .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
 
         var result = await _cuentaController.GetByIban("iban");
@@ -262,7 +271,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetByIban500()
     {
-        _cuentaService.Setup(service => service.getByIban("iban"))
+        _cuentaService.Setup(service => service.GetByIbanAsync("iban"))
             .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
 
         var result = await _cuentaController.GetByIban("iban");
@@ -275,18 +284,21 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task Delete()
     {
-        var guid = "123456789012";
+        var guid = "cuenta-guid";
         var expectedResponse = new CuentaResponse
         {
-            Guid = guid,
-            Iban = "ES12345678901234567890",
+            Guid = "cuenta-guid",
+            Iban = "ES1234567890123456789012",
             Saldo = 1000,
-            TarjetaId = 1,
-            ClienteId = 1,
-            ProductoId = 1
+            TarjetaGuid = null,
+            ClienteGuid = "cliente-guid",
+            ProductoGuid = "producto-guid",
+            CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            IsDeleted = false
         };
 
-        _cuentaService.Setup(service => service.deleteAdmin(guid))
+        _cuentaService.Setup(service => service.DeleteAdminAsync(guid))
             .ReturnsAsync(expectedResponse);
 
         var result = await _cuentaController.Delete(guid);
@@ -303,7 +315,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task DeleteNotFound()
     {
-        _cuentaService.Setup(service => service.deleteAdmin("guid"))
+        _cuentaService.Setup(service => service.DeleteAdminAsync("guid"))
             .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
 
         var result = await _cuentaController.Delete("guid");
@@ -316,7 +328,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task Delete500()
     {
-        _cuentaService.Setup(service => service.deleteAdmin("guid"))
+        _cuentaService.Setup(service => service.DeleteAdminAsync("guid"))
             .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
 
         var result = await _cuentaController.Delete("guid");
@@ -325,4 +337,4 @@ public class CuentaAdminControllerTests
         var objectResult = result.Result as ObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
-}*/
+}
