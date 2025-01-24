@@ -2,6 +2,7 @@ using System.Text.Json;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
@@ -271,7 +272,7 @@ public class ClienteService : IClienteService
 
         var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
         
-        cliente = DeleteData(cliente!);
+        cliente = await DeleteData(cliente!);
         _context.Clientes.Update(cliente);
         await _context.SaveChangesAsync();
 
