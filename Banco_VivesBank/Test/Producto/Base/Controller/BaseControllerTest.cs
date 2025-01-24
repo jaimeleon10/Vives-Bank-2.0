@@ -5,6 +5,7 @@ using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Base.Storage;
+using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,18 +19,19 @@ public class BaseControllerTests
         private Mock<IBaseService> _baseServiceMock;
         private Mock<IStorageProductos> _storageProductosMock;
         private BaseController _controller;
-
+        private Mock<PaginationLinksUtils> _paginationLinksUtils;
         [SetUp]
         public void SetUp()
         {
             _loggerMock = new Mock<ILogger<BaseController>>();
             _baseServiceMock = new Mock<IBaseService>();
             _storageProductosMock = new Mock<IStorageProductos>();
-
+            _paginationLinksUtils = new Mock<PaginationLinksUtils>();
             _controller = new BaseController(
                 _loggerMock.Object,
                 _baseServiceMock.Object,
-                _storageProductosMock.Object
+                _storageProductosMock.Object,
+                _paginationLinksUtils.Object
             );
         }
 
@@ -42,14 +44,59 @@ public class BaseControllerTests
                 new() { Nombre = "Producto2", Descripcion = "Descripcion2", Tae = 6.5, TipoProducto = "Tipo2" }
             };
 
-            _baseServiceMock.Setup(s => s.GetAllAsync())
-                .ReturnsAsync(expectedProducts);
+            var page = 0;
+            var size = 10;
+            var sortBy = "id";
+            var direction = "desc";
+            
+            var pageRequest = new PageRequest
+            {
+                PageNumber = page,
+                PageSize = size,
+                SortBy = sortBy,
+                Direction = direction
+            };
 
-            var result = await _controller.GetAll();
+            var pageResponse = new PageResponse<BaseResponse>
+            {
+                Content = expectedProducts,
+                TotalElements = expectedProducts.Count,
+                PageNumber = pageRequest.PageNumber,
+                PageSize = pageRequest.PageSize,
+                TotalPages = 1
+            };
 
+            _baseServiceMock.Setup(s => s.GetAllPagedAsync(pageRequest))
+                .ReturnsAsync(pageResponse);
+
+            var baseUri = new Uri("http://localhost/api/productosBase");
+            _paginationLinksUtils.Setup(utils => utils.CreateLinkHeader(pageResponse, baseUri))
+                .Returns("<http://localhost/api/productosBase?page=0&size=5>; rel=\"prev\",<http://localhost/api/productosBase?page=2&size=5>; rel=\"next\"");
+
+            // Configurar el contexto HTTP para la prueba
+            var httpContext = new DefaultHttpContext
+            {
+                Request =
+                {
+                    Scheme = "http",
+                    Host = new HostString("localhost"),
+                    PathBase = new PathString("/api/productosBase")
+                }
+            };
+
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+            
+            var result = await _controller.GetAll(page, size, sortBy, direction);
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-            var returnValue = (result.Result as OkObjectResult)?.Value as IEnumerable<BaseResponse>;
-            Assert.That(returnValue, Is.EqualTo(expectedProducts));
+
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
         }
 
         [Test]

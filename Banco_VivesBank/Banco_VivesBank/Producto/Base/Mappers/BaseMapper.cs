@@ -25,6 +25,7 @@ public static class BaseMapper
         return new BaseModel
         {
             Id = entity.Id,
+            Guid = entity.Guid,
             Nombre = entity.Nombre,
             Descripcion = entity.Descripcion,
             Tae = entity.Tae,
@@ -40,6 +41,7 @@ public static class BaseMapper
         return new BaseEntity
         {
             Id = model.Id,
+            Guid = model.Guid,
             Nombre = model.Nombre,
             Descripcion = model.Descripcion,
             Tae = model.Tae,
@@ -56,6 +58,7 @@ public static class BaseMapper
         return new BaseResponse
         {
             Nombre = model.Nombre,
+            Guid = model.Guid,
             Descripcion = model.Descripcion,
             Tae = model.Tae,
             TipoProducto = model.TipoProducto,
@@ -70,6 +73,7 @@ public static class BaseMapper
         return new BaseResponse
         {
             Nombre = entity.Nombre,
+            Guid = entity.Guid,
             Descripcion = entity.Descripcion,
             Tae = entity.Tae,
             TipoProducto = entity.TipoProducto,
