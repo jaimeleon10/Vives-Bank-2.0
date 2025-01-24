@@ -1,7 +1,6 @@
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
-using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Models;
@@ -13,7 +12,6 @@ using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.Storage.Backup.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
