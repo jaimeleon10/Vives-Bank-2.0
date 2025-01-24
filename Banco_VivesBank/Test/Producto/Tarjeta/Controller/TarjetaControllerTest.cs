@@ -147,7 +147,7 @@ public class TarjetaControllerTest
         
         // Act
         _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync(tarjeta.ToResponseFromEntity());
-        var result = await _tarjetaController.GetTarjetaById(guid);
+        var result = await _tarjetaController.GetTarjetaByGuid(guid);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
@@ -162,7 +162,7 @@ public class TarjetaControllerTest
         // Act
         _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync((TarjetaResponse)null);
         var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaController.GetTarjetaById(guid));
+            await _tarjetaController.GetTarjetaByGuid(guid));
 
         // Assert
         Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
