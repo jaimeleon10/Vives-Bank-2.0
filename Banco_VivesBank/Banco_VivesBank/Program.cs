@@ -11,6 +11,8 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.Storage.Files.Service;
+using Banco_VivesBank.Storage.Json.Service;
+using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
@@ -102,6 +104,8 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
+    myBuilder.Services.AddScoped<IBackupService, BackupService>();
+    myBuilder.Services.AddScoped<IStorageJson, StorageJson>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
     
     // Caché en memoria
