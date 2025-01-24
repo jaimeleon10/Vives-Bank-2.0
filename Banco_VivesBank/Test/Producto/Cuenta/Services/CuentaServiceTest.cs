@@ -103,7 +103,7 @@ public class CuentaServiceTests
             Guid =  "user-guid",
             Username = "username1",
             Password = "password1",
-            Role = Banco_VivesBank.User.Models.Role.USER,
+            Role = Role.User,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -619,7 +619,7 @@ public class CuentaServiceTests
                 Guid = "user-guid",
                 Username = "juanperez",
                 Password = "securepassword123",
-                Role = Role.USER,  
+                Role = Role.User,  
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
