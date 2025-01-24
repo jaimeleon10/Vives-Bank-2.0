@@ -5,7 +5,7 @@ using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
-namespace Test;
+namespace Test.User.Controller;
 [TestFixture]
 public class UserControllerTest
 {

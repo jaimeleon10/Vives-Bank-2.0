@@ -1,7 +1,7 @@
 ﻿using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Mapper;
 
-namespace Test;
+namespace Test.User.Mapper;
 [TestFixture]
 public class UserMapperTest
 {
@@ -33,7 +33,7 @@ public class UserMapperTest
             Guid = "guid",
             Username = "test",
             Password = "test",
-            Role = Banco_VivesBank.User.Models.Role.USER,
+            Role = Banco_VivesBank.User.Models.Role.User,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -59,7 +59,7 @@ public class UserMapperTest
         {
             Guid = "guid",
             Username = "test",
-            Role = Banco_VivesBank.User.Models.Role.USER,
+            Role = Banco_VivesBank.User.Models.Role.User,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false

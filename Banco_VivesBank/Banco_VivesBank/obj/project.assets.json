@@ -261,6 +261,36 @@
           }
         }
       },
+      "HtmlRenderer.Core/1.5.1-beta1": {
+        "type": "package",
+        "compile": {
+          "lib/net45/HtmlRenderer.dll": {
+            "related": ".pdb"
+          }
+        },
+        "runtime": {
+          "lib/net45/HtmlRenderer.dll": {
+            "related": ".pdb"
+          }
+        }
+      },
+      "HtmlRenderer.PdfSharp/1.5.1-beta1": {
+        "type": "package",
+        "dependencies": {
+          "HtmlRenderer.Core": "1.5.1-beta1",
+          "PDFsharp": "1.50.4000-beta3b"
+        },
+        "compile": {
+          "lib/net45/HtmlRenderer.PdfSharp.dll": {
+            "related": ".pdb"
+          }
+        },
+        "runtime": {
+          "lib/net45/HtmlRenderer.PdfSharp.dll": {
+            "related": ".pdb"
+          }
+        }
+      },
       "Humanizer.Core/2.14.1": {
         "type": "package",
         "compile": {
@@ -1651,6 +1681,33 @@
         "type": "package",
         "build": {
           "build/netcoreapp3.1/NUnit3TestAdapter.props": {}
+        }
+      },
+      "PDFsharp/1.50.4000-beta3b": {
+        "type": "package",
+        "compile": {
+          "lib/net20/PdfSharp.Charting.dll": {
+            "related": ".xml"
+          },
+          "lib/net20/PdfSharp.dll": {
+            "related": ".Charting.xml;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net20/PdfSharp.Charting.dll": {
+            "related": ".xml"
+          },
+          "lib/net20/PdfSharp.dll": {
+            "related": ".Charting.xml;.xml"
+          }
+        },
+        "resource": {
+          "lib/net20/de/PdfSharp.Charting.resources.dll": {
+            "locale": "de"
+          },
+          "lib/net20/de/PdfSharp.resources.dll": {
+            "locale": "de"
+          }
         }
       },
       "Pipelines.Sockets.Unofficial/2.2.8": {
@@ -3232,6 +3289,47 @@
         "lib/netstandard2.1/GraphQL.SystemTextJson.dll",
         "lib/netstandard2.1/GraphQL.SystemTextJson.xml",
         "logo.64x64.png"
+      ]
+    },
+    "HtmlRenderer.Core/1.5.1-beta1": {
+      "sha512": "HmMbhQuB5oEZvKa5kBFL7zWEdpzN9qpj0aO48VQ5A5kAuz1Cd0tzf37tek81K9IqcOo32MZhD3HqsSKM3R1uBQ==",
+      "type": "package",
+      "path": "htmlrenderer.core/1.5.1-beta1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "htmlrenderer.core.1.5.1-beta1.nupkg.sha512",
+        "htmlrenderer.core.nuspec",
+        "lib/net20/HtmlRenderer.dll",
+        "lib/net20/HtmlRenderer.pdb",
+        "lib/net30/HtmlRenderer.dll",
+        "lib/net30/HtmlRenderer.pdb",
+        "lib/net35-client/HtmlRenderer.dll",
+        "lib/net35-client/HtmlRenderer.pdb",
+        "lib/net40-client/HtmlRenderer.dll",
+        "lib/net40-client/HtmlRenderer.pdb",
+        "lib/net45/HtmlRenderer.dll",
+        "lib/net45/HtmlRenderer.pdb"
+      ]
+    },
+    "HtmlRenderer.PdfSharp/1.5.1-beta1": {
+      "sha512": "3+w+AJDiDVzYRk3K3jvTo+4Lf4h6fsnUDEf6hWB1dBouWolaTAHRCdNNO8r/Du3cFlfNeeMXqIUuNUEuINsvHA==",
+      "type": "package",
+      "path": "htmlrenderer.pdfsharp/1.5.1-beta1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "htmlrenderer.pdfsharp.1.5.1-beta1.nupkg.sha512",
+        "htmlrenderer.pdfsharp.nuspec",
+        "lib/net20/HtmlRenderer.PdfSharp.dll",
+        "lib/net20/HtmlRenderer.PdfSharp.pdb",
+        "lib/net35-client/HtmlRenderer.PdfSharp.dll",
+        "lib/net35-client/HtmlRenderer.PdfSharp.pdb",
+        "lib/net40-client/HtmlRenderer.PdfSharp.dll",
+        "lib/net40-client/HtmlRenderer.PdfSharp.pdb",
+        "lib/net45/HtmlRenderer.PdfSharp.dll",
+        "lib/net45/HtmlRenderer.PdfSharp.pdb",
+        "readme.txt"
       ]
     },
     "Humanizer.Core/2.14.1": {
@@ -5444,6 +5542,23 @@
         "nunit3testadapter.4.6.0.nupkg.sha512",
         "nunit3testadapter.nuspec",
         "nunit_256.png"
+      ]
+    },
+    "PDFsharp/1.50.4000-beta3b": {
+      "sha512": "tUKPPJkLGSMqmjtpt9Bisph74oYlyBh4pkiGgojLKzqqNbrOMzupdIxA7Ge9MsFzkGptmc4OM3Yk0a2vwqIQqA==",
+      "type": "package",
+      "path": "pdfsharp/1.50.4000-beta3b",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net20/PdfSharp.Charting.dll",
+        "lib/net20/PdfSharp.Charting.xml",
+        "lib/net20/PdfSharp.dll",
+        "lib/net20/PdfSharp.xml",
+        "lib/net20/de/PdfSharp.Charting.resources.dll",
+        "lib/net20/de/PdfSharp.resources.dll",
+        "pdfsharp.1.50.4000-beta3b.nupkg.sha512",
+        "pdfsharp.nuspec"
       ]
     },
     "Pipelines.Sockets.Unofficial/2.2.8": {
@@ -8271,6 +8386,7 @@
       "GraphQL.AspNet.TestFramework >= 1.4.2",
       "GraphQL.Server.Transports.AspNetCore >= 8.2.0",
       "GraphQL.SystemTextJson >= 8.3.0",
+      "HtmlRenderer.PdfSharp >= 1.5.1-beta1",
       "IronZIP >= 2025.1.1",
       "Microsoft.AspNetCore.OpenApi >= 8.0.12",
       "Microsoft.EntityFrameworkCore >= 8.0.12",
@@ -8362,6 +8478,10 @@
           "GraphQL.SystemTextJson": {
             "target": "Package",
             "version": "[8.3.0, )"
+          },
+          "HtmlRenderer.PdfSharp": {
+            "target": "Package",
+            "version": "[1.5.1-beta1, )"
           },
           "IronZIP": {
             "target": "Package",
@@ -8484,5 +8604,37 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.405/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'HtmlRenderer.Core 1.5.1-beta1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "HtmlRenderer.Core",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'HtmlRenderer.PdfSharp 1.5.1-beta1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "HtmlRenderer.PdfSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'PDFsharp 1.50.4000-beta3b' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "PDFsharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

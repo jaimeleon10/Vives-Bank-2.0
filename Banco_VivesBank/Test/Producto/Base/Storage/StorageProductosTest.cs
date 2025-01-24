@@ -4,7 +4,7 @@ using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Storage;
 using Microsoft.Extensions.Logging;
 
-namespace Test;
+namespace Test.Storage;
 
 public class StorageProductosTests
 {
@@ -22,13 +22,25 @@ public class StorageProductosTests
     [Test]
     public void ImportProductos()
     {
-        var csvContent = "id,nombre,descripcion,tipoProducto,tae\n1,Cuenta,Cuenta Corriente,Cuenta,1.5";
+        var csvContent = "nombre,descripcion,tipoProducto,tae\nCuenta,Cuenta Corriente,Cuenta,1.5";
         var filePath = Path.Combine(_tempPath, "test.csv");
         File.WriteAllText(filePath, csvContent, Encoding.UTF8);
         var fileInfo = new FileInfo(filePath);
 
+        _loggerMock.Setup(x => x.Log(
+                It.IsAny<LogLevel>(), 
+                It.IsAny<EventId>(), 
+                It.Is<It.IsAnyType>((v, t) => true), 
+                It.IsAny<Exception>(), 
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()))
+            .Callback(new InvocationAction(invocation => 
+            {
+                Console.WriteLine($"Log: {invocation.Arguments[2]}");
+            }));
+
         var result = _storage.ImportProductosFromCsv(fileInfo);
 
+        Console.WriteLine($"Result count: {result.Count}");
         Assert.That(result, Has.Exactly(1).Items);
         Assert.That(result[0].Nombre, Is.EqualTo("Cuenta"));
         Assert.That(result[0].Tae, Is.EqualTo(1.5));
@@ -63,5 +75,41 @@ public class StorageProductosTests
         var lines = File.ReadAllLines(filePath);
         Assert.That(lines.Length, Is.EqualTo(2));
         Assert.That(lines[1], Does.Contain("Test"));
+    }
+    
+    [Test]
+    public void ImportProductosListaVacia()
+    {
+        var filePath = Path.Combine(_tempPath, "empty.csv");
+        File.WriteAllText(filePath, string.Empty, Encoding.UTF8);
+        var fileInfo = new FileInfo(filePath);
+
+        var result = _storage.ImportProductosFromCsv(fileInfo);
+
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void ImportProductosArchivoInexistente()
+    {
+        var filePath = Path.Combine(_tempPath, "nonexistent.csv");
+        var fileInfo = new FileInfo(filePath);
+
+        var result = _storage.ImportProductosFromCsv(fileInfo);
+
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void ImportProductosDatoInvalido()
+    {
+        var csvContent = "id,nombre,descripcion,tipoProducto,tae\n1,Cuenta,Cuenta Corriente,Cuenta,invalid";
+        var filePath = Path.Combine(_tempPath, "invalid_tae.csv");
+        File.WriteAllText(filePath, csvContent, Encoding.UTF8);
+        var fileInfo = new FileInfo(filePath);
+
+        var result = _storage.ImportProductosFromCsv(fileInfo);
+
+        Assert.That(result, Is.Empty);
     }
 }

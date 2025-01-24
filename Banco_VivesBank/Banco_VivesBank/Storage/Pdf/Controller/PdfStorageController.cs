@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿/*using System.Numerics;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Storage.Pdf.Services;
@@ -42,13 +42,13 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
         {
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow,
                 Domiciliacion = new DomiciliacionConcreta
                 {
-                    Cliente = cuenta.Cliente,
-                    IbanOrigen = cuenta.Iban,
-                    IbanDestino = "ES00998877665544332211",
+                    ClienteGuid = cuenta.Cliente.Guid,
+                    IbanEmpresa = cuenta.Iban,
+                    IbanCliente = "ES00998877665544332211",
                     Importe = new BigInteger(50000),
                     Acreedor = "Compañía Eléctrica",
                     FechaInicio = new DateTime(2024, 1, 1),
@@ -59,20 +59,20 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
             },
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
                 IngresoNomina = new IngresoNominaConcreta
                 {
                     NombreEmpresa = "hola",
                     CifEmpresa = "123456",
                     Importe = 1000,
-                    IbanDestino = "4567899876456789876567",
-                    IbanOrigen = cuenta.Iban
+                    IbanEmpresa = "4567899876456789876567",
+                    IbanCliente = cuenta.Iban
                 }
             },
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-2),
                 PagoConTarjeta = new PagoConTarjetaConcreto
                 {
@@ -83,7 +83,7 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
             },
             new Movimiento
             {
-                Cliente = cuenta.Cliente,
+                ClienteGuid = cuenta.Cliente.Guid,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 Transferencia = new TransferenciaConcreta
                 {
@@ -99,4 +99,4 @@ public class PdfStorageController : Microsoft.AspNetCore.Mvc.Controller
         
         return Ok("PDF generado");
     }
-}
+}*/

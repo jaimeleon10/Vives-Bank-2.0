@@ -1,11 +1,11 @@
-﻿using Banco_VivesBank.Frankfurter.Controller;
+using Banco_VivesBank.Frankfurter.Controller;
 using Banco_VivesBank.Frankfurter.Model;
 using Banco_VivesBank.Frankfurter.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test;
+namespace Test.Frankfurter.Controller;
 
 public class DivisasControllerTest
 {

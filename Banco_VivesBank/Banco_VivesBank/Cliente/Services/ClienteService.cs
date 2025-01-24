@@ -2,6 +2,7 @@ using System.Text.Json;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
@@ -166,7 +167,7 @@ public class ClienteService : IClienteService
         ValidateEmailExistente(clienteRequest.Email);
         ValidateTelefonoExistente(clienteRequest.Telefono);
         
-        var user = await _userService.GetUserModelByGuid(clienteRequest.UserGuid);
+        var user = await _userService.GetUserModelByGuidAsync(clienteRequest.UserGuid);
         if (user == null)
         {
             _logger.LogInformation($"Usuario no encontrado con guid: {clienteRequest.UserGuid}");
@@ -262,7 +263,7 @@ public class ClienteService : IClienteService
     {
         _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
         
-        var user = await _userService.GetUserModelByGuid(userGuid);
+        var user = await _userService.GetUserModelByGuidAsync(userGuid);
         if (user == null)
         {
             _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
@@ -271,7 +272,7 @@ public class ClienteService : IClienteService
 
         var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
         
-        cliente = DeleteData(cliente!);
+        cliente = await DeleteData(cliente!);
         _context.Clientes.Update(cliente);
         await _context.SaveChangesAsync();
 
@@ -279,27 +280,23 @@ public class ClienteService : IClienteService
         return "Datos del cliente eliminados de la base de datos";
     }
     
-    private ClienteEntity DeleteData(ClienteEntity entityCliente)
+    private async Task<ClienteEntity> DeleteData(ClienteEntity entityCliente)
     {
-        entityCliente.Dni = "";
-        entityCliente.Nombre = "";
-        entityCliente.Apellidos = "";
-        entityCliente.Direccion.Calle = "";
-        entityCliente.Direccion.Numero = "";
-        entityCliente.Direccion.CodigoPostal = "";
-        entityCliente.Direccion.Piso = "";
-        entityCliente.Direccion.Letra = "";
-        entityCliente.Email = "";
-        entityCliente.Telefono = "";
-        _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
-        _fileStorageService.DeleteFileAsync(entityCliente.FotoDni);
-        entityCliente.FotoPerfil= "";
-        entityCliente.FotoDni = "";
+        entityCliente.Dni = entityCliente.Nombre = entityCliente.Apellidos = entityCliente.Email = entityCliente.Telefono = string.Empty;
+        entityCliente.Direccion = new Direccion
+        {
+            Calle = string.Empty, Numero = string.Empty, CodigoPostal = string.Empty, Piso = string.Empty, Letra = string.Empty
+        };
+        await _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
+        await _fileStorageService.DeleteFileAsync(entityCliente.FotoDni);
+        entityCliente.FotoPerfil = entityCliente.FotoDni = string.Empty;
         entityCliente.IsDeleted = true;
-        entityCliente.UpdatedAt = DateTime.Now;
+        entityCliente.UpdatedAt = DateTime.UtcNow;
+
 
         return entityCliente;
     }
+
     
     private void ValidateDniExistente(string dni)
     {
@@ -407,20 +404,19 @@ public class ClienteService : IClienteService
         }
 
         var clienteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
-            if (clienteEntity != null)
-            {
-                _logger.LogInformation($"Cliente encontrado con guid: {guid}");
-                var clienteModel = clienteEntity.ToModelFromEntity();
-                _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
-                var serializedCliente = JsonSerializer.Serialize(clienteModel);
-                await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
-                return clienteModel;
-            }
-
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
-            return null;
+        if (clienteEntity != null)
+        {
+            _logger.LogInformation($"Cliente encontrado con guid: {guid}");
+            var clienteModel = clienteEntity.ToModelFromEntity();
+            _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+            var serializedCliente = JsonSerializer.Serialize(clienteModel);
+            await _database.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
+            return clienteModel;
         }
-    
+
+        _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+        return null;
+    }
 
     public async Task<Models.Cliente?> GetClienteModelById(long id)
     {

@@ -7,8 +7,10 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: VivesBankDB
     volumes:
       - mongo_data:/data/db
+      - ./mongo/initMongo.js:/docker-entrypoint-initdb.d/initMongo.js
     restart: unless-stopped
   
   postgres:

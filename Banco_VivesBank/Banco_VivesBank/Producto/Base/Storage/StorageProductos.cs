@@ -23,13 +23,20 @@ public class StorageProductos : IStorageProductos
             var lines = File.ReadAllLines(file.FullName, Encoding.UTF8);
             foreach (var line in lines.Skip(1))
             {
-                var data = line.Split(',');
+                var data = line.Split(',').Select(field => field.Trim('"').Trim()).ToArray();
+
+                if (data.Length != 4)
+                {
+                    _logger.LogWarning($"Línea omitida debido a número incorrecto de columnas: {line}");
+                    continue;
+                }
+
                 var producto = new BaseModel
                 {
-                    Nombre = data[1].Trim(),
-                    Descripcion = data[2].Trim(),
-                    TipoProducto = data[3].Trim(),
-                    Tae = double.Parse(data[4].Trim(), CultureInfo.InvariantCulture)
+                    Nombre = data[0],
+                    Descripcion = data[1],
+                    TipoProducto = data[2],
+                    Tae = double.Parse(data[3], CultureInfo.InvariantCulture)
                 };
                 productos.Add(producto);
             }
@@ -41,7 +48,7 @@ public class StorageProductos : IStorageProductos
             return new List<BaseModel>();
         }
     }
-
+    
     public void ExportProductosFromCsv(FileInfo file, List<BaseModel> data)
     {
         _logger.LogDebug($"Exportando productos a CSV de {nameof(BaseModel)}");
