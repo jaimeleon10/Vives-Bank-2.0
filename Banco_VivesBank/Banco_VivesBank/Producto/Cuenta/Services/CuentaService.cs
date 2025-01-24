@@ -24,6 +24,7 @@ public class CuentaService : ICuentaService
     private readonly IBaseService _baseService;
     private readonly ILogger<CuentaService> _logger;
     private readonly IClienteService _clienteService;
+    private readonly ITarjetaService _tarjetaService;
     private readonly IMemoryCache _memoryCache;
     private readonly IDatabase _database;
     private const string CacheKeyPrefix = "Cuenta:";
@@ -148,19 +149,7 @@ public class CuentaService : ICuentaService
 
         if (cuentaEntity != null)
         {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-
-            }
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
-
-            cuentaEntity.Tarjeta = tarjeta;
-            cuentaEntity.Cliente = cliente;
-            cuentaEntity.Producto = producto;
-            
+           
             var cuentaResponse = cuentaEntity.ToResponseFromEntity();
             var cuentaModel = cuentaEntity.ToModelFromEntity();
             
@@ -206,19 +195,6 @@ public class CuentaService : ICuentaService
 
         if (cuentaEntity != null)
         {
-            Tarjeta.Models.Tarjeta? tarjeta = null;
-            if (cuentaEntity.TarjetaId.HasValue)
-            {
-                tarjeta = await _tarjetaService.GetTarjetaModelById(cuentaEntity.TarjetaId.Value);
-
-            }
-            var cliente = await _clienteService.GetClienteModelById(cuentaEntity.ClienteId);
-            var producto = await _baseService.GetBaseModelById(cuentaEntity.ProductoId);
-
-            cuentaEntity.Tarjeta = tarjeta;
-            cuentaEntity.Cliente = cliente;
-            cuentaEntity.Producto = producto;
-            
             var cuentaResponse = cuentaEntity.ToResponseFromEntity();
             var cuentaModel = cuentaEntity.ToModelFromEntity();
             
@@ -331,6 +307,13 @@ public class CuentaService : ICuentaService
 
         var tipoCuentaModel = await _baseService.GetBaseModelByGuid(tipoCuenta.Guid);
         var clienteModel = await _clienteService.GetClienteModelByGuid(cuentaRequest.ClienteGuid);
+        
+        if (clienteModel == null)
+        {
+            _logger.LogError($"El cliente {cuentaRequest.ClienteGuid}  no existe ");
+            throw new BaseNotExistException($"El cliente {cuentaRequest.ClienteGuid}  no existe");
+            
+        }
         
         var cuenta = new Models.Cuenta
         {
