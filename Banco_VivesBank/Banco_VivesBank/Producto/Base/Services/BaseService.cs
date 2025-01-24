@@ -95,7 +95,7 @@ public class BaseService : IBaseService
         }
         
         _logger.LogInformation($"Producto no encontrado con guid: {guid}");
-        throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
+        return null;
     }
 
     public async Task<BaseResponse?> GetByTipoAsync(string tipo)
@@ -143,7 +143,7 @@ public class BaseService : IBaseService
         if (await _context.ProductoBase.AnyAsync(b => b.TipoProducto.ToLower() == baseRequest.TipoProducto.ToLower()))
         {
             _logger.LogWarning($"Ya existe un producto con el tipo: {baseRequest.TipoProducto}");
-            throw new BaseDuplicateException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
+            throw new BaseDuplicateException($"Ya existe un producto con el tipo: {baseRequest.TipoProducto}");
         }
         
         var baseModel = baseRequest.ToModelFromRequest();
@@ -164,7 +164,7 @@ public class BaseService : IBaseService
         {
             _logger.LogWarning($"Producto con guid: {guid} no encontrado");
             //lanzamos excepcion
-            throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
+            return null;
         }
     
         _logger.LogInformation("Validando nombre único");
@@ -178,7 +178,6 @@ public class BaseService : IBaseService
         baseEntityExistente.Nombre = baseUpdate.Nombre;
         baseEntityExistente.Descripcion = baseUpdate.Descripcion;
         baseEntityExistente.Tae = baseUpdate.Tae;
-        baseEntityExistente.TipoProducto = baseUpdate.TipoProducto;
         baseEntityExistente.UpdatedAt = DateTime.UtcNow;
 
         _context.ProductoBase.Update(baseEntityExistente);
@@ -200,7 +199,7 @@ public class BaseService : IBaseService
         if (baseExistenteEntity == null)
         {
             _logger.LogWarning($"Producto con id: {guid} no encontrado");
-            throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
+            return null;
         }
 
         _logger.LogInformation("Actualizando isDeleted a true");

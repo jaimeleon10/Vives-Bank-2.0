@@ -55,7 +55,7 @@ public class TarjetaController : ControllerBase
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByGuid(string guid)
     {
         var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
-        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con guid: {guid} no se ha encontrado");
+        if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
         return Ok(tarjeta);
     }
 
@@ -67,18 +67,19 @@ public class TarjetaController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        if (dto.Pin.Length != 4)
-        {
-            throw new TarjetaNotFoundException("El pin tiene un formato incorrecto");
-        }
-        
-        if (!_cardLimitValidators.ValidarLimite(dto))
-        {
-            throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta");
-        }
+       
         
         try
         {
+            if (dto.Pin.Length != 4)
+            {
+                return BadRequest("El pin tiene un formato incorrecto");
+            }
+        
+            if (!_cardLimitValidators.ValidarLimite(dto))
+            {
+                return BadRequest("Error con los limites de gasto de la tarjeta");
+            }
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
             
             return Ok(tarjetaModel);
@@ -99,8 +100,12 @@ public class TarjetaController : ControllerBase
 
         try
         {
+            if (!_cardLimitValidators.ValidarLimite(dto))
+            {
+                throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta");
+            }
             var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-            if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
+            if (tarjeta == null) return NotFound($"La tarjeta con id: {id} no se ha encontrado");
             var updatedTarjeta = await _tarjetaService.UpdateAsync(id, dto);
             return Ok(updatedTarjeta);
         }
@@ -113,13 +118,13 @@ public class TarjetaController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTarjeta(string id)
     {
-        var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-        if (tarjeta == null) throw new TarjetaNotFoundException($"La tarjeta con id: {id} no se ha encontrado");
-
         try
         {
+            var tarjeta = await _tarjetaService.GetByGuidAsync(id);
+            if (tarjeta == null) return NotFound($"La tarjeta con id: {id} no se ha encontrado");
+
             await _tarjetaService.DeleteAsync(id);
-            return NoContent();
+            return Ok(tarjeta);
         }
         catch (Exception e)
         {

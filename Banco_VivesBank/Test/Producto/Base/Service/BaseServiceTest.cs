@@ -169,13 +169,13 @@ public class BaseServiceTest
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
     
-        var updateRequest = new BaseUpdateDto { Nombre = "Producto Actualizado", Descripcion = "Nueva Descripción", Tae = 6.0, TipoProducto = "Tipo Actualizado" };
+        var updateRequest = new BaseUpdateDto { Nombre = "Producto Actualizado", Descripcion = "Nueva Descripción", Tae = 6.0 };
 
         var result = await _baseService.UpdateAsync(guid, updateRequest);
 
         Assert.That(result, Is.Not.Null);
         Assert.That("Producto Actualizado", Is.EqualTo(result?.Nombre));
-        Assert.That("Tipo Actualizado", Is.EqualTo(result?.TipoProducto));
+        Assert.That("Tipo 1", Is.EqualTo(result?.TipoProducto));
     }
 
     [Test]
