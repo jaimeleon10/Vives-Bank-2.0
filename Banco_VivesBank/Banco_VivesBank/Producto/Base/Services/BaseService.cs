@@ -142,7 +142,7 @@ public class BaseService : IBaseService
         
         if (await _context.ProductoBase.AnyAsync(b => b.TipoProducto.ToLower() == baseRequest.TipoProducto.ToLower()))
         {
-            _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
+            _logger.LogWarning($"Ya existe un producto con el tipo: {baseRequest.TipoProducto}");
             throw new BaseDuplicateException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
         }
         
