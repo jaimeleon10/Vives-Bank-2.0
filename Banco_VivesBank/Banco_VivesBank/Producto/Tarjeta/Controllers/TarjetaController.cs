@@ -2,6 +2,7 @@
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,19 +16,39 @@ public class TarjetaController : ControllerBase
     private readonly ITarjetaService _tarjetaService;
     private readonly CardLimitValidators _cardLimitValidators;
     private readonly ILogger<CardLimitValidators> _log;
+    private readonly PaginationLinksUtils _paginationLinksUtils;
 
-    public TarjetaController(ITarjetaService tarjetaService, ILogger<CardLimitValidators> log)
+    public TarjetaController(ITarjetaService tarjetaService, ILogger<CardLimitValidators> log, PaginationLinksUtils pagination)
     {
         _log = log; 
         _tarjetaService = tarjetaService;
         _cardLimitValidators = new CardLimitValidators(_log);
+        _paginationLinksUtils = pagination;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta>>> GetAllTarjetas()
+    public async Task<ActionResult<IEnumerable<PageResponse<Models.Tarjeta>>>> GetAllTarjetas(
+        [FromQuery] int page = 0,
+        [FromQuery] int size = 10,
+        [FromQuery] string sortBy = "id",
+        [FromQuery] string direction = "asc")
     {
-        var tarjetas = await _tarjetaService.GetAllAsync();
-        return Ok(tarjetas);
+        
+        var pageRequest = new PageRequest
+        {
+            PageNumber = page,
+            PageSize = size,
+            SortBy = sortBy,
+            Direction = direction
+        };
+        var pageResult = await _tarjetaService.GetAllPagedAsync(pageRequest);
+            
+        var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
+        var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
+            
+        Response.Headers.Add("link", linkHeader);
+            
+        return Ok(pageResult);
     }
 
     [HttpGet("{id}")]

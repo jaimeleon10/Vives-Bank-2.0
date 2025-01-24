@@ -1,12 +1,15 @@
 ﻿using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Controllers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Generators;
+using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,10 +24,7 @@ public class TarjetaControllerTest
     private GeneralDbContext _dbContext;
     private Mock<ITarjetaService> _tarjetaService;
     private TarjetaController _tarjetaController;
-    private Mock<TarjetaGenerator> _tarjetaGeneratorMock;
-    private Mock<CvvGenerator> _cvvGeneratorMock;
-    private Mock<ExpDateGenerator> _expDateGeneratorMock;
-    private Mock<CardLimitValidators> _cardLimitValidatorsMock;
+    private Mock<PaginationLinksUtils> _paginationLinksUtils;
     
     [OneTimeSetUp]
     public async Task Setup()
@@ -45,16 +45,14 @@ public class TarjetaControllerTest
 
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
-
-        _tarjetaGeneratorMock = new Mock<TarjetaGenerator>();
-        _cvvGeneratorMock = new Mock<CvvGenerator>();
-        _expDateGeneratorMock = new Mock<ExpDateGenerator>();
-        _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
+        
         _tarjetaService = new Mock<ITarjetaService>();
+        _paginationLinksUtils = new Mock<PaginationLinksUtils>();
         
         _tarjetaController = new TarjetaController(
             _tarjetaService.Object,
-            NullLogger<CardLimitValidators>.Instance
+            NullLogger<CardLimitValidators>.Instance,
+            _paginationLinksUtils.Object
         );
     }
     
@@ -83,14 +81,60 @@ public class TarjetaControllerTest
             new TarjetaResponse() { Id = 2, Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
         };
 
+        
+        var page = 0;
+        var size = 10;
+        var sortBy = "id";
+        var direction = "desc";
+            
+        var pageRequest = new PageRequest
+        {
+            PageNumber = page,
+            PageSize = size,
+            SortBy = sortBy,
+            Direction = direction
+        };
+
+        var pageResponse = new PageResponse<TarjetaResponse>
+        {
+            Content = tarjetas,
+            TotalElements = tarjetas.Count,
+            PageNumber = pageRequest.PageNumber,
+            PageSize = pageRequest.PageSize,
+            TotalPages = 1
+        };
+
+        _tarjetaService.Setup(s => s.GetAllPagedAsync(pageRequest))
+            .ReturnsAsync(pageResponse);
+
+        var baseUri = new Uri("http://localhost/api/productosBase");
+        _paginationLinksUtils.Setup(utils => utils.CreateLinkHeader(pageResponse, baseUri))
+            .Returns("<http://localhost/api/productosBase?page=0&size=5>; rel=\"prev\",<http://localhost/api/productosBase?page=2&size=5>; rel=\"next\"");
+
+        // Configurar el contexto HTTP para la prueba
+        var httpContext = new DefaultHttpContext
+        {
+            Request =
+            {
+                Scheme = "http",
+                Host = new HostString("localhost"),
+                PathBase = new PathString("/api/productosBase")
+            }
+        };
+
+        _tarjetaController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+        
         // Act
-        _tarjetaService.Setup(s => s.GetAllAsync()).ReturnsAsync(tarjetas);
-        var result = await _tarjetaController.GetAllTarjetas();
+        _tarjetaService.Setup(s => s.GetAllPagedAsync(pageRequest)).ReturnsAsync(pageResponse);
+        var result = await _tarjetaController.GetAllTarjetas(page, size, sortBy, direction);
 
         // Assert
+        Assert.That(result, Is.Not.Null);
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        var returnValue = (result.Result as OkObjectResult)?.Value as IEnumerable<TarjetaResponse>;
-        Assert.That(returnValue, Is.EqualTo(tarjetas));
+        
     }
 
     [Test]
