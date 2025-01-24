@@ -6,11 +6,9 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.Producto.Cuenta.Controller;
+namespace Test.Producto.Cuenta.Controller;
 
 public class CuentaAdminControllerTests
 {
@@ -57,7 +55,7 @@ public class CuentaAdminControllerTests
     public async Task GetAllNotFound()
     {
         _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
-            .ThrowsAsync(new CuentaNoEncontradaException("No se han encontrado las cuentas."));
+            .ThrowsAsync(new CuentaNotFoundException("No se han encontrado las cuentas."));
 
         var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
@@ -125,7 +123,7 @@ public class CuentaAdminControllerTests
     public async Task GetAllByClienteGuidNotFound()
     {
         _cuentaService.Setup(service => service.GetByClientGuidAsync("cliente-Guid"))
-            .ThrowsAsync(new CuentaNoEncontradaException("No se han encontrado las cuentas del cliente."));
+            .ThrowsAsync(new CuentaNotFoundException("No se han encontrado las cuentas del cliente."));
 
         var result = await _cuentaController.GetAllByClientGuid("clienteGuid");
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
@@ -192,7 +190,7 @@ public class CuentaAdminControllerTests
     public async Task GetByGuidNotFound()
     {
         _cuentaService.Setup(service => service.GetByGuidAsync("guid"))
-            .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
+            .ThrowsAsync(new CuentaNotFoundException("No se ha encontrado la cuenta."));
 
         var result = await _cuentaController.GetByGuid("guid");
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
@@ -259,7 +257,7 @@ public class CuentaAdminControllerTests
     public async Task GetByIbanNotFound()
     {
         _cuentaService.Setup(service => service.GetByIbanAsync("iban"))
-            .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
+            .ThrowsAsync(new CuentaNotFoundException("No se ha encontrado la cuenta."));
 
         var result = await _cuentaController.GetByIban("iban");
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
@@ -316,7 +314,7 @@ public class CuentaAdminControllerTests
     public async Task DeleteNotFound()
     {
         _cuentaService.Setup(service => service.DeleteAdminAsync("guid"))
-            .ThrowsAsync(new CuentaNoEncontradaException("No se ha encontrado la cuenta."));
+            .ThrowsAsync(new CuentaNotFoundException("No se ha encontrado la cuenta."));
 
         var result = await _cuentaController.Delete("guid");
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
