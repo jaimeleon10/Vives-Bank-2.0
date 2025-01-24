@@ -50,9 +50,9 @@ public class StorageProductosTests
     [Test]
     public void ExportarProductos()
     {
-        var productos = new List<BaseModel>
+        var productos = new List<Banco_VivesBank.Producto.Base.Models.Base>
         {
-            new BaseModel { Nombre = "Test", Descripcion = "Desc", TipoProducto = "Tipo", Tae = 2.5 }
+            new Banco_VivesBank.Producto.Base.Models.Base { Nombre = "Test", Descripcion = "Desc", TipoProducto = "Tipo", Tae = 2.5 }
         };
         var filePath = Path.Combine(_tempPath, "export.csv");
         var fileInfo = new FileInfo(filePath);

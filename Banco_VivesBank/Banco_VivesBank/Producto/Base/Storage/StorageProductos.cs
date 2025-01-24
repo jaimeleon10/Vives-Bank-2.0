@@ -13,10 +13,10 @@ public class StorageProductos : IStorageProductos
         _logger = logger;
     }
 
-    public List<BaseModel> ImportProductosFromCsv(FileInfo file)
+    public List<Models.Base> ImportProductosFromCsv(FileInfo file)
     {
-        _logger.LogDebug($"Importando productos desde CSV de {nameof(BaseModel)}");
-        var productos = new List<BaseModel>();
+        _logger.LogDebug($"Importando productos desde CSV de {nameof(Models.Base)}");
+        var productos = new List<Models.Base>();
 
         try
         {
@@ -31,7 +31,7 @@ public class StorageProductos : IStorageProductos
                     continue;
                 }
 
-                var producto = new BaseModel
+                var producto = new Models.Base
                 {
                     Nombre = data[0],
                     Descripcion = data[1],
@@ -45,13 +45,13 @@ public class StorageProductos : IStorageProductos
         catch (Exception ex)
         {
             _logger.LogError($"Error al procesar el fichero CSV: {ex.Message}");
-            return new List<BaseModel>();
+            return new List<Models.Base>();
         }
     }
     
-    public void ExportProductosFromCsv(FileInfo file, List<BaseModel> data)
+    public void ExportProductosFromCsv(FileInfo file, List<Models.Base> data)
     {
-        _logger.LogDebug($"Exportando productos a CSV de {nameof(BaseModel)}");
+        _logger.LogDebug($"Exportando productos a CSV de {nameof(Models.Base)}");
         try
         {
             var lines = new List<string> { "nombre,descripcion,tipoProducto,tae" };
