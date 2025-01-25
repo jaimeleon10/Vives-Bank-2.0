@@ -5,7 +5,7 @@ using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Storage.Files.Service;
+using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Http;

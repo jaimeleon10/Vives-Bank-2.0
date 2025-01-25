@@ -99,8 +99,6 @@ public class TarjetaServiceTest
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
-
-
         };
 
         _dbContext.Tarjetas.Add(tarjeta1);
@@ -147,6 +145,43 @@ public class TarjetaServiceTest
         var tarjetaNoExiste = await _tarjetaService.GetByGuidAsync("non-existing-guid");
         Assert.That(tarjetaNoExiste, Is.Null);
     }
+    
+    [Test]
+    public async Task GetByNumero()
+    {
+        var guid = "Guid-Prueba";
+        var tarjeta1 = new TarjetaEntity
+        {
+            Guid = guid,
+            Numero = "1234567890123456",
+            Titular = "Test",
+            Cvv = "123",
+            FechaVencimiento = "01/23",
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 2000,
+            LimiteMensual = 3000,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Tarjetas.Add(tarjeta1);
+        await _dbContext.SaveChangesAsync();
+
+        var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync("1234567890123456");
+        Assert.That(tarjeta.Guid, Is.EqualTo(guid));
+    }
+    
+    [Test]
+    public async Task GetByNumeroNotFound()
+    {
+        var numero = "Guid-Prueba";
+
+        // Test con tarjeta que no existe
+        var tarjetaNoExiste = await _tarjetaService.GetByNumeroTarjetaAsync(numero);
+        Assert.That(tarjetaNoExiste, Is.Null);
+    }
+    
 
     [Test]
     public async Task Create()
@@ -219,7 +254,118 @@ public class TarjetaServiceTest
         var tarjetaNoExiste = await _tarjetaService.UpdateAsync("non-existing-guid", tarjetaRequest);
         Assert.That(tarjetaNoExiste, Is.Null);
     }
+    
+    [Test]
+    public async Task UpdateInvalidLimitsDia()
+    {
+        var tarjetaRequest = new TarjetaRequest
+        {
+            Pin = "1234",
+            LimiteDiario = 0,
+            LimiteSemanal = 2000,
+            LimiteMensual = 3000
+        };
+        
+        var guid = "NuevoGuid";
+        var tarjeta = new TarjetaEntity
+        {
+            Guid = guid,
+            Numero = "1234567890123456",
+            Titular = "Test",
+            Cvv = "123",
+            FechaVencimiento = "01/23",
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Tarjetas.Add(tarjeta);
+        await _dbContext.SaveChangesAsync();
 
+        var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
+
+        // Test con tarjeta que no existe
+        var tarjetaNoExiste = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
+        Assert.That(tarjetaNoExiste, Is.Null);
+    }
+    
+    [Test]
+    public async Task UpdateInvalidLimitsSem()
+    {
+        var tarjetaRequest = new TarjetaRequest
+        {
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 2000,
+            LimiteMensual = 3000
+        };
+        
+        var guid = "NuevoGuid";
+        var tarjeta = new TarjetaEntity
+        {
+            Guid = guid,
+            Numero = "1234567890123456",
+            Titular = "Test",
+            Cvv = "123",
+            FechaVencimiento = "01/23",
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Tarjetas.Add(tarjeta);
+        await _dbContext.SaveChangesAsync();
+
+        var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
+
+        // Test con tarjeta que no existe
+        var tarjetaNoExiste = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
+        Assert.That(tarjetaNoExiste, Is.Null);
+    }
+
+    [Test]
+    public async Task UpdateInvalidLimitsMes()
+    {
+        var tarjetaRequest = new TarjetaRequest
+        {
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 5000,
+            LimiteMensual = 3000
+        };
+        
+        var guid = "NuevoGuid";
+        var tarjeta = new TarjetaEntity
+        {
+            Guid = guid,
+            Numero = "1234567890123456",
+            Titular = "Test",
+            Cvv = "123",
+            FechaVencimiento = "01/23",
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Tarjetas.Add(tarjeta);
+        await _dbContext.SaveChangesAsync();
+
+        var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
+
+        // Test con tarjeta que no existe
+        var tarjetaNoExiste = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
+        Assert.That(tarjetaNoExiste, Is.Null);
+    }
+    
     [Test]
     public async Task Delete()
     {

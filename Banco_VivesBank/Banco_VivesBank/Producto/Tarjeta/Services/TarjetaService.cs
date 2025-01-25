@@ -3,7 +3,6 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
-using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
@@ -262,7 +261,7 @@ public class TarjetaService : ITarjetaService
 
         _logger.LogDebug("Actualizando isDeleted a true");
         tarjeta.IsDeleted = true;
-        tarjeta.UpdatedAt = DateTime.Now;
+        tarjeta.UpdatedAt = DateTime.UtcNow;
 
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();

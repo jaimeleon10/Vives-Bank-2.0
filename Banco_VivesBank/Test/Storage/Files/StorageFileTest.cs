@@ -1,12 +1,12 @@
 ﻿using Banco_VivesBank.Config.Storage;
-using Banco_VivesBank.Storage.Files.Exceptions;
-using Banco_VivesBank.Storage.Files.Service;
+using Banco_VivesBank.Storage.Images.Exceptions;
+using Banco_VivesBank.Storage.Images.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace Test.Storage.Files;
+namespace Test.Storage.Images;
 
 public class StorageFileTest
 {
