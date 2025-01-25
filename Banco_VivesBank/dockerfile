@@ -1,0 +1,32 @@
+﻿# Etapa de compilación, usa la imagen de .NET SDK
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copia los archivos del proyecto y restaura las dependencias
+COPY /Banco_VivesBank/Banco_VivesBank.csproj ./Banco_VivesBank.csproj
+RUN dotnet restore
+
+# Copia el resto de los archivos y compila la aplicación
+COPY . ./
+RUN dotnet restore Banco_VivesBank.sln
+RUN dotnet build Banco_VivesBank.sln --no-restore -c Release
+
+# Publica la aplicación
+RUN dotnet publish --no-restore -c Release -o /publish
+
+# Etapa de ejecución, usa la imagen de .NET Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS run
+
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copia los archivos publicados de la etapa de compilación
+COPY --from=build /publish .
+
+# Expone el puerto que usará la aplicación (opcional)
+EXPOSE 8080
+
+# Comando para ejecutar la aplicación
+ENTRYPOINT ["dotnet", "Banco_VivesBank.dll"]
