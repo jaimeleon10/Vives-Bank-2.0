@@ -320,7 +320,7 @@ public class ProductoServiceTest
     {
         var guid = Guid.NewGuid().ToString();
     
-        var existingProduct = new Banco_VivesBank.Producto.Base.Models.Base
+        var existingProduct = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Guid = guid,
             Nombre = "Producto Existente",
@@ -330,7 +330,7 @@ public class ProductoServiceTest
         };
         await _dbContext.ProductoBase.AddAsync(existingProduct.ToEntityFromModel());
 
-        var conflictingProduct = new Banco_VivesBank.Producto.Base.Models.Base
+        var conflictingProduct = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Guid = Guid.NewGuid().ToString(),
             Nombre = "Nombre Conflictivo",
@@ -348,8 +348,8 @@ public class ProductoServiceTest
             Tae = 12.0
         };
 
-        var ex = Assert.ThrowsAsync<BaseExistByNameException>(async () =>
-            await _baseService.UpdateAsync(guid, baseUpdateDto)
+        var ex = Assert.ThrowsAsync<ProductoExistByNameException>(async () =>
+            await _productoService.UpdateAsync(guid, baseUpdateDto)
         );
 
         Assert.That(ex.Message, Is.EqualTo($"Ya existe un producto con el nombre: {baseUpdateDto.Nombre}"));

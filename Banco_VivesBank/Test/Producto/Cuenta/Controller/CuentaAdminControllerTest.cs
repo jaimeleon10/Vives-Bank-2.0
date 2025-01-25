@@ -84,7 +84,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -152,7 +152,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -219,7 +219,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -287,7 +287,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",

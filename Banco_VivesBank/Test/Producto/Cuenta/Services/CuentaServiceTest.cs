@@ -35,7 +35,6 @@ public class CuentaServiceTests
     private Mock<IMemoryCache> _memoryCache;
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _database;
-    
     private ClienteEntity _clienteEntity;
     private UserEntity user1;
     private ProductoEntity _productoEntity;
@@ -194,7 +193,7 @@ public class CuentaServiceTests
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Content.Count, Is.EqualTo(1));
-        Assert.That(result.Content.First().Saldo, Is.EqualTo(BigInteger.Parse("1000")));
+        Assert.That(BigInteger.Parse(result.Content.First().Saldo), Is.EqualTo(BigInteger.Parse("1000")));
         Assert.That(result.TotalPages, Is.EqualTo(1));
         Assert.That(result.PageSize, Is.EqualTo(pageRequest.PageSize));
         Assert.That(result.PageNumber, Is.EqualTo(pageRequest.PageNumber));
@@ -216,7 +215,7 @@ public class CuentaServiceTests
         var firstCuenta = result.First();
         Assert.That(firstCuenta.Guid, Is.EqualTo("cuenta1"));
         Assert.That(firstCuenta.Iban, Is.EqualTo("IBAN001"));
-        Assert.That(firstCuenta.Saldo, Is.EqualTo(BigInteger.Parse("1000")));
+        Assert.That(BigInteger.Parse(firstCuenta.Saldo), Is.EqualTo(BigInteger.Parse("1000")));
     }
 
     [Test]
@@ -274,7 +273,7 @@ public class CuentaServiceTests
         {
             Guid = cuentaGuid,
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -304,7 +303,7 @@ public class CuentaServiceTests
         {
             Guid = cuentaGuid,
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -339,7 +338,7 @@ public class CuentaServiceTests
         {
             Guid = cuentaGuid,
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -436,7 +435,7 @@ public class CuentaServiceTests
         {
             Guid = "cuenta-guid",
             Iban = iban,
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -466,7 +465,7 @@ public class CuentaServiceTests
         {
             Guid = "cuenta-guid",
             Iban = iban,
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -500,7 +499,7 @@ public class CuentaServiceTests
         {
             Guid = "cuenta-guid",
             Iban = iban,
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -634,7 +633,7 @@ public class CuentaServiceTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = 1000,
+            Saldo = "1000",
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
