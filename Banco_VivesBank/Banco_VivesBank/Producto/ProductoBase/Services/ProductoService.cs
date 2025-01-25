@@ -128,49 +128,13 @@ public class ProductoService : IProductoService
     public async Task<ProductoResponse?> GetByTipoAsync(string tipo)
     {
         _logger.LogInformation($"Buscando producto por tipo: {tipo}");
-
-        var cacheKey = CacheKeyPrefix + tipo;
-        
-        // Intentar obtener desde la memoria caché
-        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? memoryCacheProducto))
-        {
-            _logger.LogInformation("Producto obtenido desde la memoria caché");
-            return memoryCacheProducto!.ToResponseFromModel();
-        }
-        
-        // Intentar obtener desde la caché de Redis
-        var redisCacheProducto = await _database.StringGetAsync(cacheKey);
-        if (!redisCacheProducto.IsNullOrEmpty)
-        {
-            _logger.LogInformation("Producto obtenido desde Redis");
-            var productoFromRedis = JsonSerializer.Deserialize<Models.Producto>(redisCacheProducto!);
-            if (productoFromRedis != null)
-            {
-                _logger.LogWarning("Error al deserializar producto desde Redis");
-                throw new Exception("Error al deserializar producto desde Redis");
-            }
-            _memoryCache.Set(cacheKey, productoFromRedis, TimeSpan.FromMinutes(30));
-            return productoFromRedis!.ToResponseFromModel(); 
-        }
         
         var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.TipoProducto.ToLower() == tipo.ToLower());
 
         if (productoEntity != null)
         {
             _logger.LogInformation($"Producto encontrado con tipo: {tipo}");
-
-            // Mapear entidad a modelo y respuesta
-            var productoResponse = productoEntity.ToResponseFromEntity();
-            var productoModel = productoEntity.ToModelFromEntity();
-
-            // Guardar en la memoria caché
-            _memoryCache.Set(cacheKey, productoModel, TimeSpan.FromMinutes(30));
-
-            // Guardar en Redis como JSON
-            var redisValue = JsonSerializer.Serialize(productoModel);
-            await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
-
-            return productoResponse;
+            return productoEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Producto no encontrado con tipo: {tipo}");

@@ -66,7 +66,7 @@ namespace Banco_VivesBank.User.Service
                 .Take(pageSize)
                 .ToListAsync();
 
-            var totalPages = (int)Math.Ceiling((double)totalElements / pageSize);
+            var totalPages = (int)Math.Ceiling((double) totalElements / pageSize);
 
             var pageResponse = new PageResponse<UserResponse>
             {

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Utils.Generators;
@@ -145,16 +146,37 @@ public class TarjetaService : ITarjetaService
     public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest)
     {
         _logger.LogDebug("Creando una nueva tarjeta");
+        
+        _logger.LogInformation($"Validando que la cuenta con guid {tarjetaRequest.CuentaGuid} existe");
+        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == tarjetaRequest.CuentaGuid);
+        if (cuentaEntity == null)
+        {
+            _logger.LogWarning($"Cuenta con guid: {tarjetaRequest.CuentaGuid} no encontrada");
+            throw new CuentaNotFoundException("Cuenta no encontrada");
+        }
+        
+        _logger.LogInformation($"Validando que la cuenta con guid {tarjetaRequest.CuentaGuid} no tiene tarjeta asignada");
+        if (cuentaEntity.TarjetaId != null)
+        {
+            _logger.LogWarning($"La cuenta con guid: {cuentaEntity.Guid} ya tiene una tarjeta asignada");
+            throw new CuentaException($"La cuenta con guid: {cuentaEntity.Guid} ya tiene una tarjeta asignada");
+        }
+        
+        _cardLimitValidators.ValidarLimite(tarjetaRequest.LimiteDiario, tarjetaRequest.LimiteSemanal, tarjetaRequest.LimiteMensual);
 
-        var tarjeta = tarjetaRequest.ToModelFromRequest();
-        
-        tarjeta.Numero = TarjetaGenerator.GenerarTarjeta();
-        tarjeta.Cvv = CvvGenerator.GenerarCvv();
-        tarjeta.FechaVencimiento = ExpDateGenerator.GenerarExpDate();
-        
-        var tarjetaEntity = tarjeta.ToEntityFromModel();
+        var tarjetaEntity = new TarjetaEntity
+        {
+            Pin = tarjetaRequest.Pin,
+            LimiteDiario = tarjetaRequest.LimiteDiario,
+            LimiteSemanal = tarjetaRequest.LimiteSemanal,
+            LimiteMensual = tarjetaRequest.LimiteMensual,
+        };
         
         _context.Tarjetas.Add(tarjetaEntity);
+        await _context.SaveChangesAsync();
+        
+        cuentaEntity.TarjetaId = tarjetaEntity.Id;
+        _context.Cuentas.Update(cuentaEntity);
         await _context.SaveChangesAsync();
         
         var tarjetaModel = tarjetaEntity.ToModelFromEntity();
@@ -170,7 +192,7 @@ public class TarjetaService : ITarjetaService
         return tarjetaEntity.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequest dto)
+    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequestUpdate dto)
     {
         _logger.LogDebug($"Actualizando tarjeta con id: {guid}");
         var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
@@ -181,7 +203,7 @@ public class TarjetaService : ITarjetaService
             return null;
         }
 
-        _cardLimitValidators.ValidarLimite(dto);
+        _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
 
         _logger.LogDebug("Actualizando tarjeta");
         tarjeta.Pin = dto.Pin;
@@ -226,6 +248,12 @@ public class TarjetaService : ITarjetaService
         tarjeta.UpdatedAt = DateTime.UtcNow;
 
         _context.Tarjetas.Update(tarjeta);
+        await _context.SaveChangesAsync();
+
+        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta!.Guid == guid);
+        cuentaEntity!.TarjetaId = null;
+        cuentaEntity.Tarjeta = null;
+        _context.Cuentas.Update(cuentaEntity);
         await _context.SaveChangesAsync();
         
         var cacheKey = CacheKeyPrefix + tarjeta.Guid;

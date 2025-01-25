@@ -14,10 +14,11 @@ public static class CuentaMapper
     {
         return new Models.Cuenta
         {
+            Id = entity.Id,
             Guid = entity.Guid,
             Iban = entity.Iban,
             Saldo = entity.Saldo,
-            Tarjeta = entity.Tarjeta.ToModelFromEntity(),
+            Tarjeta = entity.Tarjeta?.ToModelFromEntity(),
             Cliente = entity.Cliente.ToModelFromEntity(),
             Producto = entity.Producto.ToModelFromEntity(),
             CreatedAt = entity.CreatedAt,
@@ -30,10 +31,11 @@ public static class CuentaMapper
     {
         return new CuentaEntity
         {
+            Id = cuenta.Id,
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
             Saldo = cuenta.Saldo,
-            TarjetaId = cuenta.Tarjeta.Id,
+            TarjetaId = cuenta.Tarjeta?.Id,
             ClienteId = cuenta.Cliente.Id,
             ProductoId = cuenta.Producto.Id,
             CreatedAt = cuenta.CreatedAt,
@@ -48,8 +50,8 @@ public static class CuentaMapper
         {
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
-            Saldo = cuenta.Saldo,
-            TarjetaGuid = cuenta.Tarjeta.Guid,
+            Saldo = cuenta.Saldo.ToString(),
+            TarjetaGuid = cuenta.Tarjeta?.Guid,
             ClienteGuid = cuenta.Cliente.Guid,
             ProductoGuid = cuenta.Producto.Guid,
             CreatedAt = cuenta.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
@@ -64,8 +66,8 @@ public static class CuentaMapper
         {
             Guid = cuentaEntity.Guid,
             Iban = cuentaEntity.Iban,
-            Saldo = cuentaEntity.Saldo,
-            TarjetaGuid = cuentaEntity.Tarjeta.Guid,
+            Saldo = cuentaEntity.Saldo.ToString(),
+            TarjetaGuid = cuentaEntity.Tarjeta?.Guid,
             ClienteGuid = cuentaEntity.Cliente.Guid,
             ProductoGuid = cuentaEntity.Producto.Guid,
             CreatedAt = cuentaEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),

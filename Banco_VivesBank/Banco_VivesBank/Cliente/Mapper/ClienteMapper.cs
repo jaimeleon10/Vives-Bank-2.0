@@ -11,6 +11,7 @@ public static class ClienteMapper
     {
         return new Models.Cliente
         {
+            Id = entity.Id,
             Dni = entity.Dni,
             Nombre = entity.Nombre,
             Apellidos = entity.Apellidos,

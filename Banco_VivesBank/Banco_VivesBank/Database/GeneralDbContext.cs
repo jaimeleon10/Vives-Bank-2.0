@@ -169,15 +169,16 @@ public class GeneralDbContext : DbContext
             entity.Property(e => e.CreatedAt).IsRequired().ValueGeneratedOnAdd();
             entity.Property(e => e.UpdatedAt).IsRequired().ValueGeneratedOnAdd();
             
-            // Relación Cuenta-Cliente (1:N)
+            // Relación Cliente-Cuenta (1:N)
             entity.HasOne(c => c.Cliente)
                 .WithMany(c => c.Cuentas)
+                .HasForeignKey(c => c.ClienteId)
                 .IsRequired();
             
             // Relación Cuenta-Producto (1:1)
             entity.HasOne(c => c.Producto)
-                .WithOne()
-                .HasForeignKey<CuentaEntity>(c => c.ProductoId)
+                .WithMany()
+                .HasForeignKey(c => c.ProductoId)
                 .IsRequired();
             
             // Relación Cuenta-Tarjeta (1:0..1)
@@ -192,6 +193,7 @@ public class GeneralDbContext : DbContext
                 Guid = GuidGenerator.GenerarId(),
                 Iban = "ES7730046576085345979538",
                 Saldo = 5000,
+                TarjetaId = 1,
                 ClienteId = 1,
                 ProductoId = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -205,6 +207,7 @@ public class GeneralDbContext : DbContext
                 Guid = GuidGenerator.GenerarId(),
                 Iban = "ES2114656261103572788444",
                 Saldo = 7000,
+                TarjetaId = 2,
                 ClienteId = 2,
                 ProductoId = 2,
                 CreatedAt = DateTime.UtcNow,

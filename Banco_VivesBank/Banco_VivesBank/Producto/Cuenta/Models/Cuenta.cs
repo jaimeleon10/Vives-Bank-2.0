@@ -16,15 +16,16 @@ public class Cuenta
 
     public BigInteger Saldo { get; set; } = 0;
     
-    public Tarjeta.Models.Tarjeta? Tarjeta { get; set; } = null;
+    public Tarjeta.Models.Tarjeta? Tarjeta { get; set; }
     
     public Cliente.Models.Cliente Cliente { get; set; }
     
     public ProductoBase.Models.Producto Producto { get; set; }
-
-    public bool IsDeleted { get; set; } = false;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public DateTime UpdatedAt { get; set; }= DateTime.UtcNow;
+    
+    public bool IsDeleted { get; set; } = false;
+
 }

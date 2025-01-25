@@ -82,7 +82,7 @@ public class TarjetaController : ControllerBase
                 return BadRequest("El pin tiene un formato incorrecto");
             }
 
-            _cardLimitValidators.ValidarLimite(dto);
+            _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
             
             return Ok(tarjetaModel);
@@ -94,7 +94,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequest dto)
+    public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequestUpdate dto)
     {
         if (!ModelState.IsValid)
         {
@@ -103,7 +103,7 @@ public class TarjetaController : ControllerBase
 
         try
         {
-            _cardLimitValidators.ValidarLimite(dto);
+            _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
             
             
             var tarjeta = await _tarjetaService.GetByGuidAsync(id);
@@ -120,7 +120,7 @@ public class TarjetaController : ControllerBase
     [HttpDelete("{guid}")]
     public async Task<ActionResult<TarjetaResponse>> DeleteTarjeta(string guid)
     {
-        var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
+        var tarjeta = await _tarjetaService.DeleteAsync(guid);
         if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
         
         return Ok(tarjeta);

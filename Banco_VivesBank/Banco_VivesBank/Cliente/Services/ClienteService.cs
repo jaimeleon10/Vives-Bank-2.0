@@ -408,7 +408,7 @@ public class ClienteService : IClienteService
     public async Task<Models.Cliente?> GetClienteModelById(long id)
     {
         _logger.LogInformation($"Buscando Cliente con id: {id}");
-        var clienteEntity = await _context.Clientes.FirstOrDefaultAsync(t => t.Id == id);
+        var clienteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(t => t.Id == id);
         if (clienteEntity != null)
         {
             _logger.LogInformation($"Cliente encontrado con id: {id}");

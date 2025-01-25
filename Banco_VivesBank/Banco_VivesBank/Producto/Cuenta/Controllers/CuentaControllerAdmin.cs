@@ -35,8 +35,7 @@ public class CuentaControllerAdmin : ControllerBase
         [FromQuery] string sortBy = "Id",
         [FromQuery] string direction = "asc")
     {
-        try
-        {
+      
             var pageRequest = new PageRequest
             {
                 PageNumber = page,
@@ -50,25 +49,18 @@ public class CuentaControllerAdmin : ControllerBase
             var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
             var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
 
-            Response.Headers.Add("link", linkHeader);
+            Response.Headers.Append("link", linkHeader);
 
             return Ok(pageResult);
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-        }
+        
     }
 
-    [HttpGet("allAcounts/{guid:length(12)}")]
+    [HttpGet("allAccounts/{guid}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllByClientGuid(string guid)
     {
         try
         {
             var cuentas = await _cuentaService.GetByClientGuidAsync(guid);
-            if (guid.Length!= 12) return BadRequest(new {message ="El guid debe tener 12 caracteres"});
-            //if (guid is null) return NotFound($"No se ha encontrado el cliente con guid {guid}");
-            //if (cuentas.Count() == 0) return NotFound($"No se han encontrado cuentas para el cliente con guid {guid}");
             return Ok(cuentas);
         }
         catch (ClienteNotFoundException e)
@@ -83,29 +75,26 @@ public class CuentaControllerAdmin : ControllerBase
         
     }
 
-    [HttpGet("{guid:length(12)}")]
+    [HttpGet("{guid}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetByGuid(string guid)
     {
         var cuentaByGuid = await _cuentaService.GetByGuidAsync(guid);
-        if (guid.Length != 12) return BadRequest(new { message = $"El guid debe tener 12 caracteres"});
-        if (cuentaByGuid is null) return NotFound(new {message ="Cuenta no encontrada con guid {guid}"});
+        if (cuentaByGuid is null) return NotFound(new {message =$"Cuenta no encontrada con guid {guid}"});
         return Ok(cuentaByGuid);
     }
     
-    [HttpGet("iban/{iban:length(34)}")]
+    [HttpGet("iban/{iban}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetByIban(string iban)
     {
         var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
-        if (iban.Length!= 34) return BadRequest(new {message = "El iban debe tener 34 caracteres"});
         if (cuentaByIban is null) return NotFound(new { message = $"Cuenta no encontrada con iban {iban}"});
         return Ok(cuentaByIban);
     }
     
-    [HttpDelete("{guid:length(12)}")]
+    [HttpDelete("{guid}")]
     public async Task<ActionResult<CuentaResponse>> Delete(string guid)
     {
         var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
-        if (guid.Length!= 12) return BadRequest(new {message ="El guid debe tener 12 caracteres"});
         if (cuentaDelete is null) return NotFound(new {message =$"Cuenta no encontrada con guid {guid}"});
         return Ok(cuentaDelete);
     }
