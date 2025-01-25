@@ -204,11 +204,10 @@ public class TarjetaControllerTest
         
         _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).ReturnsAsync((TarjetaResponse)null);
         
-        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaController.CreateTarjeta(tarjetaRequest));
+        var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo("El pin tiene un formato incorrecto"));
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());    
     }
 
     [Test]
@@ -225,12 +224,10 @@ public class TarjetaControllerTest
         
         _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).ReturnsAsync((TarjetaResponse)null);
         
-        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaController.CreateTarjeta(tarjetaRequest));
+        var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo("Error con los limites de gasto de la tarjeta"));
-
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());    
     }
 
     [Test]
@@ -280,11 +277,10 @@ public class TarjetaControllerTest
         _tarjetaService.Setup(s => s.GetByGuidAsync(guid))
             .ReturnsAsync((TarjetaResponse)null);
 
-        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(async () =>
-            await _tarjetaController.UpdateTarjeta(guid, tarjetaRequest));
+        var ex = await _tarjetaController.UpdateTarjeta(guid, tarjetaRequest);
 
         // Assert
-        Assert.That(ex?.Message, Is.EqualTo($"La tarjeta con id: {guid} no se ha encontrado"));
+        Assert.That(ex.Result, Is.TypeOf<BadRequestObjectResult>());    
     }
 
     [Test]
@@ -323,7 +319,7 @@ public class TarjetaControllerTest
         var result =  await  _tarjetaController.DeleteTarjeta(guid);
 
         // Assert
-        Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
 
 
     }
