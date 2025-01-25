@@ -22,9 +22,6 @@ public class TarjetaService : ITarjetaService
     private readonly IMemoryCache _memoryCache;
     private readonly IDatabase _database;
     private readonly IConnectionMultiplexer _redis;
-    private readonly TarjetaGenerator _tarjetaGenerator;
-    private readonly CvvGenerator _cvvGenerator;
-    private readonly ExpDateGenerator _expDateGenerator;
     private readonly CardLimitValidators _cardLimitValidators;
     private const string CacheKeyPrefix = "Tarjeta:"; 
     
@@ -36,9 +33,6 @@ public class TarjetaService : ITarjetaService
         _log = log;
         _redis = redis;
         _memoryCache = memoryCache; 
-        _tarjetaGenerator = new TarjetaGenerator();
-        _cvvGenerator = new CvvGenerator();
-        _expDateGenerator = new ExpDateGenerator();
         _cardLimitValidators = new CardLimitValidators(_log);
         _database = _redis.GetDatabase();
     }
@@ -191,9 +185,9 @@ public class TarjetaService : ITarjetaService
 
         var tarjeta = tarjetaRequest.ToModelFromRequest();
         
-        tarjeta.Numero = _tarjetaGenerator.GenerarTarjeta();
-        tarjeta.Cvv = _cvvGenerator.GenerarCvv();
-        tarjeta.FechaVencimiento = _expDateGenerator.GenerarExpDate();
+        tarjeta.Numero = TarjetaGenerator.GenerarTarjeta();
+        tarjeta.Cvv = CvvGenerator.GenerarCvv();
+        tarjeta.FechaVencimiento = ExpDateGenerator.GenerarExpDate();
         
         var tarjetaEntity = tarjeta.ToEntityFromModel();
         

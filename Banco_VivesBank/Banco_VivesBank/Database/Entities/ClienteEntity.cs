@@ -48,7 +48,6 @@ public class ClienteEntity
     [DefaultValue("https://example.com/fotoDni.jpg")]
     public string FotoDni { get; set; } = "https://example.com/fotoDni.jpg";
     
-    // TODO REVISAR RELACION 1 CLIENTE - * CUENTAS
     public ICollection<CuentaEntity> Cuentas { get; set; } = new HashSet<CuentaEntity>();
    
     [ForeignKey("User")]
