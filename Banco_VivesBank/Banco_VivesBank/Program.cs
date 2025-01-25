@@ -6,9 +6,9 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Services;
-using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Pdf.Services;
@@ -98,7 +98,7 @@ WebApplicationBuilder InitServices()
     // Services
     myBuilder.Services.AddScoped<IUserService, UserService>();
     myBuilder.Services.AddScoped<IClienteService, ClienteService>();
-    myBuilder.Services.AddScoped<IBaseService, BaseService>();
+    myBuilder.Services.AddScoped<IProductoService, ProductoService>();
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
     myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>();

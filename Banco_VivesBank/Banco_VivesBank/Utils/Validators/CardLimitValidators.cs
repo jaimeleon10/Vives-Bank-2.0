@@ -13,13 +13,13 @@ public class CardLimitValidators
         _logger = logger;
     }
     
-    public void ValidarLimite(TarjetaRequest dto)
+    public void ValidarLimite(double limiteDiario, double limiteSemenal, double limiteMensual)
     {
-        var diario = dto.LimiteDiario;
+        var diario = limiteDiario;
         var tripleDiario = diario * 3;
-        var semanal = dto.LimiteSemanal;
+        var semanal = limiteSemenal;
         var tripleSemanal = semanal * 3;
-        var mensual = dto.LimiteMensual;
+        var mensual = limiteMensual;
 
         if (diario <= 0)
         {

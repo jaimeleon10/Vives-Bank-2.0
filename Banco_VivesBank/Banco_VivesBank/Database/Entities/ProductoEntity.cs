@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Banco_VivesBank.Database.Entities;
 
-[Table("ProductosBase") ]
-public class BaseEntity
+[Table("Productos") ]
+public class ProductoEntity
 {
     public const long NewId = 0;
 
@@ -15,25 +15,23 @@ public class BaseEntity
     
     public string Guid { get; set; } = string.Empty;
     
-    [Required]
-    [MaxLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres")]
+    [MaxLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres")]
     public string Nombre { get; set; } = string.Empty;
     
-    [Required]
-    [MaxLength(1000, ErrorMessage = "La descripcion no puede exceder los 1000 caracteres")]
+    [MaxLength(250, ErrorMessage = "La descripcion no puede exceder los 250 caracteres")]
     public string Descripcion { get; set; } = string.Empty;
     
     [Required]
-    [MaxLength(100, ErrorMessage = "El tipo no puede estar vacio")]
+    [MaxLength(50, ErrorMessage = "El tipo de producto es un campo obligatorio y no puede exceder los 50 caracteres")]
     public string TipoProducto { get; set; } = string.Empty;
     
     [Required]
-    public double Tae { get; set; } = 0.0;
-    
-    [Required]
-    [DefaultValue(false)]
-    public bool IsDeleted { get; set; } = false;
+    public double Tae { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    
+    [DefaultValue(false)]
+    public bool IsDeleted { get; set; } = false;
 }

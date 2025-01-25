@@ -4,7 +4,7 @@ namespace Banco_VivesBank.Utils.Generators;
 
 public class TarjetaGenerator
 {
-    public string GenerarTarjeta()
+    public static string GenerarTarjeta()
     {
         var numTarjeta = new StringBuilder();
         numTarjeta.Append("4");

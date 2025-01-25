@@ -1,6 +1,6 @@
-﻿namespace Banco_VivesBank.Producto.Base.Dto;
+﻿namespace Banco_VivesBank.Producto.ProductoBase.Dto;
 
-public class BaseResponse
+public class ProductoResponse
 {
     public string Guid { get; set; }
     public string Nombre { get; set; }

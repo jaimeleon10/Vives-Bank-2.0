@@ -6,7 +6,7 @@ public class CuentaResponse
 {
     public required string Guid { get; set; }
     public required string Iban { get; set; } 
-    public BigInteger Saldo { get; set; }
+    public string Saldo { get; set; }
     public string? TarjetaGuid { get; set; }
     public string ClienteGuid { get; set; } 
     public string ProductoGuid { get; set; }

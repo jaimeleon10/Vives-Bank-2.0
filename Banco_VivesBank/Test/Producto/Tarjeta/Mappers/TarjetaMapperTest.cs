@@ -129,7 +129,6 @@ public class TarjetaMapperTest
         var response = TarjetaMapper.ToResponseFromEntity(tarjetaEntity);
 
         // Assert
-        Assert.That(response.Id, Is.EqualTo(tarjetaEntity.Id));
         Assert.That(response.Guid, Is.EqualTo(tarjetaEntity.Guid));
         Assert.That(response.Numero, Is.EqualTo(tarjetaEntity.Numero));
         Assert.That(response.FechaVencimiento, Is.EqualTo(tarjetaEntity.FechaVencimiento));
@@ -165,7 +164,6 @@ public class TarjetaMapperTest
         var response = TarjetaMapper.ToResponseFromModel(tarjeta);
 
         // Assert
-        Assert.That(response.Id, Is.EqualTo(tarjeta.Id));
         Assert.That(response.Guid, Is.EqualTo(tarjeta.Guid));
         Assert.That(response.Numero, Is.EqualTo(tarjeta.Numero));
         Assert.That(response.FechaVencimiento, Is.EqualTo(tarjeta.FechaVencimiento));
@@ -220,7 +218,6 @@ public class TarjetaMapperTest
 
         // Assert
         Assert.That(responses.Count, Is.EqualTo(2));
-        Assert.That(responses[0].Id, Is.EqualTo(tarjetaEntities[0].Id));
         Assert.That(responses[0].Guid, Is.EqualTo(tarjetaEntities[0].Guid));
         Assert.That(responses[0].Numero, Is.EqualTo(tarjetaEntities[0].Numero));
         Assert.That(responses[0].FechaVencimiento, Is.EqualTo(tarjetaEntities[0].FechaVencimiento));

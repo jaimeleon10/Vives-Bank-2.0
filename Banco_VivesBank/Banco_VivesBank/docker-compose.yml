@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo:4.4
+    image: mongo:latest
     container_name: mongodb_vives-bank
     ports:
       - "27017:27017"

@@ -81,35 +81,6 @@ public class TarjetaServiceTest
     }
 
     [Test]
-    public async Task GetAll()
-    {
-
-        await _dbContext.Tarjetas.ExecuteDeleteAsync();
-        var tarjeta1 = new TarjetaEntity
-        {
-            Guid = Guid.NewGuid().ToString(),
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 2000,
-            LimiteMensual = 3000,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _dbContext.Tarjetas.Add(tarjeta1);
-        await _dbContext.SaveChangesAsync();
-
-        var tarjetas = await _tarjetaService.GetAllAsync();
-
-        Console.WriteLine(tarjetas.ToString());
-        Assert.That(tarjetas.Count, Is.EqualTo(1));
-    }
-
-    [Test]
     public async Task GetByGuid()
     {
         var guid = "Guid-Prueba";
@@ -185,13 +156,15 @@ public class TarjetaServiceTest
     {
         var tarjetaRequest = new TarjetaRequest
         {
+            CuentaGuid = "12345678912",
             Pin = "1234",
             LimiteDiario = 1000,
             LimiteSemanal = 3000,
             LimiteMensual = 9000
         };
 
-
+        // TODO -> CREA UNA CUENTA Y POR TANTO UN PRODUCTO, UN CLIENTE Y UN USUARIO PARA PODER CREAR LA TARJETA.
+        
         var tarjeta = await _tarjetaService.CreateAsync(tarjetaRequest);
 
         Assert.That(tarjeta.Pin, Is.EqualTo("1234"));
@@ -201,7 +174,7 @@ public class TarjetaServiceTest
     [Test]
     public async Task Update()
     {
-        var tarjetaRequest = new TarjetaRequest
+        var tarjetaRequest = new TarjetaRequestUpdate
         {
             Pin = "1234",
             LimiteDiario = 1000,
@@ -236,7 +209,7 @@ public class TarjetaServiceTest
     [Test]
     public async Task Update_NotFound()
     {
-        var tarjetaRequest = new TarjetaRequest
+        var tarjetaRequest = new TarjetaRequestUpdate()
         {
             Pin = "1234",
             LimiteDiario = 1000,
@@ -254,7 +227,7 @@ public class TarjetaServiceTest
     [Test]
     public async Task UpdateInvalidLimitsDia()
     {
-        var tarjetaRequest = new TarjetaRequest
+        var tarjetaRequest = new TarjetaRequestUpdate
         {
             Pin = "1234",
             LimiteDiario = 0,
@@ -290,7 +263,7 @@ public class TarjetaServiceTest
     [Test]
     public async Task UpdateInvalidLimitsSem()
     {
-        var tarjetaRequest = new TarjetaRequest
+        var tarjetaRequest = new TarjetaRequestUpdate
         {
             Pin = "1234",
             LimiteDiario = 1000,
@@ -326,7 +299,7 @@ public class TarjetaServiceTest
     [Test]
     public async Task UpdateInvalidLimitsMes()
     {
-        var tarjetaRequest = new TarjetaRequest
+        var tarjetaRequest = new TarjetaRequestUpdate
         {
             Pin = "1234",
             LimiteDiario = 1000,

@@ -2,7 +2,6 @@
 
 public class TarjetaResponse
 {
-    public long Id { get; set; }
     public string Guid { get; set; }
     public string Numero { get; set; }
     public string FechaVencimiento { get; set; }

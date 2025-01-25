@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Base.Storage;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -50,9 +49,9 @@ public class StorageProductosTests
     [Test]
     public void ExportarProductos()
     {
-        var productos = new List<Banco_VivesBank.Producto.Base.Models.Base>
+        var productos = new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>
         {
-            new Banco_VivesBank.Producto.Base.Models.Base { Nombre = "Test", Descripcion = "Desc", TipoProducto = "Tipo", Tae = 2.5 }
+            new Banco_VivesBank.Producto.ProductoBase.Models.Producto { Nombre = "Test", Descripcion = "Desc", TipoProducto = "Tipo", Tae = 2.5 }
         };
         var filePath = Path.Combine(_tempPath, "export.csv");
         var fileInfo = new FileInfo(filePath);

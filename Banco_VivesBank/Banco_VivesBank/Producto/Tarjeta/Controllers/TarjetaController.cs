@@ -46,7 +46,7 @@ public class TarjetaController : ControllerBase
         var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
         var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
             
-        Response.Headers.Add("link", linkHeader);
+        Response.Headers.Append("link", linkHeader);
             
         return Ok(pageResult);
     }
@@ -58,6 +58,14 @@ public class TarjetaController : ControllerBase
         if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
         return Ok(tarjeta);
     }
+    
+    [HttpGet("numero/{numeroTarjeta}")]
+    public async Task<ActionResult<TarjetaResponse>> GetTarjetaByNumeroTarjeta(string numeroTarjeta)
+    {
+        var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync(numeroTarjeta);
+        if (tarjeta == null) return NotFound($"La tarjeta con numero de tarjeta: {numeroTarjeta} no se ha encontrado");
+        return Ok(tarjeta);
+    }
 
     [HttpPost]
     public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
@@ -66,8 +74,6 @@ public class TarjetaController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-       
         
         try
         {
@@ -76,7 +82,7 @@ public class TarjetaController : ControllerBase
                 return BadRequest("El pin tiene un formato incorrecto");
             }
 
-            _cardLimitValidators.ValidarLimite(dto);
+            _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
             
             return Ok(tarjetaModel);
@@ -88,7 +94,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequest dto)
+    public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequestUpdate dto)
     {
         if (!ModelState.IsValid)
         {
@@ -97,7 +103,7 @@ public class TarjetaController : ControllerBase
 
         try
         {
-            _cardLimitValidators.ValidarLimite(dto);
+            _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
             
             
             var tarjeta = await _tarjetaService.GetByGuidAsync(id);
@@ -114,35 +120,9 @@ public class TarjetaController : ControllerBase
     [HttpDelete("{guid}")]
     public async Task<ActionResult<TarjetaResponse>> DeleteTarjeta(string guid)
     {
-        var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
+        var tarjeta = await _tarjetaService.DeleteAsync(guid);
         if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
         
         return Ok(tarjeta);
     }
-        
-        
-
-        // For debugging purposes:
-        // return StatusCode(500, "Error al actualizar la tarjeta");
-
-        // For debugging purposes:
-        // return StatusCode(404, "Tarjeta no encontrada");
-
-        // For debugging purposes:
-        // return StatusCode(400, "Modelo de tarjeta invalido");
-
-        // For debugging purposes:
-        // return StatusCode(204, "Tarjeta eliminada con éxito");
-
-        // For debugging purposes:
-        // return StatusCode(401, "Usuario no autorizado");
-
-        // For debugging purposes:
-        // return StatusCode(403, "Acceso denegado");
-
-        // For debugging purposes:
-        // return StatusCode(422, "Tarjeta no puede ser eliminada, debido a que está en uso");
-
-        // For debugging purposes:
-        // return StatusCode(409, "La tarjeta no puede ser modificada, debido a que ya existe una tarjeta con el mismo número de tarjeta");
-    }
+}

@@ -28,10 +28,6 @@ public interface ICuentaService
     //public Task<CuentaResponse> CreateAsync(string guid,CuentaRequest cuentaRequest);
     public Task<CuentaResponse> CreateAsync(CuentaRequest cuentaRequest);
 
-    
-    //public Task<CuentaResponse?> UpdateAsync(string guidClient,string guid, CuentaUpdateRequest cuentaRequest);
-    public Task<CuentaResponse?> UpdateAsync(string guid, CuentaUpdateRequest cuentaRequest);
-
     //public Task<CuentaResponse?> DeleteAsync(string guidClient,string guid);
     
     public Task<CuentaResponse?> DeleteAdminAsync(string guid);
