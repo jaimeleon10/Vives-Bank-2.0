@@ -20,6 +20,7 @@ public class BaseControllerTests
         private Mock<IStorageProductos> _storageProductosMock;
         private BaseController _controller;
         private Mock<PaginationLinksUtils> _paginationLinksUtils;
+        
         [SetUp]
         public void SetUp()
         {
@@ -133,6 +134,19 @@ public class BaseControllerTests
 
             Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         }
+        
+        [Test]
+        public async Task GetByGuidExceptionNotFound()
+        {
+            var guid = "testGuid";
+
+            _baseServiceMock.Setup(s => s.GetByGuidAsync(guid))
+                .ThrowsAsync(new BaseException("Error message"));
+
+            var result = await _controller.GetByGuid(guid);
+
+            Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        }
 
         [Test]
         public async Task Create()
@@ -176,7 +190,7 @@ public class BaseControllerTests
         }
 
         [Test]
-        public async Task CreateException()
+        public async Task CreateBadRequest()
         {
             var request = new BaseRequest
             {
@@ -198,7 +212,7 @@ public class BaseControllerTests
         public async Task Update()
         {
             var guid = "testGuid";
-            var updateDto = new BaseUpdateDto
+            var updateDto = new BaseUpdateRequest
             {
                 Nombre = "Producto actualizado",
                 Descripcion = "Descripcion actualizada",
@@ -222,6 +236,58 @@ public class BaseControllerTests
             var returnValue = okResult?.Value as BaseResponse;
             Assert.That(returnValue, Is.EqualTo(expectedResponse));
         }
+        
+        [Test]
+        public async Task UpdateBadRequest()
+        {
+            var guid = "valid-guid";
+            _controller.ModelState.AddModelError("Nombre", "El campo es requerido");
+            var baseRequest = new BaseUpdateRequest();
+
+            var result = await _controller.Update(guid, baseRequest);
+
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        }
+        
+        [Test]
+        public async Task UpdateBadRequestException()
+        {
+            var guid = "testGuid";
+            var request = new BaseUpdateRequest()
+            {
+                Nombre = "nuevo producto",
+                Descripcion = "nueva Descripcion",
+                Tae = 5.5
+            };
+
+            _baseServiceMock.Setup(s => s.UpdateAsync(guid, request))
+                .ThrowsAsync(new BaseException("Error message"));
+
+            var result = await _controller.Update(guid, request);
+
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        }
+        
+        [Test]
+        public async Task UpdateNotFound()
+        {
+            var guid = "nonexistent-guid";
+            var baseRequest = new BaseUpdateRequest()
+            {
+                Nombre = "NuevoNombre",
+                Descripcion = "NuevaDescripcion",
+                Tae = 6.5
+            };
+
+            _baseServiceMock.Setup(service => service.UpdateAsync(guid, baseRequest))
+                .ReturnsAsync((BaseResponse)null);
+
+            var result = await _controller.Update(guid, baseRequest);
+
+            Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+            var notFoundResult = result.Result as NotFoundObjectResult;
+            Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha encontrado el producto con guid: {guid}"));
+        }
 
         [Test]
         public async Task Delete()
@@ -243,6 +309,21 @@ public class BaseControllerTests
             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
             var returnValue = (result.Result as OkObjectResult)?.Value as BaseResponse;
             Assert.That(returnValue, Is.EqualTo(expectedResponse));
+        }
+        
+        [Test]
+        public async Task DeleteNotFound()
+        {
+            var guid = "nonexistent-guid";
+
+            _baseServiceMock.Setup(service => service.DeleteAsync(guid))
+                .ReturnsAsync((BaseResponse)null);
+
+            var result = await _controller.DeleteByGuid(guid);
+
+            Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+            var notFoundResult = result.Result as NotFoundObjectResult;
+            Assert.That(notFoundResult.Value, Is.EqualTo("No se ha podido eliminar el producto con guid: nonexistent-guid"));
         }
 
         [Test]
