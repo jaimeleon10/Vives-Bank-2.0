@@ -205,48 +205,61 @@ namespace Banco_VivesBank.User.Service
     }
 
 
-        public async Task<UserResponse?> UpdateAsync(string guid, UserRequest userRequest)
+        public async Task<UserResponse?> UpdateAsync(string guid, UserRequest userRequestUpdate)
+{
+    _logger.LogInformation($"Actualizando usuario con guid: {guid}");
+
+    var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
+    if (userEntityExistente == null)
+    {
+        _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
+        return null;
+    }
+    
+    if (userEntityExistente.Username != userRequestUpdate.Username && !string.IsNullOrEmpty(userRequestUpdate.Username))
+    {
+        if (await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequestUpdate.Username.ToLower()))
         {
-            _logger.LogInformation($"Actualizando usuario con guid: {guid}");
-            // TODO Cambiar await por busqueda GetByGuid
-            var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
-            if (userEntityExistente == null)
-            {
-                _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
-                return null;
-            }
-
-            if (userRequest.Username != userEntityExistente.Username && await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequest.Username.ToLower()))
-            {
-                _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequest.Username}");
-                throw new UserExistException($"Ya existe un usuario con el nombre: {userRequest.Username}");
-            }
-
-            userEntityExistente.Username = userRequest.Username;
-            userEntityExistente.Password = userRequest.Password;
-            userEntityExistente.Role = Enum.Parse<Role>(userRequest.Role, true);
-            userEntityExistente.UpdatedAt = DateTime.UtcNow;
-            userEntityExistente.IsDeleted = userRequest.IsDeleted;
-
-            _context.Usuarios.Update(userEntityExistente);
-            await _context.SaveChangesAsync();
-            
-            var cacheKey = CacheKeyPrefix + userEntityExistente.Username.ToLower();
-
-            // Eliminar los datos  de la cache 
-            _memoryCache.Remove(cacheKey);  
-            await _database.KeyDeleteAsync(cacheKey);  
-
-            var userModel = userEntityExistente.ToModelFromEntity();
-
-            // Guardar el usuario actualizado en la cache
-            var serializedUser = JsonSerializer.Serialize(userModel);
-            _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));  
-            await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
-
-            _logger.LogInformation($"Usuario actualizado con guid: {guid}");
-            return userEntityExistente.ToResponseFromEntity();
+            _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequestUpdate.Username}");
+            throw new UserExistException($"Ya existe un usuario con el nombre: {userRequestUpdate.Username}");
         }
+    }
+
+    // Actualizar los campos solo si no están vacíos o nulos
+    if (!string.IsNullOrEmpty(userRequestUpdate.Username))
+    {
+        userEntityExistente.Username = userRequestUpdate.Username;
+    }
+
+    if (!string.IsNullOrEmpty(userRequestUpdate.Password))
+    {
+        userEntityExistente.Password = userRequestUpdate.Password;
+    }
+
+    if (!string.IsNullOrEmpty(userRequestUpdate.Role))
+    {
+        userEntityExistente.Role = Enum.Parse<Role>(userRequestUpdate.Role, true);
+    }
+
+    userEntityExistente.IsDeleted = userRequestUpdate.IsDeleted;
+    userEntityExistente.UpdatedAt = DateTime.UtcNow;
+    
+
+    _context.Usuarios.Update(userEntityExistente);
+    await _context.SaveChangesAsync();
+
+    var cacheKey = CacheKeyPrefix + userEntityExistente.ToModelFromEntity().Guid;
+    _memoryCache.Remove(cacheKey);
+    await _database.KeyDeleteAsync(cacheKey);
+
+    var userModel = userEntityExistente.ToModelFromEntity();
+    _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
+    var redisValue = JsonSerializer.Serialize(userModel.ToResponseFromModel());
+    await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
+
+    _logger.LogInformation($"Usuario actualizado con guid: {guid}");
+    return userEntityExistente.ToResponseFromEntity();
+}
 
         public async Task<UserResponse?> DeleteByGuidAsync(string guid)
         {

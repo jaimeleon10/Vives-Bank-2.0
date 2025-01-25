@@ -21,7 +21,7 @@ public class GeneralDbContext : DbContext
         
         modelBuilder.Ignore<User.Models.User>();
         modelBuilder.Ignore<Cliente.Models.Cliente>();
-        modelBuilder.Ignore<BaseModel>();
+        modelBuilder.Ignore<Base>();
         modelBuilder.Ignore<Cuenta>();
         modelBuilder.Ignore<Tarjeta>();
         

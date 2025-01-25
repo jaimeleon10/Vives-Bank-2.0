@@ -12,8 +12,10 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using StackExchange.Redis;
 
 namespace Banco_VivesBank.Movimientos.Services;
 
@@ -26,15 +28,23 @@ public class MovimientoService : IMovimientoService
     private readonly ICuentaService _cuentaService;
     private readonly ITarjetaService _tarjetaService;
     private readonly GeneralDbContext _context;
+    private readonly IMemoryCache _memoryCache; 
+    private readonly IDatabase _database;
+    private const string CacheKeyPrefix = "Movimiento:"; 
+    private readonly IConnectionMultiplexer _redis;
 
     
-    public MovimientoService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<MovimientoService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, ITarjetaService tarjetaService)
+    public MovimientoService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<MovimientoService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, ITarjetaService tarjetaService,IConnectionMultiplexer redis, 
+        IMemoryCache memoryCache)
     {
         _logger = logger;
         _clienteService = clienteService;
         _cuentaService = cuentaService;
         _context = context;
         _tarjetaService = tarjetaService;
+        _redis = redis;
+        _memoryCache = memoryCache; 
+        _database = _redis.GetDatabase();  
         var mongoClient = new MongoClient(movimientosDatabaseSettings.Value.ConnectionString);
         var mongoDatabase = mongoClient.GetDatabase(movimientosDatabaseSettings.Value.DatabaseName);
         _movimientoCollection = mongoDatabase.GetCollection<Movimiento>(movimientosDatabaseSettings.Value.MovimientosCollectionName);
@@ -56,6 +66,7 @@ public class MovimientoService : IMovimientoService
     public async Task<MovimientoResponse?> GetByGuidAsync(string guid)
     {
         _logger.LogInformation($"Buscando movimiento con guid: {guid}");
+        var cacheKey = CacheKeyPrefix + guid;
         
         _logger.LogInformation($"Buscando movimiento con guid: {guid} en la base de datos");
         var movimiento = await _movimientoCollection.Find(m => m.Guid == guid).FirstOrDefaultAsync();
