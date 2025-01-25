@@ -13,6 +13,7 @@ using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Json.Service;
+using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 using Microsoft.Extensions.Logging;
