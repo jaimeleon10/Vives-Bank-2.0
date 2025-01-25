@@ -1,6 +1,7 @@
 using System.Text;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Cliente.Services;
+using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
@@ -11,6 +12,7 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.Storage.Files.Service;
+using Banco_VivesBank.Storage.Ftp;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.User.Mapper;
@@ -107,6 +109,10 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IBackupService, BackupService>();
     myBuilder.Services.AddScoped<IStorageJson, StorageJson>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
+    
+    //Ftp
+    myBuilder.Services.Configure<FtpConfig>(myBuilder.Configuration.GetSection("FtpSettings"));
+    myBuilder.Services.AddScoped<FtpService>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();
