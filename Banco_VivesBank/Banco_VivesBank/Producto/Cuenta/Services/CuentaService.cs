@@ -298,7 +298,7 @@ public class CuentaService : ICuentaService
         if (clienteModel == null)
         {
             _logger.LogError($"El cliente {cuentaRequest.ClienteGuid} no existe ");
-            throw new ClienteExistsException($"El cliente {cuentaRequest.ClienteGuid}  no existe");
+            throw new Exception($"El cliente {cuentaRequest.ClienteGuid} no existe");
         }
         
         var cuentaEntity = new CuentaEntity

@@ -20,7 +20,4 @@ public class TarjetaRequest
 
     [Required(ErrorMessage = "Debes establecer un limite mensual superior a 0 y al limite semanal")]
     public double LimiteMensual { get; set; }
-    
-    [DefaultValue(false)]
-    public bool IsDeleted { get; set; } = false;
 }

@@ -202,7 +202,7 @@ public class TarjetaService : ITarjetaService
             _logger.LogWarning($"Tarjeta con id: {guid} no encontrada");
             return null;
         }
-
+        
         _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
 
         _logger.LogDebug("Actualizando tarjeta");
@@ -211,7 +211,7 @@ public class TarjetaService : ITarjetaService
         tarjeta.LimiteSemanal = dto.LimiteSemanal;
         tarjeta.LimiteMensual = dto.LimiteMensual;
         tarjeta.UpdatedAt = DateTime.UtcNow;
-        tarjeta.IsDeleted = dto.IsDeleted;
+        //tarjeta.IsDeleted = dto.IsDeleted;
 
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();

@@ -85,7 +85,7 @@ public class CuentaControllerMe: ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest( new { message = "Error creando cuenta.", details = e.Message, e.InnerException.Message });
+            return BadRequest( new { message = "Error creando cuenta.", details = e.Message});
 
         }
         
