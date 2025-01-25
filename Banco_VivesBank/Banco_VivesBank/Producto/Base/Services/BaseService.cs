@@ -97,17 +97,17 @@ public class BaseService : IBaseService
         if (!string.IsNullOrEmpty(redisCache))
         {
             _logger.LogInformation("Producto obtenido desde Redis");
-            var baseResponse = JsonSerializer.Deserialize<BaseResponse>(redisCache);
-            if (baseResponse != null)
+            var baseResponseFromRedis = JsonSerializer.Deserialize<BaseResponse>(redisCache);
+            if (baseResponseFromRedis != null)
             {
-                _memoryCache.Set(cacheKey, baseResponse, TimeSpan.FromMinutes(30));
+                _memoryCache.Set(cacheKey, baseResponseFromRedis, TimeSpan.FromMinutes(30));
             }
 
-            return baseResponse; 
+            return baseResponseFromRedis; 
         }
 
         // Consultar la base de datos
-        var baseEntity = await _context.ProductoBase.FirstOrDefaultAsync(u => u.Guid == guid);
+        var baseEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
         if (baseEntity != null)
         {
             _logger.LogInformation($"Producto encontrado con guid: {guid}");
@@ -120,7 +120,7 @@ public class BaseService : IBaseService
             _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
 
             // Guardar en Redis como JSON
-            var redisValue = JsonSerializer.Serialize(cacheKey);
+            var redisValue = JsonSerializer.Serialize(baseResponse);
             await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
             return baseResponse;
@@ -171,7 +171,7 @@ public class BaseService : IBaseService
             _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
 
             // Guardar en Redis como JSON
-            var redisValue = JsonSerializer.Serialize(cacheKey);
+            var redisValue = JsonSerializer.Serialize(baseResponse);
             await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
             return baseResponse;
@@ -211,10 +211,9 @@ public class BaseService : IBaseService
         
         _logger.LogInformation($"Producto creado correctamente: {baseModel}");
         return baseModel.ToResponseFromModel();
-
     }
 
-    public async Task<BaseResponse?> UpdateAsync(string guid, BaseUpdateDto baseUpdate)
+    public async Task<BaseResponse?> UpdateAsync(string guid, BaseUpdateRequest baseUpdate)
     {
         _logger.LogInformation($"Actualizando producto con guid: {guid}");
         
@@ -251,11 +250,9 @@ public class BaseService : IBaseService
         var serializedUser = JsonSerializer.Serialize(cacheKey);
         _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
-
         
         _logger.LogInformation($"Producto actualizado correctamente: {baseEntityExistente}");
         return baseEntityExistente.ToResponseFromEntity();
-
     }
 
     public async Task<BaseResponse?> DeleteAsync(string guid)
