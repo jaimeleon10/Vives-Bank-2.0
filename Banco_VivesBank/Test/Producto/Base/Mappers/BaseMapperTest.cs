@@ -1,16 +1,15 @@
 ﻿using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Mappers;
-using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Mappers;
 
 namespace Test.Producto.Base.Mappers;
 
-public class BaseMapperTests
+public class ProductoMapperTests
 {
     [Test]
     public void ToModelFromRequest()
     {
-        var request = new BaseRequest
+        var request = new ProductoRequest
         {
             Nombre = "Test Producto",
             Descripcion = "Test Descripcion",
@@ -18,7 +17,7 @@ public class BaseMapperTests
             TipoProducto = "Test Tipo"
         };
 
-        var result = BaseMapper.ToModelFromRequest(request);
+        var result = ProductoMapper.ToModelFromRequest(request);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo(request.Nombre));
@@ -33,7 +32,7 @@ public class BaseMapperTests
     [Test]
     public void ToModelFromEntity()
     {
-        var entity = new BaseEntity
+        var entity = new ProductoEntity
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -45,7 +44,7 @@ public class BaseMapperTests
             IsDeleted = false
         };
 
-        var result = BaseMapper.ToModelFromEntity(entity);
+        var result = ProductoMapper.ToModelFromEntity(entity);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Id, Is.EqualTo(entity.Id));
@@ -61,7 +60,7 @@ public class BaseMapperTests
     [Test]
     public void ToEntityFromModel()
     {
-        var model = new Banco_VivesBank.Producto.Base.Models.Base
+        var model = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -73,7 +72,7 @@ public class BaseMapperTests
             IsDeleted = false
         };
 
-        var result = BaseMapper.ToEntityFromModel(model);
+        var result = ProductoMapper.ToEntityFromModel(model);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(model.Id, Is.EqualTo(result.Id));
@@ -89,7 +88,7 @@ public class BaseMapperTests
     [Test]
     public void ToResponseFromModel()
     {
-        var model = new Banco_VivesBank.Producto.Base.Models.Base
+        var model = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -101,7 +100,7 @@ public class BaseMapperTests
             IsDeleted = false
         };
 
-        var result = BaseMapper.ToResponseFromModel(model);
+        var result = ProductoMapper.ToResponseFromModel(model);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(model.Nombre, Is.EqualTo(result.Nombre));
@@ -121,7 +120,7 @@ public class BaseMapperTests
     [Test]
     public void ToResponseFromEntity()
     {
-        var entity = new BaseEntity
+        var entity = new ProductoEntity
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -133,7 +132,7 @@ public class BaseMapperTests
             IsDeleted = false
         };
 
-        var result = BaseMapper.ToResponseFromEntity(entity);
+        var result = ProductoMapper.ToResponseFromEntity(entity);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(entity.Nombre, Is.EqualTo(result.Nombre));
@@ -153,9 +152,9 @@ public class BaseMapperTests
     [Test]
     public void ToResponseListFromEntityList()
     {
-        var entities = new List<BaseEntity>
+        var entities = new List<ProductoEntity>
         {
-            new BaseEntity
+            new ProductoEntity
             {
                 Id = 1,
                 Nombre = "Product 1",
@@ -166,7 +165,7 @@ public class BaseMapperTests
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
             },
-            new BaseEntity
+            new ProductoEntity
             {
                 Id = 2,
                 Nombre = "Product 2",
@@ -179,7 +178,7 @@ public class BaseMapperTests
             }
         };
 
-        var results = BaseMapper.ToResponseListFromEntityList(entities).ToList();
+        var results = ProductoMapper.ToResponseListFromEntityList(entities).ToList();
 
         Assert.That(results, Is.Not.Null);
         Assert.That(2, Is.EqualTo(results.Count));

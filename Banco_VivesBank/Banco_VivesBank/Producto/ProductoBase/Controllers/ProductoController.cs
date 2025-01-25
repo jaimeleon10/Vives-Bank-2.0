@@ -1,32 +1,31 @@
-﻿using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Models;
-using Banco_VivesBank.Producto.Base.Services;
-using Banco_VivesBank.Producto.Base.Storage;
+﻿using Banco_VivesBank.Producto.Base.Storage;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Exceptions;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Banco_VivesBank.Producto.Base.Controllers;
+namespace Banco_VivesBank.Producto.ProductoBase.Controllers;
 
 [ApiController]
-[Route("api/productosBase")]
-public class BaseController : ControllerBase
+[Route("api/productos")]
+public class ProductoController : ControllerBase
 {
-    private readonly ILogger<BaseController> _logger;
-    private readonly IBaseService _baseService;
+    private readonly ILogger<ProductoController> _logger;
+    private readonly IProductoService _productoService;
     private readonly IStorageProductos _storageProductos;
     private readonly PaginationLinksUtils _paginationLinksUtils;
 
-    public BaseController(ILogger<BaseController> logger, IBaseService baseService, IStorageProductos storageProductos, PaginationLinksUtils pagination)
+    public ProductoController(ILogger<ProductoController> logger, IProductoService productoService, IStorageProductos storageProductos, PaginationLinksUtils pagination)
     {
         _logger = logger;
-        _baseService = baseService;
+        _productoService = productoService;
         _storageProductos = storageProductos;
         _paginationLinksUtils = pagination;
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PageResponse<BaseResponse>>>> GetAll(
+    public async Task<ActionResult<IEnumerable<PageResponse<ProductoResponse>>>> GetAll(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
         [FromQuery] string sortBy = "id",
@@ -40,35 +39,35 @@ public class BaseController : ControllerBase
             SortBy = sortBy,
             Direction = direction
         };
-        var pageResult = await _baseService.GetAllPagedAsync(pageRequest);
+        var pageResult = await _productoService.GetAllPagedAsync(pageRequest);
             
         var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
         var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
             
-        Response.Headers.Add("link", linkHeader);
+        Response.Headers.Append("link", linkHeader);
             
         return Ok(pageResult);
     }
 
     [HttpGet("{guid}")]
-    public async Task<ActionResult<BaseResponse>> GetByGuid(string guid)
+    public async Task<ActionResult<ProductoResponse>> GetByGuid(string guid)
     {
         try
         {
-            var baseByGuid = await _baseService.GetByGuidAsync(guid);
+            var baseByGuid = await _productoService.GetByGuidAsync(guid);
         
             if (baseByGuid is null) return NotFound($"Producto con guid: {guid} no encontrado");
 
             return Ok(baseByGuid);
         }
-        catch (BaseException e)
+        catch (ProductoException e)
         {
             return NotFound(e.Message);
         }
     }
     
     [HttpPost]
-    public async Task<ActionResult<BaseResponse>> Create([FromBody] BaseRequest request)
+    public async Task<ActionResult<ProductoResponse>> Create([FromBody] ProductoRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -77,16 +76,16 @@ public class BaseController : ControllerBase
 
         try
         {
-            return Ok(await _baseService.CreateAsync(request));
+            return Ok(await _productoService.CreateAsync(request));
         }
-        catch (BaseException e)
+        catch (ProductoException e)
         {
             return BadRequest(e.Message);
         }
     }
 
     [HttpPut("{guid}")]
-    public async Task<ActionResult<BaseResponse>> Update(string guid, [FromBody] BaseUpdateRequest request)
+    public async Task<ActionResult<ProductoResponse>> Update(string guid, [FromBody] ProductoRequestUpdate request)
     {
         if (!ModelState.IsValid)
         {
@@ -95,26 +94,26 @@ public class BaseController : ControllerBase
 
         try
         {
-            var baseResponse = await _baseService.UpdateAsync(guid, request);
+            var baseResponse = await _productoService.UpdateAsync(guid, request);
             if (baseResponse is null) return NotFound($"No se ha encontrado el producto con guid: {guid}");
             return Ok(baseResponse);
         }
-        catch (BaseException e)
+        catch (ProductoException e)
         {
             return BadRequest(e.Message);
         }
     }
 
     [HttpDelete("{guid}")]
-    public async Task<ActionResult<BaseResponse>> DeleteByGuid(string guid)
+    public async Task<ActionResult<ProductoResponse>> DeleteByGuid(string guid)
     {
-        var baseByGuid = await _baseService.DeleteAsync(guid);
+        var baseByGuid = await _productoService.DeleteByGuidAsync(guid);
         if (baseByGuid is null) return NotFound($"No se ha podido eliminar el producto con guid: {guid}");
         return Ok(baseByGuid);
     }
     
     [HttpPost("import")]
-    public async Task<ActionResult<IEnumerable<BaseResponse>>> ImportFromCsv(IFormFile file)
+    public async Task<ActionResult<IEnumerable<ProductoResponse>>> ImportFromCsv(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest("No se ha proporcionado ningún archivo");
@@ -137,11 +136,11 @@ public class BaseController : ControllerBase
             if (!importedProducts.Any())
                 return BadRequest("No se pudieron importar los productos del archivo CSV");
 
-            var responses = new List<BaseResponse>();
+            var responses = new List<ProductoResponse>();
 
             foreach (var product in importedProducts)
             {
-                var request = new BaseRequest
+                var request = new ProductoRequest
                 {
                     Nombre = product.Nombre,
                     Descripcion = product.Descripcion,
@@ -149,7 +148,7 @@ public class BaseController : ControllerBase
                     Tae = product.Tae
                 };
 
-                var response = await _baseService.CreateAsync(request);
+                var response = await _productoService.CreateAsync(request);
                 responses.Add(response);
             }
 
@@ -171,14 +170,14 @@ public class BaseController : ControllerBase
     {
         try
         {
-            var products = await _baseService.GetAllAsync();
+            var products = await _productoService.GetAllForStorage();
             if (!products.Any())
                 return Ok("No hay productos para exportar");
 
             var tempFilePath = Path.GetTempFileName();
             var fileInfo = new FileInfo(tempFilePath);
 
-            var productsToExport = products.Select(p => new Models.Base
+            var productsToExport = products.Select(p => new ProductoBase.Models.Producto
             {
                 Nombre = p.Nombre,
                 Descripcion = p.Descripcion,

@@ -1,6 +1,5 @@
 ﻿using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Controllers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
@@ -77,8 +76,8 @@ public class TarjetaControllerTest
         // Arrange
         var tarjetas = new List<TarjetaResponse>
         {
-            new TarjetaResponse() { Id = 1, Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" },
-            new TarjetaResponse() { Id = 2, Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
+            new TarjetaResponse() { Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" },
+            new TarjetaResponse() { Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
         };
 
         
@@ -151,8 +150,6 @@ public class TarjetaControllerTest
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        var returnValue = (result.Result as OkObjectResult)?.Value as TarjetaResponse;
-        Assert.That(returnValue.Id, Is.EqualTo(tarjeta.ToResponseFromEntity().Id));
     }
 
     [Test]

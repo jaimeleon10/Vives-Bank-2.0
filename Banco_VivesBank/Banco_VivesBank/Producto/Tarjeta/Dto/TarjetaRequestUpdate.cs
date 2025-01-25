@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Dto;
 
-public class TarjetaRequest
+public class TarjetaRequestUpdate
 {
-    [Required(ErrorMessage = "El campo de cuenta guid es obligatorio")]
-    public string CuentaGuid { get; set; }
-    
     [Required(ErrorMessage = "Es necesario definir un Pin")]
     [Length(4, 4, ErrorMessage = "El pin debe tener una longitud de 4 caracteres")]
     public string Pin { get; set; }

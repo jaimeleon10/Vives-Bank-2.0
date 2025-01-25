@@ -61,7 +61,6 @@ public static class TarjetaMapper
     {
         return new TarjetaResponse
         {
-            Id = tarjetaEntity.Id,
             Guid = tarjetaEntity.Guid,
             Numero = tarjetaEntity.Numero,
             FechaVencimiento = tarjetaEntity.FechaVencimiento,
@@ -80,7 +79,6 @@ public static class TarjetaMapper
     {
         return new TarjetaResponse
         {
-            Id = tarjeta.Id,
             Guid = tarjeta.Guid,
             Numero = tarjeta.Numero,
             FechaVencimiento = tarjeta.FechaVencimiento,

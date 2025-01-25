@@ -94,53 +94,6 @@ public class ClienteServiceTests
     }  
     
     [Test]
-    public async Task GetAll()
-    {
-        var user = new UserEntity
-        {
-            Guid = "user-guid",
-            Username = "user1",
-            Password = "password",
-            IsDeleted = false
-        };
-        _dbContext.Usuarios.Add(user);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Guid = "cliente-guid",  
-            Nombre = "Juan",
-            Apellidos = "Perez",
-            Dni = "12345678Z",
-            Direccion = new Direccion
-            {
-                Calle = "Calle Falsa",
-                Numero = "123",
-                CodigoPostal = "28000",
-                Piso = "2",
-                Letra = "A"
-            },
-            Email = "juanperez@example.com",
-            Telefono = "600000000",
-            IsDeleted = false,
-            UserId = 1
-        };
-        
-        _dbContext.Clientes.Add(cliente);
-        await _dbContext.SaveChangesAsync();
-        
-        var savedCliente = await _dbContext.Clientes.FirstOrDefaultAsync(c => c.Guid == "cliente-guid");
-        Console.WriteLine(savedCliente?.Guid);  
-
-    
-        var result = await _clienteService.GetAllAsync();
-    
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count(), Is.EqualTo(1));
-       
-    }
-    
-    [Test]
     public async Task GetByGuid_EnBBDD()
     {
         

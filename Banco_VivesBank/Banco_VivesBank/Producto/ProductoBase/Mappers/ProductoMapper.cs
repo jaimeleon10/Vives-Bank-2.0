@@ -1,14 +1,13 @@
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
 
-namespace Banco_VivesBank.Producto.Base.Mappers;
+namespace Banco_VivesBank.Producto.ProductoBase.Mappers;
 
-public static class BaseMapper
+public static class ProductoMapper
 {
-    public static Models.Base ToModelFromRequest(this BaseRequest d)
+    public static ProductoBase.Models.Producto ToModelFromRequest(this ProductoRequest d)
     {
-        return new Models.Base
+        return new ProductoBase.Models.Producto
         {
             Nombre = d.Nombre,
             Descripcion = d.Descripcion,
@@ -16,13 +15,13 @@ public static class BaseMapper
             TipoProducto = d.TipoProducto,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
+            IsDeleted = d.IsDeleted
         };
     }
 
-    public static Models.Base ToModelFromEntity(this BaseEntity entity)
+    public static ProductoBase.Models.Producto ToModelFromEntity(this ProductoEntity entity)
     {
-        return new Models.Base
+        return new ProductoBase.Models.Producto
         {
             Id = entity.Id,
             Guid = entity.Guid,
@@ -36,9 +35,9 @@ public static class BaseMapper
         };
     }
     
-    public static BaseEntity ToEntityFromModel(this Models.Base model)
+    public static ProductoEntity ToEntityFromModel(this ProductoBase.Models.Producto model)
     {
-        return new BaseEntity
+        return new ProductoEntity
         {
             Id = model.Id,
             Guid = model.Guid,
@@ -53,9 +52,9 @@ public static class BaseMapper
 
     }
 
-    public static BaseResponse ToResponseFromModel(this Models.Base model)
+    public static ProductoResponse ToResponseFromModel(this ProductoBase.Models.Producto model)
     {
-        return new BaseResponse
+        return new ProductoResponse
         {
             Nombre = model.Nombre,
             Guid = model.Guid,
@@ -68,9 +67,9 @@ public static class BaseMapper
         };
     }
     
-    public static BaseResponse ToResponseFromEntity(this BaseEntity entity)
+    public static ProductoResponse ToResponseFromEntity(this ProductoEntity entity)
     {
-        return new BaseResponse
+        return new ProductoResponse
         {
             Nombre = entity.Nombre,
             Guid = entity.Guid,
@@ -83,7 +82,7 @@ public static class BaseMapper
         };
     }
     
-    public static IEnumerable<BaseResponse> ToResponseListFromEntityList(this IEnumerable<BaseEntity> entities)
+    public static IEnumerable<ProductoResponse> ToResponseListFromEntityList(this IEnumerable<ProductoEntity> entities)
     {
         return entities.Select(entity => ToResponseFromEntity(entity));
     }
