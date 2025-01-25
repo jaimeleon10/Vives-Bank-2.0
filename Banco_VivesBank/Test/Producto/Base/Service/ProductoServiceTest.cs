@@ -2,10 +2,10 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Mappers;
-using Banco_VivesBank.Producto.Base.Services;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Exceptions;
+using Banco_VivesBank.Producto.ProductoBase.Mappers;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -17,12 +17,12 @@ using Testcontainers.PostgreSql;
 namespace Test.Producto.Base.Service;
 
 [TestFixture]
-[TestOf(typeof(BaseService))]
-public class BaseServiceTest
+[TestOf(typeof(ProductoService))]
+public class ProductoServiceTest
 {
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
-    private BaseService _baseService;
+    private ProductoService _productoService;
     private Mock<IMemoryCache> _memoryCache;
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _database;
@@ -57,7 +57,7 @@ public class BaseServiceTest
             Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_database.Object);
 
-        _baseService = new BaseService(_dbContext, NullLogger<BaseService>.Instance, _redis.Object, _memoryCache.Object);
+        _productoService = new ProductoService(_dbContext, NullLogger<ProductoService>.Instance, _redis.Object, _memoryCache.Object);
     }
 
     [OneTimeTearDown]
@@ -89,7 +89,7 @@ public class BaseServiceTest
         _dbContext.ProductoBase.AddRange(new BaseEntity { Nombre = "1" }, new BaseEntity { Nombre = "2" }, new BaseEntity { Nombre = "3" });
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.GetAllPagedAsync(pageRequest);
+        var result = await _productoService.GetAllPagedAsync(pageRequest);
 
         Assert.That(result.Content.Count, Is.EqualTo(2));
         Assert.That(result.PageNumber, Is.EqualTo(0));
@@ -118,7 +118,7 @@ public class BaseServiceTest
         }
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.GetAllAsync();
+        var result = await _productoService.GetAllAsync();
 
         Assert.That(result.Count(), Is.EqualTo(5));
     }
@@ -128,14 +128,14 @@ public class BaseServiceTest
     {
         var guid = "some-guid";
         var cacheKey = "Producto:" + guid;
-        var redisValue = JsonSerializer.Serialize(new BaseResponse { Nombre = "Producto desde Redis" });
+        var redisValue = JsonSerializer.Serialize(new ProductoResponse { Nombre = "Producto desde Redis" });
 
         _database.Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync(redisValue);
 
         object cachedProduct = null;
 
-        var result = await _baseService.GetByGuidAsync(guid);
+        var result = await _productoService.GetByGuidAsync(guid);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo("Producto desde Redis"));
@@ -147,12 +147,12 @@ public class BaseServiceTest
     public async Task GetByGuidAsyncReturnDatabase()
     {
         var guid = "some-guid";
-        var productInDb = new Banco_VivesBank.Producto.Base.Models.Base { Guid = guid, Nombre = "Producto desde BD", TipoProducto = "Tipo1" };
+        var productInDb = new Banco_VivesBank.Producto.ProductoBase.Models.Producto { Guid = guid, Nombre = "Producto desde BD", TipoProducto = "Tipo1" };
         
         await _dbContext.ProductoBase.AddAsync(productInDb.ToEntityFromModel());
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.GetByGuidAsync(guid);
+        var result = await _productoService.GetByGuidAsync(guid);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo("Producto desde BD"));
@@ -172,7 +172,7 @@ public class BaseServiceTest
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
 
-        var result = await _baseService.GetByGuidAsync(guid);
+        var result = await _productoService.GetByGuidAsync(guid);
 
         Assert.That(result, Is.Null);
     }
@@ -182,14 +182,14 @@ public class BaseServiceTest
     {
         var tipo = "some-tipo";
         var cacheKey = "Producto:" + tipo;
-        var redisValue = JsonSerializer.Serialize(new BaseResponse { Nombre = "Producto desde Redis", TipoProducto = tipo});
+        var redisValue = JsonSerializer.Serialize(new ProductoResponse { Nombre = "Producto desde Redis", TipoProducto = tipo});
 
         _database.Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync(redisValue);
 
         object cachedProduct = null;
 
-        var result = await _baseService.GetByTipoAsync(tipo);
+        var result = await _productoService.GetByTipoAsync(tipo);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo("Producto desde Redis"));
@@ -201,11 +201,11 @@ public class BaseServiceTest
     public async Task GetByTipoAsyncReturnDatabase()
     {
         var tipo = "Tipo3";
-        var productFromDb = new Banco_VivesBank.Producto.Base.Models.Base { TipoProducto = tipo, Nombre = "Producto desde BD" };
+        var productFromDb = new Banco_VivesBank.Producto.ProductoBase.Models.Producto { TipoProducto = tipo, Nombre = "Producto desde BD" };
         await _dbContext.ProductoBase.AddAsync(productFromDb.ToEntityFromModel());
         await _dbContext.SaveChangesAsync();
         
-        var result = await _baseService.GetByTipoAsync(tipo);
+        var result = await _productoService.GetByTipoAsync(tipo);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo(productFromDb.Nombre));
@@ -226,7 +226,7 @@ public class BaseServiceTest
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
 
-        var result = await _baseService.GetByTipoAsync(tipo);
+        var result = await _productoService.GetByTipoAsync(tipo);
 
         Assert.That(result, Is.Null);
     }
@@ -234,14 +234,14 @@ public class BaseServiceTest
     [Test]
     public async Task CreateAsync()
     {
-        var request = new BaseRequest { Nombre = "ProductoNuevo", TipoProducto = "TipoNuevo", Descripcion = "descripcion"};
+        var request = new ProductoRequest { Nombre = "ProductoNuevo", TipoProducto = "TipoNuevo", Descripcion = "descripcion"};
 
         object cacheValue = null;
         _memoryCache.Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Callback<object>(key => cacheValue = key)
             .Returns(Mock.Of<ICacheEntry>());
 
-        var response = await _baseService.CreateAsync(request);
+        var response = await _productoService.CreateAsync(request);
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.Nombre, Is.EqualTo(request.Nombre));
@@ -265,25 +265,25 @@ public class BaseServiceTest
     [Test]
     public async Task CreateAsyncProductTypeExists()
     {
-        var baseRequest = new BaseRequest { Nombre = "Nuevo Producto", TipoProducto = "Tipo Existente" };
+        var baseRequest = new ProductoRequest { Nombre = "Nuevo Producto", TipoProducto = "Tipo Existente" };
 
         var existingProduct = new ProductoEntity() { Nombre = "Producto Existente", TipoProducto = "Tipo Existente" };
         _dbContext.ProductoBase.Add(existingProduct);
         await _dbContext.SaveChangesAsync();
 
-        var ex = Assert.ThrowsAsync<BaseDuplicateException>(() => _baseService.CreateAsync(baseRequest));
+        var ex = Assert.ThrowsAsync<ProductoDuplicatedException>(() => _productoService.CreateAsync(baseRequest));
         Assert.That(ex.Message, Is.EqualTo("Ya existe un producto con el tipo: Tipo Existente"));
     }
 
     [Test]
     public async Task CreateAsyncNombreExistente()
     {
-        var baseRequest = new BaseRequest { Nombre = "Producto Existente", TipoProducto = "Tipo 1" };
+        var baseRequest = new ProductoRequest { Nombre = "Producto Existente", TipoProducto = "Tipo 1" };
         var existingProduct = new ProductoEntity() { Nombre = "Producto Existente", TipoProducto = "Tipo 1" };
         _dbContext.ProductoBase.Add(existingProduct);
         await _dbContext.SaveChangesAsync();
 
-        var ex = Assert.ThrowsAsync<BaseExistByNameException>(() => _baseService.CreateAsync(baseRequest));
+        var ex = Assert.ThrowsAsync<ProductoExistByNameException>(() => _productoService.CreateAsync(baseRequest));
         Assert.That("Ya existe un producto con el nombre: Producto Existente", Is.EqualTo(ex.Message));
     }
     
@@ -295,9 +295,9 @@ public class BaseServiceTest
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
     
-        var updateRequest = new BaseUpdateRequest { Nombre = "Producto Actualizado", Descripcion = "Nueva Descripción", Tae = 6.0 };
+        var updateRequest = new ProductoRequestUpdate { Nombre = "Producto Actualizado", Descripcion = "Nueva Descripción", Tae = 6.0 };
 
-        var result = await _baseService.UpdateAsync(guid, updateRequest);
+        var result = await _productoService.UpdateAsync(guid, updateRequest);
 
         Assert.That(result, Is.Not.Null);
         Assert.That("Producto Actualizado", Is.EqualTo(result?.Nombre));
@@ -307,9 +307,9 @@ public class BaseServiceTest
     [Test]
     public async Task UpdateAsyncProductoNotExist()
     {
-        var ex = Assert.ThrowsAsync<BaseNotExistException>(async () =>
+        var ex = Assert.ThrowsAsync<ProductoNotExistException>(async () =>
         {
-            await _baseService.UpdateAsync("Guid_no_existente", new BaseUpdateRequest());
+            await _productoService.UpdateAsync("Guid_no_existente", new ProductoRequestUpdate());
         });
 
         Assert.That(ex.Message, Is.EqualTo("Producto con guid: Guid_no_existente no encontrado"));
@@ -319,7 +319,7 @@ public class BaseServiceTest
     public async Task UpdateAsyncProductoExistByName()
     {
         var guid = Guid.NewGuid().ToString();
-        var existingProduct = new Banco_VivesBank.Producto.Base.Models.Base
+        var existingProduct = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Guid = guid,
             Nombre = "Producto Existente",
@@ -331,15 +331,15 @@ public class BaseServiceTest
         await _dbContext.ProductoBase.AddAsync(existingProduct.ToEntityFromModel());
         await _dbContext.SaveChangesAsync();
 
-        var baseUpdateDto = new BaseUpdateRequest
+        var baseUpdateDto = new ProductoRequestUpdate
         {
             Nombre = "Producto Existente",
             Descripcion = "Descripción actualizada",
             Tae = 12.0
         };
 
-        var ex = Assert.ThrowsAsync<BaseExistByNameException>(async () =>
-                await _baseService.UpdateAsync(guid, baseUpdateDto)
+        var ex = Assert.ThrowsAsync<ProductoExistByNameException>(async () =>
+                await _productoService.UpdateAsync(guid, baseUpdateDto)
         );
 
         Assert.That(ex.Message, Is.EqualTo($"Ya existe un producto con el nombre: {baseUpdateDto.Nombre}"));
@@ -353,7 +353,7 @@ public class BaseServiceTest
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.DeleteAsync(guid);
+        var result = await _productoService.DeleteAsync(guid);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result?.IsDeleted, Is.True);
@@ -375,7 +375,7 @@ public class BaseServiceTest
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
 
-        var result = await _baseService.DeleteAsync(guid);
+        var result = await _productoService.DeleteAsync(guid);
 
         Assert.That(result, Is.Null);
     }
@@ -388,10 +388,10 @@ public class BaseServiceTest
         _dbContext.ProductoBase.AddRange(productoEntity1, productoEntity2);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.GetAllForStorage();
+        var result = await _productoService.GetAllForStorage();
 
         Assert.That(result.Count(), Is.EqualTo(7));
-        Assert.That(result.All(item => item is Banco_VivesBank.Producto.Base.Models.Base), Is.True);
+        Assert.That(result.All(item => item is Banco_VivesBank.Producto.ProductoBase.Models.Producto), Is.True);
     }
     
     [Test]
@@ -402,7 +402,7 @@ public class BaseServiceTest
         _dbContext.ProductoBase.Add(productoEntity);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.GetBaseModelByGuid(guid);
+        var result = await _productoService.GetBaseModelByGuid(guid);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result?.Guid, Is.EqualTo(productoEntity.Guid));
@@ -414,7 +414,7 @@ public class BaseServiceTest
     {
         var guid = Guid.NewGuid().ToString();
 
-        var result = await _baseService.GetBaseModelByGuid(guid);
+        var result = await _productoService.GetBaseModelByGuid(guid);
 
         Assert.That(result, Is.Null);
     }
@@ -426,7 +426,7 @@ public class BaseServiceTest
         _dbContext.ProductoBase.Add(productoEntity);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _baseService.GetBaseModelById(productoEntity.Id);
+        var result = await _productoService.GetBaseModelById(productoEntity.Id);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result?.Id, Is.EqualTo(productoEntity.Id));
@@ -438,7 +438,7 @@ public class BaseServiceTest
     {
         var id = 900L;
 
-        var result = await _baseService.GetBaseModelById(id);
+        var result = await _productoService.GetBaseModelById(id);
 
         Assert.That(result, Is.Null);
     }

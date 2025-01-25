@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Numerics;
-using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 
 namespace Banco_VivesBank.Database.Entities;

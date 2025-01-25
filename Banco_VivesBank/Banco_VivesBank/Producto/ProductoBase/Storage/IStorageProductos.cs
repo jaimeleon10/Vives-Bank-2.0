@@ -1,10 +1,8 @@
 ﻿
-using Banco_VivesBank.Producto.Base.Models;
-
 namespace Banco_VivesBank.Producto.Base.Storage;
 
 public interface IStorageProductos
 {
-    List<Models.Base> ImportProductosFromCsv(FileInfo file);
-    void ExportProductosFromCsv(FileInfo file, List<Models.Base> data);
+    List<ProductoBase.Models.Producto> ImportProductosFromCsv(FileInfo file);
+    void ExportProductosFromCsv(FileInfo file, List<ProductoBase.Models.Producto> data);
 }

@@ -1,27 +1,25 @@
 using System.Text.Json;
 using Banco_VivesBank.Database;
-using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Mappers;
-using Banco_VivesBank.Producto.Base.Models;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Exceptions;
+using Banco_VivesBank.Producto.ProductoBase.Mappers;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 
-namespace Banco_VivesBank.Producto.Base.Services;
+namespace Banco_VivesBank.Producto.ProductoBase.Services;
 
-public class BaseService : IBaseService
+public class ProductoService : IProductoService
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly GeneralDbContext _context;
-    private readonly ILogger<BaseService> _logger;
+    private readonly ILogger<ProductoService> _logger;
     private readonly IMemoryCache _memoryCache; 
     private readonly IDatabase _database;
     private const string CacheKeyPrefix = "Producto:"; 
     
-    public BaseService(GeneralDbContext context, ILogger<BaseService> logger, IConnectionMultiplexer redis, 
+    public ProductoService(GeneralDbContext context, ILogger<ProductoService> logger, IConnectionMultiplexer redis, 
         IMemoryCache memoryCache)
     {
         _context = context;
@@ -31,14 +29,14 @@ public class BaseService : IBaseService
         _database = _redis.GetDatabase();  
     }
     
-    public async Task<IEnumerable<BaseResponse>> GetAllAsync()
+    public async Task<IEnumerable<ProductoResponse>> GetAllAsync()
     {
         _logger.LogDebug("Obteniendo todos los productos");
         var baseEntityList = await _context.ProductoBase.ToListAsync();
         return baseEntityList.ToResponseListFromEntityList();
     }
 
-    public async Task<PageResponse<BaseResponse>> GetAllPagedAsync(PageRequest page)
+    public async Task<PageResponse<ProductoResponse>> GetAllPagedAsync(PageRequest page)
     {
         _logger.LogInformation("Obteniendo todos los productos paginados y filtrados");
         int pageNumber = page.PageNumber >= 0 ? page.PageNumber : 0;
@@ -62,9 +60,9 @@ public class BaseService : IBaseService
         
         var totalPages = (int)Math.Ceiling(totalElements / (double)pageSize);
         
-        var contentResponse = content.Select(BaseMapper.ToResponseFromEntity).ToList();
+        var contentResponse = content.Select(ProductoMapper.ToResponseFromEntity).ToList();
         
-        return new PageResponse<BaseResponse>
+        return new PageResponse<ProductoResponse>
         {
             Content = contentResponse,
             PageNumber = pageNumber,
@@ -79,14 +77,14 @@ public class BaseService : IBaseService
         };
     }
 
-    public async Task<BaseResponse?> GetByGuidAsync(string guid)
+    public async Task<ProductoResponse?> GetByGuidAsync(string guid)
     {
         _logger.LogDebug($"Obteniendo el producto con guid: {guid}");
         
         var cacheKey = CacheKeyPrefix + guid;
         
         // Intentar obtener desde la memoria caché
-        if (_memoryCache.TryGetValue(cacheKey, out Models.Base? cacheBase))
+        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? cacheBase))
         {
             _logger.LogInformation("Producto obtenido desde la memoria caché");
             return cacheBase.ToResponseFromModel();
@@ -97,7 +95,7 @@ public class BaseService : IBaseService
         if (!string.IsNullOrEmpty(redisCache))
         {
             _logger.LogInformation("Producto obtenido desde Redis");
-            var baseResponseFromRedis = JsonSerializer.Deserialize<BaseResponse>(redisCache);
+            var baseResponseFromRedis = JsonSerializer.Deserialize<ProductoResponse>(redisCache);
             if (baseResponseFromRedis != null)
             {
                 _memoryCache.Set(cacheKey, baseResponseFromRedis, TimeSpan.FromMinutes(30));
@@ -130,14 +128,14 @@ public class BaseService : IBaseService
         return null;
     }
 
-    public async Task<BaseResponse?> GetByTipoAsync(string tipo)
+    public async Task<ProductoResponse?> GetByTipoAsync(string tipo)
     {
         _logger.LogInformation($"Buscando producto por tipo: {tipo}");
 
         var cacheKey = CacheKeyPrefix + tipo;
         
         // Intentar obtener desde la memoria caché
-        if (_memoryCache.TryGetValue(cacheKey, out Models.Base? cacheBase))
+        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? cacheBase))
         {
             _logger.LogInformation("Producto obtenido desde la memoria caché");
             return cacheBase.ToResponseFromModel();
@@ -148,7 +146,7 @@ public class BaseService : IBaseService
         if (!string.IsNullOrEmpty(redisCache))
         {
             _logger.LogInformation("Producto obtenido desde Redis");
-            var baseResponse = JsonSerializer.Deserialize<BaseResponse>(redisCache);
+            var baseResponse = JsonSerializer.Deserialize<ProductoResponse>(redisCache);
             if (baseResponse != null)
             {
                 _memoryCache.Set(cacheKey, baseResponse, TimeSpan.FromMinutes(30));
@@ -181,23 +179,23 @@ public class BaseService : IBaseService
         return null;
     }
 
-    public async Task<BaseResponse> CreateAsync(BaseRequest baseRequest)
+    public async Task<ProductoResponse> CreateAsync(ProductoRequest productoRequest)
     {
         _logger.LogInformation("Creando un nuevo producto base");
 
-        if (await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == baseRequest.Nombre.ToLower()))
+        if (await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == productoRequest.Nombre.ToLower()))
         {
-            _logger.LogWarning($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
-            throw new BaseExistByNameException($"Ya existe un producto con el nombre: {baseRequest.Nombre}");
+            _logger.LogWarning($"Ya existe un producto con el nombre: {productoRequest.Nombre}");
+            throw new ProductoExistByNameException($"Ya existe un producto con el nombre: {productoRequest.Nombre}");
         }
         
-        if (await _context.ProductoBase.AnyAsync(b => b.TipoProducto.ToLower() == baseRequest.TipoProducto.ToLower()))
+        if (await _context.ProductoBase.AnyAsync(b => b.TipoProducto.ToLower() == productoRequest.TipoProducto.ToLower()))
         {
-            _logger.LogWarning($"Ya existe un producto con el tipo: {baseRequest.TipoProducto}");
-            throw new BaseDuplicateException($"Ya existe un producto con el tipo: {baseRequest.TipoProducto}");
+            _logger.LogWarning($"Ya existe un producto con el tipo: {productoRequest.TipoProducto}");
+            throw new ProductoDuplicatedException($"Ya existe un producto con el tipo: {productoRequest.TipoProducto}");
         }
         
-        var baseModel = baseRequest.ToModelFromRequest();
+        var baseModel = productoRequest.ToModelFromRequest();
         var baseEntity = baseModel.ToEntityFromModel();
         _context.ProductoBase.Add(baseEntity);
         await _context.SaveChangesAsync();
@@ -213,7 +211,7 @@ public class BaseService : IBaseService
         return baseModel.ToResponseFromModel();
     }
 
-    public async Task<BaseResponse?> UpdateAsync(string guid, BaseUpdateRequest baseUpdate)
+    public async Task<ProductoResponse?> UpdateAsync(string guid, ProductoRequestUpdate productoRequestUpdate)
     {
         _logger.LogInformation($"Actualizando producto con guid: {guid}");
         
@@ -221,20 +219,20 @@ public class BaseService : IBaseService
         if (baseEntityExistente == null)
         {
             _logger.LogWarning($"Producto con guid: {guid} no encontrado");
-            throw new BaseNotExistException($"Producto con guid: {guid} no encontrado");
+            throw new ProductoNotExistException($"Producto con guid: {guid} no encontrado");
         }
     
         _logger.LogInformation("Validando nombre único");
-        if (baseUpdate.Nombre != baseEntityExistente.Nombre && await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == baseUpdate.Nombre.ToLower()))
+        if (productoRequestUpdate.Nombre != baseEntityExistente.Nombre && await _context.ProductoBase.AnyAsync(b => b.Nombre.ToLower() == productoRequestUpdate.Nombre.ToLower()))
         {
-            _logger.LogWarning($"Ya existe un producto con el nombre: {baseUpdate.Nombre}");
-            throw new BaseExistByNameException($"Ya existe un producto con el nombre: {baseUpdate.Nombre}");
+            _logger.LogWarning($"Ya existe un producto con el nombre: {productoRequestUpdate.Nombre}");
+            throw new ProductoExistByNameException($"Ya existe un producto con el nombre: {productoRequestUpdate.Nombre}");
         }
         
         _logger.LogInformation("Actualizando producto");
-        baseEntityExistente.Nombre = baseUpdate.Nombre;
-        baseEntityExistente.Descripcion = baseUpdate.Descripcion;
-        baseEntityExistente.Tae = baseUpdate.Tae;
+        baseEntityExistente.Nombre = productoRequestUpdate.Nombre;
+        baseEntityExistente.Descripcion = productoRequestUpdate.Descripcion;
+        baseEntityExistente.Tae = productoRequestUpdate.Tae;
         baseEntityExistente.UpdatedAt = DateTime.UtcNow;
 
         _context.ProductoBase.Update(baseEntityExistente);
@@ -255,7 +253,7 @@ public class BaseService : IBaseService
         return baseEntityExistente.ToResponseFromEntity();
     }
 
-    public async Task<BaseResponse?> DeleteAsync(string guid)
+    public async Task<ProductoResponse?> DeleteAsync(string guid)
     {
         _logger.LogInformation($"Aplicando borrado logico a producto con guid: {guid}");
         var baseExistenteEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
@@ -282,7 +280,7 @@ public class BaseService : IBaseService
         return baseExistenteEntity.ToResponseFromEntity();
     }
     
-    public async Task<Models.Base?> GetBaseModelByGuid(string guid)
+    public async Task<ProductoBase.Models.Producto?> GetBaseModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando producto con guid: {guid}");
 
@@ -297,7 +295,7 @@ public class BaseService : IBaseService
         return null;
     }
         
-    public async Task<Models.Base?> GetBaseModelById(long id)
+    public async Task<ProductoBase.Models.Producto?> GetBaseModelById(long id)
     {
         _logger.LogInformation($"Buscando producto con id: {id}");
 
@@ -313,15 +311,15 @@ public class BaseService : IBaseService
     }
     
     //Acemos un GetAllByStorage que es un get all pero sin filtrado ni paginacion que devuelve en modelo
-    public async Task<IEnumerable<Models.Base>> GetAllForStorage()
+    public async Task<IEnumerable<ProductoBase.Models.Producto>> GetAllForStorage()
     {
         _logger.LogInformation("Obteniendo todos los productos");
         var productoEntityList = await _context.ProductoBase.ToListAsync();
         //hacemos un bucle para mapear uno a uno
-        var baseModelList = new List<Models.Base>();
+        var baseModelList = new List<ProductoBase.Models.Producto>();
         foreach (var productoEntity in productoEntityList)
         {
-            baseModelList.Add(BaseMapper.ToModelFromEntity(productoEntity));
+            baseModelList.Add(ProductoMapper.ToModelFromEntity(productoEntity));
         }
         return baseModelList;
     }

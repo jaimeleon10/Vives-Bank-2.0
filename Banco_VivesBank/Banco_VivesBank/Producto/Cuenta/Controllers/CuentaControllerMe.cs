@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
 using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Producto.Base.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Producto.ProductoBase.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,7 +79,7 @@ public class CuentaControllerMe: ControllerBase
 
             return Ok(cuenta);
         }
-        catch (BaseNotExistException e)
+        catch (ProductoNotExistException e)
         {
             return NotFound( new { message = "Tipo de producto no existente.", details = e.Message });
         

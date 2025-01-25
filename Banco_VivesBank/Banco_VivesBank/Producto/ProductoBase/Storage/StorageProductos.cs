@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Text;
-using Banco_VivesBank.Producto.Base.Models;
 
 namespace Banco_VivesBank.Producto.Base.Storage;
 
@@ -13,10 +12,10 @@ public class StorageProductos : IStorageProductos
         _logger = logger;
     }
 
-    public List<Models.Base> ImportProductosFromCsv(FileInfo file)
+    public List<ProductoBase.Models.Producto> ImportProductosFromCsv(FileInfo file)
     {
-        _logger.LogDebug($"Importando productos desde CSV de {nameof(Models.Base)}");
-        var productos = new List<Models.Base>();
+        _logger.LogDebug($"Importando productos desde CSV de {nameof(ProductoBase.Models.Producto)}");
+        var productos = new List<ProductoBase.Models.Producto>();
 
         try
         {
@@ -31,7 +30,7 @@ public class StorageProductos : IStorageProductos
                     continue;
                 }
 
-                var producto = new Models.Base
+                var producto = new ProductoBase.Models.Producto
                 {
                     Nombre = data[0],
                     Descripcion = data[1],
@@ -45,13 +44,13 @@ public class StorageProductos : IStorageProductos
         catch (Exception ex)
         {
             _logger.LogError($"Error al procesar el fichero CSV: {ex.Message}");
-            return new List<Models.Base>();
+            return new List<ProductoBase.Models.Producto>();
         }
     }
     
-    public void ExportProductosFromCsv(FileInfo file, List<Models.Base> data)
+    public void ExportProductosFromCsv(FileInfo file, List<ProductoBase.Models.Producto> data)
     {
-        _logger.LogDebug($"Exportando productos a CSV de {nameof(Models.Base)}");
+        _logger.LogDebug($"Exportando productos a CSV de {nameof(ProductoBase.Models.Producto)}");
         try
         {
             var lines = new List<string> { "nombre,descripcion,tipoProducto,tae" };

@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
-using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Utils.Generators;
 
@@ -21,7 +20,7 @@ public class Cuenta
     
     public Cliente.Models.Cliente Cliente { get; set; }
     
-    public Base.Models.Base Producto { get; set; }
+    public ProductoBase.Models.Producto Producto { get; set; }
 
     public bool IsDeleted { get; set; } = false;
     

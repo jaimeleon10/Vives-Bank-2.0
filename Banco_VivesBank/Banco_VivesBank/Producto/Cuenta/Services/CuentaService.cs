@@ -3,11 +3,11 @@ using System.Text.Json;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
-using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Mappers;
+using Banco_VivesBank.Producto.ProductoBase.Exceptions;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Pagination;
@@ -21,7 +21,7 @@ public class CuentaService : ICuentaService
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly GeneralDbContext _context;
-    private readonly IBaseService _baseService;
+    private readonly IProductoService _productoService;
     private readonly ILogger<CuentaService> _logger;
     private readonly IClienteService _clienteService;
     private readonly ITarjetaService _tarjetaService;
@@ -29,11 +29,11 @@ public class CuentaService : ICuentaService
     private readonly IDatabase _database;
     private const string CacheKeyPrefix = "Cuenta:";
 
-    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IBaseService baseService, IClienteService clienteService, ITarjetaService tarjetaService, IConnectionMultiplexer redis, IMemoryCache memoryCache)
+    public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IProductoService productoService, IClienteService clienteService, ITarjetaService tarjetaService, IConnectionMultiplexer redis, IMemoryCache memoryCache)
     {
         _context = context;
         _logger = logger;
-        _baseService = baseService;
+        _productoService = productoService;
         _clienteService = clienteService;
         _tarjetaService = tarjetaService;
         _redis = redis;
@@ -298,20 +298,20 @@ public class CuentaService : ICuentaService
     public async Task<CuentaResponse> CreateAsync( CuentaRequest cuentaRequest)
     {
         _logger.LogInformation($"Creando cuenta nueva");
-        var tipoCuenta = await _baseService.GetByTipoAsync(cuentaRequest.TipoCuenta);
+        var tipoCuenta = await _productoService.GetByTipoAsync(cuentaRequest.TipoCuenta);
         if (tipoCuenta == null)
         {
             _logger.LogError($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
-            throw new BaseNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
+            throw new ProductoNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
         }
 
-        var tipoCuentaModel = await _baseService.GetBaseModelByGuid(tipoCuenta.Guid);
+        var tipoCuentaModel = await _productoService.GetBaseModelByGuid(tipoCuenta.Guid);
         var clienteModel = await _clienteService.GetClienteModelByGuid(cuentaRequest.ClienteGuid);
         
         if (clienteModel == null)
         {
             _logger.LogError($"El cliente {cuentaRequest.ClienteGuid}  no existe ");
-            throw new BaseNotExistException($"El cliente {cuentaRequest.ClienteGuid}  no existe");
+            throw new ProductoNotExistException($"El cliente {cuentaRequest.ClienteGuid}  no existe");
             
         }
         

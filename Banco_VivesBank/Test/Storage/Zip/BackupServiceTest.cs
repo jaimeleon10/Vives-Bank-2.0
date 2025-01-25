@@ -2,12 +2,11 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Services;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Models;
-using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.Producto.Tarjeta.Models;
@@ -27,7 +26,7 @@ public class BackupServiceTests
     private Mock<ILogger<BackupService>> _loggerMock;
     private Mock<IUserService> _userServiceMock;
     private Mock<IClienteService> _clienteServiceMock;
-    private Mock<IBaseService> _baseServiceMock;
+    private Mock<IProductoService> _baseServiceMock;
     private Mock<ICuentaService> _cuentaServiceMock;
     private Mock<ITarjetaService> _tarjetaServiceMock;
     private Mock<IMovimientoService> _movimientosServiceMock;
@@ -51,7 +50,7 @@ public class BackupServiceTests
         _loggerMock = new Mock<ILogger<BackupService>>();
         _userServiceMock = new Mock<IUserService>();
         _clienteServiceMock = new Mock<IClienteService>();
-        _baseServiceMock = new Mock<IBaseService>();
+        _baseServiceMock = new Mock<IProductoService>();
         _cuentaServiceMock = new Mock<ICuentaService>();
         _tarjetaServiceMock = new Mock<ITarjetaService>();
         _movimientosServiceMock = new Mock<IMovimientoService>();
@@ -96,7 +95,7 @@ public class BackupServiceTests
             .ReturnsAsync(new List<Banco_VivesBank.Cliente.Models.Cliente>());
 
         _baseServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<Base>());
+            .ReturnsAsync(new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>());
 
         _cuentaServiceMock.Setup(s => s.GetAllForStorage())
             .ReturnsAsync(new List<Cuenta>());
@@ -147,7 +146,7 @@ public class BackupServiceTests
             It.IsAny<List<Banco_VivesBank.Cliente.Models.Cliente>>()), Times.Once);
         _storageJsonMock.Verify(s => s.ExportJson(
             It.Is<FileInfo>(f => f.Name == "bases.json"), 
-            It.IsAny<List<Base>>()), Times.Once);
+            It.IsAny<List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>>()), Times.Once);
         _storageJsonMock.Verify(s => s.ExportJson(
             It.Is<FileInfo>(f => f.Name == "cuentas.json"), 
             It.IsAny<List<Cuenta>>()), Times.Once);
@@ -168,8 +167,8 @@ public class BackupServiceTests
             .Returns(new List<UserRequest> { new UserRequest() });
         _storageJsonMock.Setup(s => s.ImportJson<ClienteRequest>(It.IsAny<FileInfo>()))
             .Returns(new List<ClienteRequest> { new ClienteRequest() });
-        _storageJsonMock.Setup(s => s.ImportJson<BaseRequest>(It.IsAny<FileInfo>()))
-            .Returns(new List<BaseRequest> { new BaseRequest() });
+        _storageJsonMock.Setup(s => s.ImportJson<ProductoRequest>(It.IsAny<FileInfo>()))
+            .Returns(new List<ProductoRequest> { new ProductoRequest() });
         _storageJsonMock.Setup(s => s.ImportJson<CuentaRequest>(It.IsAny<FileInfo>()))
             .Returns(new List<CuentaRequest> { new CuentaRequest() });
         _storageJsonMock.Setup(s => s.ImportJson<TarjetaRequest>(It.IsAny<FileInfo>()))
@@ -181,7 +180,7 @@ public class BackupServiceTests
 
         _userServiceMock.Verify(s => s.CreateAsync(It.IsAny<UserRequest>()), Times.Once);
         _clienteServiceMock.Verify(s => s.CreateAsync(It.IsAny<ClienteRequest>()), Times.Once);
-        _baseServiceMock.Verify(s => s.CreateAsync(It.IsAny<BaseRequest>()), Times.Once);
+        _baseServiceMock.Verify(s => s.CreateAsync(It.IsAny<ProductoRequest>()), Times.Once);
         _cuentaServiceMock.Verify(s => s.CreateAsync(It.IsAny<CuentaRequest>()), Times.Once);
         _tarjetaServiceMock.Verify(s => s.CreateAsync(It.IsAny<TarjetaRequest>()), Times.Once);
     }

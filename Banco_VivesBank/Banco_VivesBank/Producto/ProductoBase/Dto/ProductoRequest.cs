@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Banco_VivesBank.Producto.Base.Dto;
+namespace Banco_VivesBank.Producto.ProductoBase.Dto;
 
-public class BaseRequest
+public class ProductoRequest
 {
     [Required(ErrorMessage = "El campo nombre es obligatorio")]
     [MaxLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres.")]

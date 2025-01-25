@@ -1,9 +1,8 @@
-﻿using System.Text.Json.Serialization;
-using Banco_VivesBank.Utils.Generators;
+﻿using Banco_VivesBank.Utils.Generators;
 
-namespace Banco_VivesBank.Producto.Base.Models;
+namespace Banco_VivesBank.Producto.ProductoBase.Models;
 
-public class Base
+public class Producto
 {
     public long Id { get; set; } = 0;
     

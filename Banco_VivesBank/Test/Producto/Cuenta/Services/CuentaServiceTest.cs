@@ -3,12 +3,11 @@ using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Exceptions;
-using Banco_VivesBank.Producto.Base.Models;
-using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Exceptions;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +29,7 @@ public class CuentaServiceTests
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private CuentaService _cuentaService;
-    private Mock<IBaseService> _baseService;
+    private Mock<IProductoService> _baseService;
     private Mock<IClienteService> _clienteService;
     private Mock<ITarjetaService> _tarjetaService;
     private Mock<IMemoryCache> _memoryCache;
@@ -63,7 +62,7 @@ public class CuentaServiceTests
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
 
-        _baseService = new Mock<IBaseService>();
+        _baseService = new Mock<IProductoService>();
         _clienteService = new Mock<IClienteService>();
         _tarjetaService = new Mock<ITarjetaService>();
         
@@ -574,7 +573,7 @@ public class CuentaServiceTests
             IsDeleted = false
         };
         
-        var baseResponse = new BaseResponse
+        var baseResponse = new ProductoResponse
         {
             Guid = "producto-guid",
             Nombre = "Producto1",
@@ -663,9 +662,9 @@ public class CuentaServiceTests
 
         _baseService
             .Setup(bs => bs.GetByTipoAsync(cuentaRequest.TipoCuenta))
-            .ReturnsAsync((BaseResponse)null);  
+            .ReturnsAsync((ProductoResponse)null);  
 
-        var exception = Assert.ThrowsAsync<BaseNotExistException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
+        var exception = Assert.ThrowsAsync<ProductoNotExistException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
         Assert.That(exception.Message, Is.EqualTo("El tipo de Cuenta TipoInexistente no existe en nuestro catalogo"));
     }
 
@@ -689,7 +688,7 @@ public class CuentaServiceTests
             IsDeleted = false
         };
 
-        var baseResponse = new BaseResponse
+        var baseResponse = new ProductoResponse
         {
             Guid = "producto-guid",
             Nombre = "Producto1",
@@ -713,7 +712,7 @@ public class CuentaServiceTests
             .Setup(cs => cs.GetClienteModelByGuid(cuentaRequest.ClienteGuid))
             .ReturnsAsync((Banco_VivesBank.Cliente.Models.Cliente)null);  // Simulando que el cliente no existe
 
-        var exception = Assert.ThrowsAsync<BaseNotExistException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
+        var exception = Assert.ThrowsAsync<ProductoNotExistException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
         Assert.That(exception.Message, Is.EqualTo("El cliente cliente-inexistente no existe"));
     }
 
