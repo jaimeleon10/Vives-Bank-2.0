@@ -1,9 +1,9 @@
 ﻿using Banco_VivesBank.Config.Storage;
-using Banco_VivesBank.Storage.Files.Exceptions;
+using Banco_VivesBank.Storage.Images.Exceptions;
 using Microsoft.Extensions.Options;
 using Exception = System.Exception;
 
-namespace Banco_VivesBank.Storage.Files.Service;
+namespace Banco_VivesBank.Storage.Images.Service;
 
 public class FileStorageService : IFileStorageService
 {

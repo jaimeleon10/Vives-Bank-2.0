@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo
+    image: mongo:4.4
     container_name: mongodb_vives-bank
     ports:
       - "27017:27017"
@@ -12,7 +12,7 @@ services:
       - mongo_data:/data/db
       - ./mongo/initMongo.js:/docker-entrypoint-initdb.d/initMongo.js
     restart: unless-stopped
-  
+    
   postgres:
     image: postgres:latest
     container_name: postgres_vives-bank
@@ -36,6 +36,22 @@ services:
     volumes:
       - redis_data:/bitnami/redis
     restart: unless-stopped
+    
+  ftp:
+    image: fauria/vsftpd
+    container_name: ftp_server
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    environment:
+      FTP_USER: admin
+      FTP_PASS: password
+      PASV_ADDRESS: 127.0.0.1
+      PASV_MIN_PORT: 21000
+      PASV_MAX_PORT: 21010 
+    volumes:
+      - ftp_data:/home/vsftpd
+    restart: unless-stopped
 
 volumes:
   mongo_data:
@@ -43,4 +59,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  ftp_data:
     driver: local

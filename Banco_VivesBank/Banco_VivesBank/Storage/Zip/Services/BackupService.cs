@@ -10,6 +10,7 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Json.Service;
+using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 
@@ -66,7 +67,6 @@ public class BackupService : IBackupService
 
     try
     {
-        // Elimina el archivo ZIP si ya existe
         if (File.Exists(zipFilePath))
         {
             _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
@@ -97,6 +97,15 @@ public class BackupService : IBackupService
             zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "movimientos.json"), "movimientos.json");
         }
 
+        foreach (var fileName in new[] { "usuarios.json", "clientes.json", "bases.json", "cuentas.json", "tarjetas.json", "movimientos.json" })
+        {
+            var filePath = Path.Combine(sourceDirectory, fileName);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        
         _logger.LogInformation("Exportación de datos a ZIP finalizada.");
     }
     catch (Exception e)

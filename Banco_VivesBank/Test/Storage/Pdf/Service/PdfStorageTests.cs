@@ -2,7 +2,7 @@
 using System.Text;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Producto.Cuenta.Models;
-using Banco_VivesBank.Storage.Pdf.Exceptions;
+using Banco_VivesBank.Storage.Pdf.Exception;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Microsoft.Extensions.Logging;
 using Moq;

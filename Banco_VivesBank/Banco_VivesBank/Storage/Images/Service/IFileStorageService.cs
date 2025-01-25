@@ -1,4 +1,4 @@
-﻿namespace Banco_VivesBank.Storage.Files.Service;
+﻿namespace Banco_VivesBank.Storage.Images.Service;
 
 public interface IFileStorageService
 {
