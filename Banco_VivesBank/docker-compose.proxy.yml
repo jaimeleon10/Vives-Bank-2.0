@@ -1,0 +1,57 @@
+﻿services:
+  banco_vivesbank:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: banco
+    volumes:
+      - coverage:/app/files/coverage
+        
+  nginx_presentation:
+    image: ubuntu/nginx:latest
+    container_name: nginx_presentation
+    volumes:
+      - ./Servidores/presentacion:/var/www/html
+      - ./Servidores/presentacion/index.html:/var/www/html/index.html
+      - ./Servidores/presentacion/config:/etc/nginx/conf.d
+    restart: always
+    depends_on:
+      - banco_vivesbank
+    networks:
+      - servers
+
+  nginx_coverage:
+    image: ubuntu/nginx:latest
+    container_name: nginx_coverage
+    volumes:
+      - ./Servidores/coverageReportHtml:/var/www/html
+      - ./Servidores/nginxCoverage/default:/etc/nginx/conf.d/default.conf
+    restart: always
+    depends_on:
+      - banco_vivesbank
+    networks:
+      - servers
+
+  proxy:
+    image: ubuntu/nginx:latest
+    container_name: proxy
+    volumes:
+      - ./Servidores/proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./Servidores/proxy/certs:/etc/nginx/certs
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    depends_on:
+      - nginx_presentation
+      - nginx_coverage
+    networks:
+      - servers
+
+volumes:
+  coverage:
+  presentation_data:
+  presentation_conf:
+
+networks:
+  servers:
