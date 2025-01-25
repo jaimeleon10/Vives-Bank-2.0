@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Banco_VivesBank.Producto.Base.Controllers;
 using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Base.Exceptions;
@@ -389,5 +389,184 @@ public class BaseControllerTests
             Assert.That(fileResult.ContentType, Is.EqualTo("text/csv"));
             Assert.That(fileResult.FileDownloadName, Does.StartWith("productos_export_"));
             Assert.That(fileResult.FileDownloadName, Does.EndWith(".csv"));
+        }
+
+        
+    [Test]
+    public async Task ImportFromCsv()
+    {
+        var fileContent = "Nombre,Descripcion,TipoProducto,Tae\nProducto1,Desc1,Tipo1,5.5";
+        var fileName = "test.csv";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        var formFile = new Mock<IFormFile>();
+        formFile.Setup(f => f.FileName).Returns(fileName);
+        formFile.Setup(f => f.Length).Returns(stream.Length);
+        formFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Callback<Stream, CancellationToken>((stream, token) =>
+            {
+                stream.Write(Encoding.UTF8.GetBytes(fileContent), 0, fileContent.Length);
+            })
+            .Returns(Task.CompletedTask);
+
+        var importedProducts = new List<Banco_VivesBank.Producto.Base.Models.Base>
+        {
+            new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
+        };
+
+        _storageProductosMock.Setup(s => s.ImportProductosFromCsv(It.IsAny<FileInfo>()))
+            .Returns(importedProducts);
+
+        var expectedResponse = new BaseResponse
+        {
+            Nombre = "Producto1",
+            Descripcion = "Desc1",
+            TipoProducto = "Tipo1",
+            Tae = 5.5
+        };
+
+        _baseServiceMock.Setup(s => s.CreateAsync(It.IsAny<BaseRequest>()))
+            .ReturnsAsync(expectedResponse);
+
+        var result = await _controller.ImportFromCsv(formFile.Object);
+
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okObjectResult = result.Result as OkObjectResult;
+        var returnValue = okObjectResult?.Value as List<BaseResponse>;
+        Assert.That(returnValue?.Count, Is.EqualTo(1));
+        Assert.That(returnValue?[0], Is.EqualTo(expectedResponse));
+    }
+
+    [Test]
+    public async Task ExportToCsv()
+    {
+        var products = new List<BaseResponse>
+        {
+            new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
+        };
+
+        _baseServiceMock.Setup(s => s.GetAllAsync())
+            .ReturnsAsync(products);
+
+        var result = await _controller.ExportToCsv();
+
+        Assert.That(result, Is.TypeOf<FileContentResult>());
+        var fileResult = result as FileContentResult;
+        Assert.That(fileResult.ContentType, Is.EqualTo("text/csv"));
+        Assert.That(fileResult.FileDownloadName, Does.StartWith("productos_export_"));
+        Assert.That(fileResult.FileDownloadName, Does.EndWith(".csv"));
+    }
+    
+    [Test]
+    public async Task ImportFromCsvArchivoNull()
+    {
+        IFormFile file = null;
+        var result = await _controller.ImportFromCsv(file);
+
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("No se ha proporcionado ningún archivo"));
+    }
+    
+    [Test]
+    public async Task ImportFromCsvSinCsv()
+    {
+        var fileContent = "Nombre,Descripcion,TipoProducto,Tae\nProducto1,Desc1,Tipo1,5.5";
+        var fileName = "test.txt";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        var formFile = new Mock<IFormFile>();
+        formFile.Setup(f => f.FileName).Returns(fileName);
+        formFile.Setup(f => f.Length).Returns(stream.Length);
+        formFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _controller.ImportFromCsv(formFile.Object);
+
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("El archivo debe ser un CSV"));
+    }
+
+    [Test]
+    public async Task ImportFromCsvException()
+    {
+        var fileContent = "Nombre,Descripcion,TipoProducto,Tae\nProducto1,Desc1,Tipo1,5.5";
+        var fileName = "test.csv";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        var formFile = new Mock<IFormFile>();
+        formFile.Setup(f => f.FileName).Returns(fileName);
+        formFile.Setup(f => f.Length).Returns(stream.Length);
+        formFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _storageProductosMock.Setup(s => s.ImportProductosFromCsv(It.IsAny<FileInfo>()))
+            .Returns(new List<Banco_VivesBank.Producto.Base.Models.Base>()); // No hay productos
+
+        var result = await _controller.ImportFromCsv(formFile.Object);
+
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("No se pudieron importar los productos del archivo CSV"));
+    }
+
+    [Test]
+    public async Task ImportFromCsvErrInterno()
+    {
+        var fileContent = "Nombre,Descripcion,TipoProducto,Tae\nProducto1,Desc1,Tipo1,5.5";
+        var fileName = "test.csv";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        var formFile = new Mock<IFormFile>();
+        formFile.Setup(f => f.FileName).Returns(fileName);
+        formFile.Setup(f => f.Length).Returns(stream.Length);
+        formFile.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _storageProductosMock.Setup(s => s.ImportProductosFromCsv(It.IsAny<FileInfo>()))
+            .Throws(new Exception("Error inesperado"));
+
+        var result = await _controller.ImportFromCsv(formFile.Object);
+
+        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        var objectResult = result.Result as ObjectResult;
+        Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult?.Value, Is.EqualTo("Error al procesar el archivo: Error inesperado"));
+    }
+
+    [Test]
+    public async Task ExportToCsvSinProductos()
+    {
+        _baseServiceMock.Setup(s => s.GetAllAsync())
+            .ReturnsAsync(new List<BaseResponse>());
+
+        var result = await _controller.ExportToCsv();
+
+        Assert.That(result, Is.TypeOf<OkObjectResult>());
+        var okResult = result as OkObjectResult;
+        Assert.That(okResult?.Value, Is.EqualTo("No hay productos para exportar"));
+    }
+    
+    [Test]
+    public async Task ExportToCsvErrInterno()
+    {
+        var products = new List<BaseResponse>
+        {
+            new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
+        };
+
+        _baseServiceMock.Setup(s => s.GetAllAsync())
+            .ReturnsAsync(products);
+
+        _storageProductosMock.Setup(s => s.ExportProductosFromCsv(It.IsAny<FileInfo>(), It.IsAny<List<Banco_VivesBank.Producto.Base.Models.Base>>()))
+            .Throws(new Exception("Error al exportar"));
+
+        var result = await _controller.ExportToCsv();
+
+        Assert.That(result, Is.TypeOf<ObjectResult>());
+        var objectResult = result as ObjectResult;
+        Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult?.Value, Is.EqualTo("Error al exportar los productos: Error al exportar"));
         }
     }

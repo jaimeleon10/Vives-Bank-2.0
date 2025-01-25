@@ -1,4 +1,7 @@
-﻿public interface IBackupService
+﻿
+namespace Banco_VivesBank.Storage.Zip.Services;
+
+public interface IBackupService
 {
     Task ImportFromZip(string zipFilePath, string destinationDirectory);
     
