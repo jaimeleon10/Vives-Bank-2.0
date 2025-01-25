@@ -75,11 +75,8 @@ public class TarjetaController : ControllerBase
             {
                 return BadRequest("El pin tiene un formato incorrecto");
             }
-        
-            if (!_cardLimitValidators.ValidarLimite(dto))
-            {
-                return BadRequest("Error con los limites de gasto de la tarjeta");
-            }
+
+            _cardLimitValidators.ValidarLimite(dto);
             var tarjetaModel = await _tarjetaService.CreateAsync(dto);
             
             return Ok(tarjetaModel);
@@ -100,10 +97,9 @@ public class TarjetaController : ControllerBase
 
         try
         {
-            if (!_cardLimitValidators.ValidarLimite(dto))
-            {
-                throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta");
-            }
+            _cardLimitValidators.ValidarLimite(dto);
+            
+            
             var tarjeta = await _tarjetaService.GetByGuidAsync(id);
             if (tarjeta == null) return NotFound($"La tarjeta con id: {id} no se ha encontrado");
             var updatedTarjeta = await _tarjetaService.UpdateAsync(id, dto);

@@ -216,18 +216,15 @@ public class TarjetaService : ITarjetaService
             _logger.LogWarning($"Tarjeta con id: {guid} no encontrada");
             return null;
         }
-        
-        if (!_cardLimitValidators.ValidarLimite(dto))
-        {
-            _logger.LogWarning("Los límites de la tarjeta no son válidos");
-            return null;
-        }
+
+        _cardLimitValidators.ValidarLimite(dto);
 
         _logger.LogDebug("Actualizando tarjeta");
         tarjeta.Pin = dto.Pin;
         tarjeta.LimiteDiario = dto.LimiteDiario;
         tarjeta.LimiteSemanal = dto.LimiteSemanal;
         tarjeta.LimiteMensual = dto.LimiteMensual;
+        tarjeta.UpdatedAt = DateTime.UtcNow;
 
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();

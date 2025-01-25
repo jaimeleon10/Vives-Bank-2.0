@@ -48,7 +48,6 @@ public class BaseController : ControllerBase
         Response.Headers.Add("link", linkHeader);
             
         return Ok(pageResult);
-
     }
 
     [HttpGet("{guid}")]
@@ -64,9 +63,8 @@ public class BaseController : ControllerBase
         }
         catch (BaseException e)
         {
-            return BadRequest(e.Message);
+            return NotFound(e.Message);
         }
-        
     }
     
     [HttpPost]
@@ -88,17 +86,16 @@ public class BaseController : ControllerBase
     }
 
     [HttpPut("{guid}")]
-    public async Task<ActionResult<BaseResponse>> Update(string guid, [FromBody] BaseUpdateDto dto)
+    public async Task<ActionResult<BaseResponse>> Update(string guid, [FromBody] BaseUpdateRequest request)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        
         try
         {
-            var baseResponse = await _baseService.UpdateAsync(guid, dto);
+            var baseResponse = await _baseService.UpdateAsync(guid, request);
             if (baseResponse is null) return NotFound($"No se ha encontrado el producto con guid: {guid}");
             return Ok(baseResponse);
         }
@@ -106,9 +103,6 @@ public class BaseController : ControllerBase
         {
             return BadRequest(e.Message);
         }
-        
-
-        
     }
 
     [HttpDelete("{guid}")]
@@ -215,5 +209,4 @@ public class BaseController : ControllerBase
             return StatusCode(500, $"Error al exportar los productos: {ex.Message}");
         }
     }
-    
 }

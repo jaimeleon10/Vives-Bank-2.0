@@ -15,7 +15,6 @@ public class TarjetaMapperTest
             Id = 1,
             Guid = "Test Guid",
             Numero = "1234567890123456",
-            Titular = "John Doe",
             FechaVencimiento = "12_29",
             Cvv = "123",
             Pin = "1234",
@@ -34,7 +33,6 @@ public class TarjetaMapperTest
         Assert.That(model.Id, Is.EqualTo(tarjeta.Id));
         Assert.That(model.Guid, Is.EqualTo(tarjeta.Guid));
         Assert.That(model.Numero, Is.EqualTo(tarjeta.Numero));
-        Assert.That(model.Titular, Is.EqualTo(tarjeta.Titular));
         Assert.That(model.FechaVencimiento, Is.EqualTo(tarjeta.FechaVencimiento));
         Assert.That(model.Cvv, Is.EqualTo(tarjeta.Cvv));
         Assert.That(model.Pin, Is.EqualTo(tarjeta.Pin));
@@ -78,7 +76,6 @@ public class TarjetaMapperTest
             Id = 1,
             Guid = "Test Guid",
             Numero = "1234567890123456",
-            Titular = "John Doe",
             FechaVencimiento = "12_29",
             Cvv = "123",
             Pin = "1234",
@@ -97,7 +94,6 @@ public class TarjetaMapperTest
         Assert.That(model.Id, Is.EqualTo(tarjetaEntity.Id));
         Assert.That(model.Guid, Is.EqualTo(tarjetaEntity.Guid));
         Assert.That(model.Numero, Is.EqualTo(tarjetaEntity.Numero));
-        Assert.That(model.Titular, Is.EqualTo(tarjetaEntity.Titular));
         Assert.That(model.FechaVencimiento, Is.EqualTo(tarjetaEntity.FechaVencimiento));
         Assert.That(model.Cvv, Is.EqualTo(tarjetaEntity.Cvv));
         Assert.That(model.Pin, Is.EqualTo(tarjetaEntity.Pin));
@@ -118,7 +114,6 @@ public class TarjetaMapperTest
             Id = 1,
             Guid = "Test Guid",
             Numero = "1234567890123456",
-            Titular = "John Doe",
             FechaVencimiento = "12_29",
             Cvv = "123",
             Pin = "1234",
@@ -137,7 +132,6 @@ public class TarjetaMapperTest
         Assert.That(response.Id, Is.EqualTo(tarjetaEntity.Id));
         Assert.That(response.Guid, Is.EqualTo(tarjetaEntity.Guid));
         Assert.That(response.Numero, Is.EqualTo(tarjetaEntity.Numero));
-        Assert.That(response.Titular, Is.EqualTo(tarjetaEntity.Titular));
         Assert.That(response.FechaVencimiento, Is.EqualTo(tarjetaEntity.FechaVencimiento));
         Assert.That(response.Cvv, Is.EqualTo(tarjetaEntity.Cvv));
         Assert.That(response.Pin, Is.EqualTo(tarjetaEntity.Pin));
@@ -156,7 +150,6 @@ public class TarjetaMapperTest
             Id = 1,
             Guid = "Test Guid",
             Numero = "1234567890123456",
-            Titular = "John Doe",
             FechaVencimiento = "12_29",
             Cvv = "123",
             Pin = "1234",
@@ -175,7 +168,6 @@ public class TarjetaMapperTest
         Assert.That(response.Id, Is.EqualTo(tarjeta.Id));
         Assert.That(response.Guid, Is.EqualTo(tarjeta.Guid));
         Assert.That(response.Numero, Is.EqualTo(tarjeta.Numero));
-        Assert.That(response.Titular, Is.EqualTo(tarjeta.Titular));
         Assert.That(response.FechaVencimiento, Is.EqualTo(tarjeta.FechaVencimiento));
         Assert.That(response.Cvv, Is.EqualTo(tarjeta.Cvv));
         Assert.That(response.Pin, Is.EqualTo(tarjeta.Pin));
@@ -196,7 +188,6 @@ public class TarjetaMapperTest
                 Id = 1,
                 Guid = "Test Guid 1",
                 Numero = "1234567890123456",
-                Titular = "John Doe",
                 FechaVencimiento = "12_29",
                 Cvv = "123",
                 Pin = "1234",
@@ -212,7 +203,6 @@ public class TarjetaMapperTest
                 Id = 2,
                 Guid = "Test Guid 2",
                 Numero = "9876543210987654",
-                Titular = "Jane Doe",
                 FechaVencimiento = "03_31",
                 Cvv = "321",
                 Pin = "5678",
@@ -233,7 +223,6 @@ public class TarjetaMapperTest
         Assert.That(responses[0].Id, Is.EqualTo(tarjetaEntities[0].Id));
         Assert.That(responses[0].Guid, Is.EqualTo(tarjetaEntities[0].Guid));
         Assert.That(responses[0].Numero, Is.EqualTo(tarjetaEntities[0].Numero));
-        Assert.That(responses[0].Titular, Is.EqualTo(tarjetaEntities[0].Titular));
         Assert.That(responses[0].FechaVencimiento, Is.EqualTo(tarjetaEntities[0].FechaVencimiento));
         Assert.That(responses[0].Cvv, Is.EqualTo(tarjetaEntities[0].Cvv));
     }
