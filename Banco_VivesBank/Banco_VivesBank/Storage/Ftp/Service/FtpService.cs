@@ -1,9 +1,12 @@
 ﻿using System.Net;
 using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Storage.Ftp.Exceptions;
+using Banco_VivesBank.Storage.Ftp.Service;
 using Microsoft.Extensions.Options;
 
-public class FtpService
+namespace Banco_VivesBank.Storage.Ftp.Service;
+
+public class FtpService : IFtpService
 {
     private readonly ILogger<FtpService> _logger;
     private readonly FtpConfig _ftpConfig;
@@ -14,7 +17,7 @@ public class FtpService
         _logger = logger;
     }
 
-    private FtpWebRequest ConfigureFtpRequest(string path, string method)
+    public virtual FtpWebRequest ConfigureFtpRequest(string path, string method)
     {
         var request = (FtpWebRequest)WebRequest.Create(new Uri($"ftp://{_ftpConfig.Host}:{_ftpConfig.Port}/{path}"));
         request.Credentials = new NetworkCredential("admin", "password");
