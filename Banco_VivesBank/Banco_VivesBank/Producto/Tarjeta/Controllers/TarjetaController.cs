@@ -115,21 +115,16 @@ public class TarjetaController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteTarjeta(string id)
+    [HttpDelete("{guid}")]
+    public async Task<ActionResult<TarjetaResponse>> DeleteTarjeta(string guid)
     {
-        try
-        {
-            var tarjeta = await _tarjetaService.GetByGuidAsync(id);
-            if (tarjeta == null) return NotFound($"La tarjeta con id: {id} no se ha encontrado");
-
-            await _tarjetaService.DeleteAsync(id);
-            return Ok(tarjeta);
-        }
-        catch (Exception e)
-        {
-            return BadRequest($"{e.Message}");
-        }
+        var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
+        if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
+        
+        return Ok(tarjeta);
+    }
+        
+        
 
         // For debugging purposes:
         // return StatusCode(500, "Error al actualizar la tarjeta");
@@ -155,4 +150,3 @@ public class TarjetaController : ControllerBase
         // For debugging purposes:
         // return StatusCode(409, "La tarjeta no puede ser modificada, debido a que ya existe una tarjeta con el mismo número de tarjeta");
     }
-}

@@ -213,14 +213,14 @@ public class TarjetaService : ITarjetaService
         return tarjetaEntity.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponse?> UpdateAsync(string id, TarjetaRequest dto)
+    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequest dto)
     {
-        _logger.LogDebug($"Actualizando tarjeta con id: {id}");
-        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == id);
+        _logger.LogDebug($"Actualizando tarjeta con id: {guid}");
+        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
         
         if (tarjeta == null)
         {
-            _logger.LogWarning($"Tarjeta con id: {id} no encontrada");
+            _logger.LogWarning($"Tarjeta con id: {guid} no encontrada");
             return null;
         }
         
@@ -239,46 +239,46 @@ public class TarjetaService : ITarjetaService
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + tarjeta;
+        var cacheKey = CacheKeyPrefix + tarjeta.ToModelFromEntity().Guid;
         
         _memoryCache.Remove(cacheKey);  
         await _database.KeyDeleteAsync(cacheKey);  
         
+        var tarjetaModel = tarjeta.ToModelFromEntity();
+        
         var serializedUser = JsonSerializer.Serialize(tarjeta);
-        _memoryCache.Set(cacheKey, tarjeta, TimeSpan.FromMinutes(30));  
+        _memoryCache.Set(cacheKey, tarjetaModel, TimeSpan.FromMinutes(30));  
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30)); 
 
 
-        _logger.LogDebug($"Tarjeta actualizada correctamente con id: {id}");
+        _logger.LogDebug($"Tarjeta actualizada correctamente con id: {guid}");
         return tarjeta.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponse?> DeleteAsync(string id)
+    public async Task<TarjetaResponse?> DeleteAsync(string guid)
     {
-        _logger.LogDebug($"Eliminando tarjeta con id: {id}");
-        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == id);
+        _logger.LogDebug($"Eliminando tarjeta con guid: {guid}");
+        var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
 
         if (tarjeta == null)
         {
-            _logger.LogWarning($"Tarjeta con id: {id} no encontrada");
+            _logger.LogWarning($"Tarjeta con guid: {guid} no encontrada");
             return null;
         }
 
-        _logger.LogDebug("Eliminando tarjeta");
+        _logger.LogDebug("Actualizando isDeleted a true");
         tarjeta.IsDeleted = true;
+        tarjeta.UpdatedAt = DateTime.Now;
 
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + tarjeta;
-    
-        // Eliminar de la cache en memoria
+        var cacheKey = CacheKeyPrefix + tarjeta.ToModelFromEntity().Guid;
+        
         _memoryCache.Remove(cacheKey);
-    
-        // Eliminar de Redis
         await _database.KeyDeleteAsync(cacheKey);
 
-        _logger.LogDebug($"Tarjeta eliminada correctamente con id: {id}");
+        _logger.LogDebug($"Tarjeta eliminada correctamente con guid: {guid}");
         return tarjeta.ToResponseFromEntity();
     }
     
