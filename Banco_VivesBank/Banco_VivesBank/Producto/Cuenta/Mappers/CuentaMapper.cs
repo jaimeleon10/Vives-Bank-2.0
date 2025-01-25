@@ -1,9 +1,12 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Base.Dto;
+using Banco_VivesBank.Producto.Base.Mappers;
 using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Mappers;
 
 namespace Banco_VivesBank.Producto.Cuenta.Mappers;
 
@@ -16,9 +19,9 @@ public static class CuentaMapper
             Guid = entity.Guid,
             Iban = entity.Iban,
             Saldo = entity.Saldo,
-            Tarjeta = entity.Tarjeta,
-            Cliente = entity.Cliente,
-            Producto = entity.Producto,
+            Tarjeta = entity.Tarjeta.ToModelFromEntity(),
+            Cliente = entity.Cliente.ToModelFromEntity(),
+            Producto = entity.Producto.ToModelFromEntity(),
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             IsDeleted = entity.IsDeleted

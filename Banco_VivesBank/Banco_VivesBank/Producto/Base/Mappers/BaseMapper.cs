@@ -20,7 +20,7 @@ public static class BaseMapper
         };
     }
 
-    public static Models.Base ToModelFromEntity(this BaseEntity entity)
+    public static Models.Base ToModelFromEntity(this ProductoEntity entity)
     {
         return new Models.Base
         {
@@ -36,9 +36,9 @@ public static class BaseMapper
         };
     }
     
-    public static BaseEntity ToEntityFromModel(this Models.Base model)
+    public static ProductoEntity ToEntityFromModel(this Models.Base model)
     {
-        return new BaseEntity
+        return new ProductoEntity
         {
             Id = model.Id,
             Guid = model.Guid,
@@ -68,7 +68,7 @@ public static class BaseMapper
         };
     }
     
-    public static BaseResponse ToResponseFromEntity(this BaseEntity entity)
+    public static BaseResponse ToResponseFromEntity(this ProductoEntity entity)
     {
         return new BaseResponse
         {
@@ -83,7 +83,7 @@ public static class BaseMapper
         };
     }
     
-    public static IEnumerable<BaseResponse> ToResponseListFromEntityList(this IEnumerable<BaseEntity> entities)
+    public static IEnumerable<BaseResponse> ToResponseListFromEntityList(this IEnumerable<ProductoEntity> entities)
     {
         return entities.Select(entity => ToResponseFromEntity(entity));
     }
