@@ -84,44 +84,41 @@ public class ProductoService : IProductoService
         var cacheKey = CacheKeyPrefix + guid;
         
         // Intentar obtener desde la memoria caché
-        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? cacheBase))
+        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? memoryCacheProducto))
         {
             _logger.LogInformation("Producto obtenido desde la memoria caché");
-            return cacheBase.ToResponseFromModel();
+            return memoryCacheProducto!.ToResponseFromModel();
         }
         
         // Intentar obtener desde la caché de Redis
-        var redisCache = await _database.StringGetAsync(cacheKey);
-        if (!string.IsNullOrEmpty(redisCache))
+        var redisCacheProducto = await _database.StringGetAsync(cacheKey);
+        if (!redisCacheProducto.IsNullOrEmpty)
         {
             _logger.LogInformation("Producto obtenido desde Redis");
-            var baseResponseFromRedis = JsonSerializer.Deserialize<ProductoResponse>(redisCache);
-            if (baseResponseFromRedis != null)
+            var productoFromRedis = JsonSerializer.Deserialize<Models.Producto>(redisCacheProducto!);
+            if (productoFromRedis == null)
             {
-                _memoryCache.Set(cacheKey, baseResponseFromRedis, TimeSpan.FromMinutes(30));
+                _logger.LogWarning("Error al deserializar producto desde Redis");
+                throw new Exception("Error al deserializar producto desde Redis");
             }
-
-            return baseResponseFromRedis; 
+            _memoryCache.Set(cacheKey, productoFromRedis, TimeSpan.FromMinutes(30));
+            return productoFromRedis.ToResponseFromModel(); 
         }
 
         // Consultar la base de datos
-        var baseEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
-        if (baseEntity != null)
+        var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
+        if (productoEntity != null)
         {
             _logger.LogInformation($"Producto encontrado con guid: {guid}");
 
-            // Mapear entidad a modelo y respuesta
-            var baseResponse = baseEntity.ToResponseFromEntity();
-            var baseModel = baseEntity.ToModelFromEntity();
-
             // Guardar en la memoria caché
-            _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
+            _memoryCache.Set(cacheKey, productoEntity.ToModelFromEntity(), TimeSpan.FromMinutes(30));
 
             // Guardar en Redis como JSON
-            var redisValue = JsonSerializer.Serialize(baseResponse);
+            var redisValue = JsonSerializer.Serialize(productoEntity.ToModelFromEntity());
             await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
-            return baseResponse;
+            return productoEntity.ToResponseFromEntity();
         }
 
         _logger.LogInformation($"Producto no encontrado con guid: {guid}");
@@ -135,44 +132,45 @@ public class ProductoService : IProductoService
         var cacheKey = CacheKeyPrefix + tipo;
         
         // Intentar obtener desde la memoria caché
-        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? cacheBase))
+        if (_memoryCache.TryGetValue(cacheKey, out ProductoBase.Models.Producto? memoryCacheProducto))
         {
             _logger.LogInformation("Producto obtenido desde la memoria caché");
-            return cacheBase.ToResponseFromModel();
+            return memoryCacheProducto!.ToResponseFromModel();
         }
         
         // Intentar obtener desde la caché de Redis
-        var redisCache = await _database.StringGetAsync(cacheKey);
-        if (!string.IsNullOrEmpty(redisCache))
+        var redisCacheProducto = await _database.StringGetAsync(cacheKey);
+        if (!redisCacheProducto.IsNullOrEmpty)
         {
             _logger.LogInformation("Producto obtenido desde Redis");
-            var baseResponse = JsonSerializer.Deserialize<ProductoResponse>(redisCache);
-            if (baseResponse != null)
+            var productoFromRedis = JsonSerializer.Deserialize<Models.Producto>(redisCacheProducto!);
+            if (productoFromRedis != null)
             {
-                _memoryCache.Set(cacheKey, baseResponse, TimeSpan.FromMinutes(30));
+                _logger.LogWarning("Error al deserializar producto desde Redis");
+                throw new Exception("Error al deserializar producto desde Redis");
             }
-
-            return baseResponse; 
+            _memoryCache.Set(cacheKey, productoFromRedis, TimeSpan.FromMinutes(30));
+            return productoFromRedis!.ToResponseFromModel(); 
         }
         
-        var baseEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.TipoProducto.ToLower() == tipo.ToLower());
+        var productoEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.TipoProducto.ToLower() == tipo.ToLower());
 
-        if (baseEntity != null)
+        if (productoEntity != null)
         {
             _logger.LogInformation($"Producto encontrado con tipo: {tipo}");
 
             // Mapear entidad a modelo y respuesta
-            var baseResponse = baseEntity.ToResponseFromEntity();
-            var baseModel = baseEntity.ToModelFromEntity();
+            var productoResponse = productoEntity.ToResponseFromEntity();
+            var productoModel = productoEntity.ToModelFromEntity();
 
             // Guardar en la memoria caché
-            _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
+            _memoryCache.Set(cacheKey, productoModel, TimeSpan.FromMinutes(30));
 
             // Guardar en Redis como JSON
-            var redisValue = JsonSerializer.Serialize(baseResponse);
+            var redisValue = JsonSerializer.Serialize(productoModel);
             await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
-            return baseResponse;
+            return productoResponse;
         }
 
         _logger.LogInformation($"Producto no encontrado con tipo: {tipo}");
@@ -202,10 +200,9 @@ public class ProductoService : IProductoService
         
         var cacheKey = CacheKeyPrefix + baseModel.Guid;
         
-        var serializedUser = JsonSerializer.Serialize(cacheKey);
+        var serializedProducto = JsonSerializer.Serialize(baseModel);
         _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
-        await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
-
+        await _database.StringSetAsync(cacheKey, serializedProducto, TimeSpan.FromMinutes(30));
         
         _logger.LogInformation($"Producto creado correctamente: {baseModel}");
         return baseModel.ToResponseFromModel();
@@ -234,26 +231,27 @@ public class ProductoService : IProductoService
         baseEntityExistente.Descripcion = productoRequestUpdate.Descripcion;
         baseEntityExistente.Tae = productoRequestUpdate.Tae;
         baseEntityExistente.UpdatedAt = DateTime.UtcNow;
+        baseEntityExistente.IsDeleted = productoRequestUpdate.IsDeleted;
 
         _context.ProductoBase.Update(baseEntityExistente);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + baseEntityExistente.ToModelFromEntity().Guid;
+        var cacheKey = CacheKeyPrefix + baseEntityExistente.Guid;
         
         _memoryCache.Remove(cacheKey);  
         await _database.KeyDeleteAsync(cacheKey);
 
         var baseModel = baseEntityExistente.ToModelFromEntity();
         
-        var serializedUser = JsonSerializer.Serialize(cacheKey);
+        var serializedProduct = JsonSerializer.Serialize(baseModel);
         _memoryCache.Set(cacheKey, baseModel, TimeSpan.FromMinutes(30));
-        await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
+        await _database.StringSetAsync(cacheKey, serializedProduct, TimeSpan.FromMinutes(30));
         
-        _logger.LogInformation($"Producto actualizado correctamente: {baseEntityExistente}");
+        _logger.LogInformation($"Producto actualizado correctamente");
         return baseEntityExistente.ToResponseFromEntity();
     }
 
-    public async Task<ProductoResponse?> DeleteAsync(string guid)
+    public async Task<ProductoResponse?> DeleteByGuidAsync(string guid)
     {
         _logger.LogInformation($"Aplicando borrado logico a producto con guid: {guid}");
         var baseExistenteEntity = await _context.ProductoBase.FirstOrDefaultAsync(b => b.Guid == guid);
@@ -270,7 +268,7 @@ public class ProductoService : IProductoService
         _context.ProductoBase.Update(baseExistenteEntity);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + baseExistenteEntity.ToModelFromEntity().Guid;
+        var cacheKey = CacheKeyPrefix + baseExistenteEntity.Guid;
         
         _memoryCache.Remove(cacheKey);
     

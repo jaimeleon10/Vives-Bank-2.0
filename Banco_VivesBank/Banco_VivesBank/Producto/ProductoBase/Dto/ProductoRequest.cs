@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace Banco_VivesBank.Producto.ProductoBase.Dto;
@@ -18,5 +19,8 @@ public class ProductoRequest
     
     [Required(ErrorMessage = "El campo TAE es obligatorio")]
     public double Tae { get; set; }
+
+    [DefaultValue(false)]
+    public bool IsDeleted { get; set; } = false;
 }
 

@@ -259,7 +259,7 @@ public class CuentaServiceTests
                 Telefono = "600000000",
                 IsDeleted = false
             },
-            Producto = new Base
+            Producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
             {
                 Guid = "producto-guid",
                 Nombre = "Producto1",
@@ -421,7 +421,7 @@ public class CuentaServiceTests
                 Telefono = "600000000",
                 IsDeleted = false
             },
-            Producto = new Base
+            Producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
             {
                 Guid = "producto-guid",
                 Nombre = "Producto1",
@@ -562,7 +562,7 @@ public class CuentaServiceTests
             ClienteGuid = "cliente-guid"
         };
 
-        var tipoCuenta = new Base
+        var tipoCuenta = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Guid = "producto-guid",
             Nombre = "Producto1",
@@ -677,7 +677,7 @@ public class CuentaServiceTests
             ClienteGuid = "cliente-inexistente"
         };
 
-        var tipoCuenta = new Base
+        var tipoCuenta = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
             Guid = "producto-guid",
             Nombre = "Producto1",

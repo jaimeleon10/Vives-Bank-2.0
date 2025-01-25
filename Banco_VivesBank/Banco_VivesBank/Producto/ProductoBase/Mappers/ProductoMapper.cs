@@ -15,7 +15,7 @@ public static class ProductoMapper
             TipoProducto = d.TipoProducto,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
+            IsDeleted = d.IsDeleted
         };
     }
 

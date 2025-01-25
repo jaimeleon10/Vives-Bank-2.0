@@ -86,7 +86,7 @@ public class ProductoServiceTest
             Direction = "ASC"
         };
 
-        _dbContext.ProductoBase.AddRange(new BaseEntity { Nombre = "1" }, new BaseEntity { Nombre = "2" }, new BaseEntity { Nombre = "3" });
+        _dbContext.ProductoBase.AddRange(new ProductoEntity { Nombre = "1" }, new ProductoEntity { Nombre = "2" }, new ProductoEntity { Nombre = "3" });
         await _dbContext.SaveChangesAsync();
 
         var result = await _productoService.GetAllPagedAsync(pageRequest);
@@ -353,7 +353,7 @@ public class ProductoServiceTest
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _productoService.DeleteAsync(guid);
+        var result = await _productoService.DeleteByGuidAsync(guid);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result?.IsDeleted, Is.True);
@@ -375,7 +375,7 @@ public class ProductoServiceTest
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
 
-        var result = await _productoService.DeleteAsync(guid);
+        var result = await _productoService.DeleteByGuidAsync(guid);
 
         Assert.That(result, Is.Null);
     }
@@ -383,8 +383,8 @@ public class ProductoServiceTest
     [Test]
     public async Task GetAllForStorage()
     {
-        var productoEntity1 = new BaseEntity { Nombre = "Producto1" };
-        var productoEntity2 = new BaseEntity { Nombre = "Producto2" };
+        var productoEntity1 = new ProductoEntity { Nombre = "Producto1" };
+        var productoEntity2 = new ProductoEntity { Nombre = "Producto2" };
         _dbContext.ProductoBase.AddRange(productoEntity1, productoEntity2);
         await _dbContext.SaveChangesAsync();
 
@@ -398,7 +398,7 @@ public class ProductoServiceTest
     public async Task GetBaseModelByGuid()
     {
         var guid = "guidguid";
-        var productoEntity = new BaseEntity { Guid = guid, Nombre = "Producto1" };
+        var productoEntity = new ProductoEntity { Guid = guid, Nombre = "Producto1" };
         _dbContext.ProductoBase.Add(productoEntity);
         await _dbContext.SaveChangesAsync();
 
@@ -422,7 +422,7 @@ public class ProductoServiceTest
     [Test]
     public async Task GetBaseModelById()
     {
-        var productoEntity = new BaseEntity { Nombre = "Producto1" };
+        var productoEntity = new ProductoEntity { Nombre = "Producto1" };
         _dbContext.ProductoBase.Add(productoEntity);
         await _dbContext.SaveChangesAsync();
 

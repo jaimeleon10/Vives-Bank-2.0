@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Banco_VivesBank.Producto.ProductoBase.Controllers;
 
 [ApiController]
-[Route("api/productosBase")]
+[Route("api/productos")]
 public class ProductoController : ControllerBase
 {
     private readonly ILogger<ProductoController> _logger;
@@ -44,7 +44,7 @@ public class ProductoController : ControllerBase
         var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
         var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
             
-        Response.Headers.Add("link", linkHeader);
+        Response.Headers.Append("link", linkHeader);
             
         return Ok(pageResult);
     }
@@ -107,7 +107,7 @@ public class ProductoController : ControllerBase
     [HttpDelete("{guid}")]
     public async Task<ActionResult<ProductoResponse>> DeleteByGuid(string guid)
     {
-        var baseByGuid = await _productoService.DeleteAsync(guid);
+        var baseByGuid = await _productoService.DeleteByGuidAsync(guid);
         if (baseByGuid is null) return NotFound($"No se ha podido eliminar el producto con guid: {guid}");
         return Ok(baseByGuid);
     }
@@ -170,7 +170,7 @@ public class ProductoController : ControllerBase
     {
         try
         {
-            var products = await _productoService.GetAllAsync();
+            var products = await _productoService.GetAllForStorage();
             if (!products.Any())
                 return Ok("No hay productos para exportar");
 

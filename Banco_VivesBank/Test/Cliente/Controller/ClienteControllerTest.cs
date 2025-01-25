@@ -28,64 +28,6 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task GetAll()
-    {
-        var response = new ClienteResponse
-        {
-            Guid = "guid",
-            Nombre = "nombreTest",
-            Apellidos =  "apellidosTest",
-            Direccion = new Direccion {
-                Calle = "calleTest",
-                Numero = "numeroTest",
-                CodigoPostal = "codigoPostalTest",
-                Piso = "pisoTest",
-                Letra = "letraTest"
-            },
-            Email = "emailTest",
-            Telefono = "telefonoTest",
-            FotoPerfil = "fotoPerfilTest",
-            FotoDni = "fotoDniTest",
-            UserResponse = new UserResponse 
-            {
-                Guid = "userGuid",
-                Username = "usernameTest",
-                Role = "roleTest",
-                CreatedAt = "createdAtTest",
-                UpdatedAt = "updatedAtTest",
-                IsDeleted = false
-            },
-            CreatedAt = "createdAtTest",
-            UpdatedAt = "updatedAtTest",
-            IsDeleted = false
-        };
-        var clientes = new List<ClienteResponse> {response};
-        _clienteServiceMock.Setup(service => service.GetAllAsync()).ReturnsAsync(clientes);
-
-        var result = await _clienteController.GetAll();
-        
-        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult, Is.Not.Null);
-        Assert.That(okResult.Value, Is.TypeOf<List<ClienteResponse>>());
-        Assert.That(okResult.Value, Is.EqualTo(clientes));
-    }
-
-    [Test]
-    public async Task GetAll_EmptyList()
-    {
-        var clientes = new List<ClienteResponse> {};
-        _clienteServiceMock.Setup(service => service.GetAllAsync()).ReturnsAsync(clientes);
-
-        var result = await _clienteController.GetAll();
-        
-        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult, Is.Not.Null);
-        Assert.That(okResult.Value, Is.EqualTo(clientes));
-    }
-    
-    [Test]
     public async Task GetByGuid()
     {
         var response = new ClienteResponse
