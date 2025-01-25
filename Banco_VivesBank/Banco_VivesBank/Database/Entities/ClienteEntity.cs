@@ -32,7 +32,7 @@ public class ClienteEntity
     public string Apellidos { get; set; }
 
     [Required]
-    public Direccion Direccion { get; set; } // TODO -> NO SE AÑADE A LA BBDD PORQUE ES UN CAMPO COMPLEJO, INVESTIGAR !!!
+    public Direccion Direccion { get; set; }
     
     [Required]
     [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "El email debe ser válido")]
@@ -48,19 +48,18 @@ public class ClienteEntity
     [DefaultValue("https://example.com/fotoDni.jpg")]
     public string FotoDni { get; set; } = "https://example.com/fotoDni.jpg";
     
-    public ICollection<Cuenta> Cuentas { get; set; } = new HashSet<Cuenta>();
+    // TODO REVISAR RELACION 1 CLIENTE - * CUENTAS
+    public ICollection<CuentaEntity> Cuentas { get; set; } = new HashSet<CuentaEntity>();
    
     [ForeignKey("User")]
     [Column("user_id")]
     public long UserId { get; set; }
-    
     public UserEntity User { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
-    [Required]
     [DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 }
