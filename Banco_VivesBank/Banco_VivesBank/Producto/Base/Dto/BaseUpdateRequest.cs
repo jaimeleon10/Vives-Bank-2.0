@@ -2,7 +2,7 @@
 
 namespace Banco_VivesBank.Producto.Base.Dto;
 
-public class BaseUpdateDto
+public class BaseUpdateRequest
 {
     [Required(ErrorMessage = "El campo nombre es obligatorio")]
     [MaxLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres.")]
