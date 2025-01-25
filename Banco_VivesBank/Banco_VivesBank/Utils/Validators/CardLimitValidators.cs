@@ -1,4 +1,5 @@
 ﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 
 namespace Banco_VivesBank.Utils.Validators;
 
@@ -12,7 +13,7 @@ public class CardLimitValidators
         _logger = logger;
     }
     
-    public bool ValidarLimite(TarjetaRequest dto)
+    public void ValidarLimite(TarjetaRequest dto)
     {
         var diario = dto.LimiteDiario;
         var tripleDiario = diario * 3;
@@ -23,18 +24,19 @@ public class CardLimitValidators
         if (diario <= 0)
         {
             _logger.LogWarning("El limite diario debe ser superior a 0");
-            return false;
+            throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta, el diario debe ser superior a 0");
         }
         if (semanal < tripleDiario)
         {
             _logger.LogWarning("El limite semanal debe ser igual o superior a 3 veces el diario");
-            return false;
+            throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta, el semanal debe ser superior 3 veces al diario");
+
         }
         if (mensual < tripleSemanal)
         {
             _logger.LogWarning("El limite mensual debe ser igual o superior a 3 veces el semanal");
-            return false;
+            throw new TarjetaNotFoundException("Error con los limites de gasto de la tarjeta, el mensual debe ser superior 3 veces al semanal");
         }
-        return true;
+        
     }
 }
