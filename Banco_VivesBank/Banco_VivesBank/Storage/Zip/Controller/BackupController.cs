@@ -1,7 +1,7 @@
 ﻿using Banco_VivesBank.Storage.Zip.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Banco_VivesBank.Storage.Backup.Controller;
+namespace Banco_VivesBank.Storage.Zip.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

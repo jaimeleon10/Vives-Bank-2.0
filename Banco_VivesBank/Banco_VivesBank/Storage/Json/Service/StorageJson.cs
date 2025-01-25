@@ -28,7 +28,6 @@ public class StorageJson : IStorageJson
 
         try
         {
-            // Usar Newtonsoft.Json.JsonConvert
             var json = JsonConvert.SerializeObject(data, _jsonSettings);
             File.WriteAllText(file.FullName, json);
         }
