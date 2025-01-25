@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Dto;
 
@@ -16,5 +17,7 @@ public class TarjetaRequest
 
     [Required(ErrorMessage = "Debes establecer un limite mensual superior a 0 y al limite semanal")]
     public double LimiteMensual { get; set; }
-
+    
+    [DefaultValue(false)]
+    public bool IsDeleted { get; set; } = false;
 }

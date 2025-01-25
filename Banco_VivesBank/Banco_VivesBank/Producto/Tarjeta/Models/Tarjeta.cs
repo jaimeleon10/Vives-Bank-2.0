@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using Banco_VivesBank.Utils.Generators;
+﻿using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Models;
 

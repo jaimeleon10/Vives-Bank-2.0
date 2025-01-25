@@ -142,38 +142,10 @@ namespace Banco_VivesBank.User.Service
         {
             _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
 
-            var cacheKey = CacheKeyPrefix + username;
-            if (_memoryCache.TryGetValue(cacheKey, out Models.User? memoryCacheUser))
-            {
-                _logger.LogInformation("Usuario obtenido desde memoria caché");
-                return memoryCacheUser!.ToResponseFromModel();
-            }
-
-            var redisCacheUser = await _redisDatabase.StringGetAsync(cacheKey);
-            if (!redisCacheUser.IsNullOrEmpty)
-            {
-                _logger.LogInformation("Usuario obtenido desde Redis");
-                var userFromRedis = JsonSerializer.Deserialize<Models.User>(redisCacheUser!);
-                if (userFromRedis == null)
-                {
-                    _logger.LogWarning("Error al deserializar usuario desde Redis");
-                    throw new Exception("Error al deserializar usuario desde Redis");
-                }
-
-                _memoryCache.Set(cacheKey, userFromRedis, TimeSpan.FromMinutes(30));
-                return userFromRedis.ToResponseFromModel();
-            }
-
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
             if (userEntity != null)
             {
                 _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
-
-                var userModel = userEntity.ToModelFromEntity();
-                _memoryCache.Set(cacheKey, userModel, TimeSpan.FromMinutes(30));
-                var serializedUser = JsonSerializer.Serialize(userModel);
-                await _redisDatabase.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
-
                 return userEntity.ToResponseFromEntity();
             }
 

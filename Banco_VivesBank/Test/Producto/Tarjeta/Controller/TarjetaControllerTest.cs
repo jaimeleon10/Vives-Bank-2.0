@@ -76,8 +76,8 @@ public class TarjetaControllerTest
         // Arrange
         var tarjetas = new List<TarjetaResponse>
         {
-            new TarjetaResponse() { Id = 1, Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" },
-            new TarjetaResponse() { Id = 2, Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
+            new TarjetaResponse() { Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23" },
+            new TarjetaResponse() { Numero = "9876543210987654", Cvv = "456", FechaVencimiento = "12/24" }
         };
 
         
@@ -150,8 +150,6 @@ public class TarjetaControllerTest
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        var returnValue = (result.Result as OkObjectResult)?.Value as TarjetaResponse;
-        Assert.That(returnValue.Id, Is.EqualTo(tarjeta.ToResponseFromEntity().Id));
     }
 
     [Test]

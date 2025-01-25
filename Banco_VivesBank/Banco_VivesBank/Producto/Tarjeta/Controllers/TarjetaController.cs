@@ -46,7 +46,7 @@ public class TarjetaController : ControllerBase
         var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
         var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
             
-        Response.Headers.Add("link", linkHeader);
+        Response.Headers.Append("link", linkHeader);
             
         return Ok(pageResult);
     }
@@ -58,6 +58,14 @@ public class TarjetaController : ControllerBase
         if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
         return Ok(tarjeta);
     }
+    
+    [HttpGet("numero/{numeroTarjeta}")]
+    public async Task<ActionResult<TarjetaResponse>> GetTarjetaByNumeroTarjeta(string numeroTarjeta)
+    {
+        var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync(numeroTarjeta);
+        if (tarjeta == null) return NotFound($"La tarjeta con numero de tarjeta: {numeroTarjeta} no se ha encontrado");
+        return Ok(tarjeta);
+    }
 
     [HttpPost]
     public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
@@ -66,8 +74,6 @@ public class TarjetaController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-       
         
         try
         {
@@ -119,30 +125,4 @@ public class TarjetaController : ControllerBase
         
         return Ok(tarjeta);
     }
-        
-        
-
-        // For debugging purposes:
-        // return StatusCode(500, "Error al actualizar la tarjeta");
-
-        // For debugging purposes:
-        // return StatusCode(404, "Tarjeta no encontrada");
-
-        // For debugging purposes:
-        // return StatusCode(400, "Modelo de tarjeta invalido");
-
-        // For debugging purposes:
-        // return StatusCode(204, "Tarjeta eliminada con éxito");
-
-        // For debugging purposes:
-        // return StatusCode(401, "Usuario no autorizado");
-
-        // For debugging purposes:
-        // return StatusCode(403, "Acceso denegado");
-
-        // For debugging purposes:
-        // return StatusCode(422, "Tarjeta no puede ser eliminada, debido a que está en uso");
-
-        // For debugging purposes:
-        // return StatusCode(409, "La tarjeta no puede ser modificada, debido a que ya existe una tarjeta con el mismo número de tarjeta");
-    }
+}

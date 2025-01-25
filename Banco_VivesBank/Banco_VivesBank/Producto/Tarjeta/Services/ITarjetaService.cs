@@ -5,7 +5,6 @@ namespace Banco_VivesBank.Producto.Tarjeta.Services;
 
 public interface ITarjetaService
 {
-    public Task<List<TarjetaResponse>> GetAllAsync();
     public Task<PageResponse<TarjetaResponse>> GetAllPagedAsync(PageRequest pageRequest);
     public Task<TarjetaResponse?> GetByGuidAsync(string guid);
     public Task<TarjetaResponse?> GetByNumeroTarjetaAsync(string numeroTarjeta);
@@ -15,5 +14,6 @@ public interface ITarjetaService
     
     public Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid);
     public Task<Models.Tarjeta?> GetTarjetaModelById(long id);
+    
     public Task<List<Models.Tarjeta>> GetAllForStorage();
 }
