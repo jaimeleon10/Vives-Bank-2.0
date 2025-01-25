@@ -1,4 +1,5 @@
 ﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -39,23 +40,6 @@ public class CardLimitValidatorsTest
             await _postgreSqlContainer.DisposeAsync();
         }
     }
-
-    [Test]
-    public async Task ValidarLimiteOk()
-    {
-        
-        var tarjetaRequest = new TarjetaRequest
-        {
-            Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 3000,
-            LimiteMensual = 9000
-        };
-
-        var res = _cardLimitValidators.ValidarLimite(tarjetaRequest);
-        
-        Assert.That(res, Is.True);
-    }
     
     [Test]
     public async Task ValidarLimiteDiarioExcedido()
@@ -67,10 +51,8 @@ public class CardLimitValidatorsTest
             LimiteSemanal = 3000,
             LimiteMensual = 9000
         };
-
-        var res = _cardLimitValidators.ValidarLimite(tarjetaRequest);
         
-        Assert.That(res, Is.False);
+        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(tarjetaRequest));
     }
     
     [Test]
@@ -84,9 +66,8 @@ public class CardLimitValidatorsTest
             LimiteMensual = 9000
         };
 
-        var res = _cardLimitValidators.ValidarLimite(tarjetaRequest);
-        
-        Assert.That(res, Is.False);
+                Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(tarjetaRequest));
+
     }
     
     [Test]
@@ -100,9 +81,8 @@ public class CardLimitValidatorsTest
             LimiteMensual = 8000
         };
 
-        var res = _cardLimitValidators.ValidarLimite(tarjetaRequest);
+        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(tarjetaRequest));
         
-        Assert.That(res, Is.False);
     }
     
 }

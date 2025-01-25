@@ -89,7 +89,6 @@ public class TarjetaServiceTest
         {
             Guid = Guid.NewGuid().ToString(),
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -118,7 +117,6 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -154,7 +152,6 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -217,7 +214,6 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -271,7 +267,6 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -308,7 +303,6 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -345,7 +339,6 @@ public class TarjetaServiceTest
         {
             Guid = guid,
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",
@@ -373,7 +366,6 @@ public class TarjetaServiceTest
         {
             Guid = Guid.NewGuid().ToString(),
             Numero = "1234567890123456",
-            Titular = "Test",
             Cvv = "123",
             FechaVencimiento = "01/23",
             Pin = "1234",

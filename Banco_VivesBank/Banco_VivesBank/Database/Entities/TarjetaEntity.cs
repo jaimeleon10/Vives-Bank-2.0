@@ -17,8 +17,6 @@ public class TarjetaEntity
     
     public string Numero { get; set; } = string.Empty;
     
-    public string Titular { get; set; } = string.Empty;
-    
     public string FechaVencimiento { get; set; } = string.Empty;
     
     public string Cvv { get; set; } = string.Empty;
