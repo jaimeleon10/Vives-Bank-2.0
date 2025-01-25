@@ -65,7 +65,7 @@ public class BaseServiceTest
 
         for (int i = 0; i < 5; i++)
         {
-            var baseEntity = new BaseEntity()
+            var baseEntity = new ProductoEntity()
             {
                 Guid = Guid.NewGuid().ToString(),
                 Nombre = $"Producto {i + 1}",
@@ -84,7 +84,7 @@ public class BaseServiceTest
     public async Task GetByGuidAsync()
     {
         var guid = Guid.NewGuid().ToString();
-        var baseEntity = new BaseEntity { Guid = guid, Nombre = "Producto 1", TipoProducto = "Tipo 1" };
+        var baseEntity = new ProductoEntity { Guid = guid, Nombre = "Producto 1", TipoProducto = "Tipo 1" };
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
 
@@ -141,7 +141,7 @@ public class BaseServiceTest
     {
         var baseRequest = new BaseRequest { Nombre = "Nuevo Producto", TipoProducto = "Tipo Existente" };
 
-        var existingProduct = new BaseEntity() { Nombre = "Producto Existente", TipoProducto = "Tipo Existente" };
+        var existingProduct = new ProductoEntity() { Nombre = "Producto Existente", TipoProducto = "Tipo Existente" };
         _dbContext.ProductoBase.Add(existingProduct);
         await _dbContext.SaveChangesAsync();
 
@@ -153,7 +153,7 @@ public class BaseServiceTest
     public async Task CreateAsyncNombreExistente()
     {
         var baseRequest = new BaseRequest { Nombre = "Producto Existente", TipoProducto = "Tipo 1" };
-        var existingProduct = new BaseEntity() { Nombre = "Producto Existente", TipoProducto = "Tipo 1" };
+        var existingProduct = new ProductoEntity() { Nombre = "Producto Existente", TipoProducto = "Tipo 1" };
         _dbContext.ProductoBase.Add(existingProduct);
         await _dbContext.SaveChangesAsync();
 
@@ -165,7 +165,7 @@ public class BaseServiceTest
     public async Task UpdateAsync()
     {
         var guid = Guid.NewGuid().ToString();
-        var baseEntity = new BaseEntity { Guid = guid, Nombre = "Producto Original", TipoProducto = "Tipo 1" };
+        var baseEntity = new ProductoEntity { Guid = guid, Nombre = "Producto Original", TipoProducto = "Tipo 1" };
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
     
@@ -193,7 +193,7 @@ public class BaseServiceTest
     public async Task DeleteAsync()
     {
         var guid = Guid.NewGuid().ToString();
-        var baseEntity = new BaseEntity() { Guid = guid, Nombre = "Producto a Borrar", TipoProducto = "Tipo 1", IsDeleted = false };
+        var baseEntity = new ProductoEntity() { Guid = guid, Nombre = "Producto a Borrar", TipoProducto = "Tipo 1", IsDeleted = false };
         _dbContext.ProductoBase.Add(baseEntity);
         await _dbContext.SaveChangesAsync();
 

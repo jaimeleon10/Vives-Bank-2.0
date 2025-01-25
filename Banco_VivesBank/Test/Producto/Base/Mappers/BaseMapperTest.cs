@@ -33,7 +33,7 @@ public class BaseMapperTests
     [Test]
     public void ToModelFromEntity()
     {
-        var entity = new BaseEntity
+        var entity = new ProductoEntity
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -121,7 +121,7 @@ public class BaseMapperTests
     [Test]
     public void ToResponseFromEntity()
     {
-        var entity = new BaseEntity
+        var entity = new ProductoEntity
         {
             Id = 1,
             Nombre = "Test Producto",
@@ -153,9 +153,9 @@ public class BaseMapperTests
     [Test]
     public void ToResponseListFromEntityList()
     {
-        var entities = new List<BaseEntity>
+        var entities = new List<ProductoEntity>
         {
-            new BaseEntity
+            new ProductoEntity
             {
                 Id = 1,
                 Nombre = "Product 1",
@@ -166,7 +166,7 @@ public class BaseMapperTests
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
             },
-            new BaseEntity
+            new ProductoEntity
             {
                 Id = 2,
                 Nombre = "Product 2",

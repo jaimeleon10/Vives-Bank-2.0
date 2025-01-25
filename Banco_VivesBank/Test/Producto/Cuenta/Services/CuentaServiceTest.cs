@@ -39,7 +39,7 @@ public class CuentaServiceTests
     
     private ClienteEntity _clienteEntity;
     private UserEntity user1;
-    private BaseEntity baseEntity;
+    private ProductoEntity _productoEntity;
     private CuentaEntity cuenta1;
     
 
@@ -119,7 +119,7 @@ public class CuentaServiceTests
             UserId = user1.Id
         };
         
-        baseEntity = new BaseEntity
+        _productoEntity = new ProductoEntity
         {
             Guid = Guid.NewGuid().ToString(),
             Nombre = $"Producto1",
@@ -132,7 +132,7 @@ public class CuentaServiceTests
             Iban = "ES1234567890123456789012",
             Saldo = 1000,
             ClienteId = _clienteEntity.Id,
-            ProductoId = baseEntity.Id,
+            ProductoId = _productoEntity.Id,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -169,7 +169,7 @@ public class CuentaServiceTests
         await _dbContext.SaveChangesAsync();
 
         
-        _dbContext.ProductoBase.Add(baseEntity);
+        _dbContext.ProductoBase.Add(_productoEntity);
         await _dbContext.SaveChangesAsync();
 
         
