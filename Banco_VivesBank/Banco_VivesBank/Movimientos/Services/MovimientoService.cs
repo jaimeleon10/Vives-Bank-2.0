@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Globalization;
+using System.Numerics;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
@@ -114,6 +115,7 @@ public class MovimientoService : IMovimientoService
             _logger.LogWarning($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}");
             throw new ClienteNotFoundException($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}");
         }
+        _logger.LogInformation($"{cliente.Guid}");
         
         _logger.LogInformation($"Validando existencia de la cuenta con iban: {domiciliacionRequest.IbanCliente}");
         var cuenta = await _cuentaService.GetByIbanAsync(domiciliacionRequest.IbanCliente);
@@ -124,17 +126,18 @@ public class MovimientoService : IMovimientoService
         }
         
         _logger.LogInformation($"Comprobando que el iban con guid: {domiciliacionRequest.IbanCliente} pertenezca a alguna de las cuentas del cliente con guid: {domiciliacionRequest.ClienteGuid}");
-        if (!cliente.Cuentas.Any(c => c.Iban == domiciliacionRequest.IbanCliente)) // No aceptar sugerencia IDE
+        if (cuenta.ClienteGuid != cliente.Guid)
         {
             _logger.LogWarning($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
             throw new MovimientoException($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
         }
         
         _logger.LogInformation($"Validando saldo suficiente respecto al importe de: {domiciliacionRequest.Importe} €");
-        if (!double.TryParse(domiciliacionRequest.Importe, out var importe))
+        if (!double.TryParse(domiciliacionRequest.Importe, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
+        _logger.LogInformation($"{importe}");
         if (double.Parse(cuenta.Saldo) < importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
@@ -149,7 +152,6 @@ public class MovimientoService : IMovimientoService
             if (cuentaUpdate != null)
             {
                 cuentaUpdate.Saldo -= importe;
-
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
@@ -206,7 +208,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {ingresoNominaRequest.IbanCliente}");
         }
         
-        if (!double.TryParse(ingresoNominaRequest.Importe, out var importe))
+        if (!double.TryParse(ingresoNominaRequest.Importe,NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
@@ -282,7 +284,7 @@ public class MovimientoService : IMovimientoService
         }
         
         _logger.LogInformation($"Validando saldo suficiente en la cuenta con guid: {cuenta.Guid} perteneciente a la tarjeta con guid: {tarjeta.Guid}");
-        if (!double.TryParse(pagoConTarjetaRequest.Importe, out var importe))
+        if (!double.TryParse(pagoConTarjetaRequest.Importe, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
@@ -356,7 +358,7 @@ public class MovimientoService : IMovimientoService
         _logger.LogInformation("Validando saldo suficiente en la cuenta de origen en caso de pertenecer a VivesBank");
         var cuentaOrigen = await _cuentaService.GetByIbanAsync(transferenciaRequest.IbanOrigen);
         
-        if (!double.TryParse(transferenciaRequest.Importe, out var importe))
+        if (!double.TryParse(transferenciaRequest.Importe, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
