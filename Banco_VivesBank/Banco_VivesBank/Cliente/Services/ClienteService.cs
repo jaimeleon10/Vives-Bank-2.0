@@ -373,19 +373,21 @@ public class ClienteService : IClienteService
     {
         _logger.LogInformation($"Actualizando foto del DNI del cliente con guid: {guid}");
 
-        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
+        var clienteEntityExistente = await _context.Clientes.Include(c => c.User)
+            .FirstOrDefaultAsync(c => c.Guid == guid);
+    
         if (clienteEntityExistente == null)
         {
             _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
             return null;
         }
 
-        var fotoAnterior = clienteEntityExistente.FotoDni;
-        if (fotoAnterior != "https://example.com/fotoDni.jpg")
+        if (!string.IsNullOrEmpty(clienteEntityExistente.FotoDni) && 
+            clienteEntityExistente.FotoDni != "https://example.com/fotoDni.jpg")
         {
             try
             {
-                await _ftpService.DeleteFileAsync(fotoAnterior);
+                await _ftpService.DeleteFileAsync(clienteEntityExistente.FotoDni);
             }
             catch (Exception ex)
             {
@@ -393,15 +395,17 @@ public class ClienteService : IClienteService
             }
         }
 
-        var Path = "data";
-        
-        _logger.LogInformation($"Ruta final del archivo para subir: {Path}");
+        string fileExtension = Path.GetExtension(fotoDni.FileName);
+        string fileName = $"{clienteEntityExistente.Dni}{fileExtension}";
+        string uploadPath = $"data/{fileName}";
+
+        _logger.LogInformation($"Ruta final del archivo para subir: {uploadPath}");
 
         using (var stream = fotoDni.OpenReadStream())
         {
             try
             {
-                await _ftpService.UploadFileAsync(stream, Path);
+                await _ftpService.UploadFileAsync(stream, uploadPath);
             }
             catch (Exception ex)
             {
@@ -410,12 +414,36 @@ public class ClienteService : IClienteService
             }
         }
 
-        clienteEntityExistente.FotoDni = Path;
+        clienteEntityExistente.FotoDni = uploadPath;
         clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
+    
         _context.Clientes.Update(clienteEntityExistente);
         await _context.SaveChangesAsync();
 
         return clienteEntityExistente.ToResponseFromEntity();
+    }   
+    
+    public async Task<Stream> GetFotoDniAsync(string guid)
+    {
+        var clienteEntityExistente = await _context.Clientes
+            .FirstOrDefaultAsync(c => c.Guid == guid);
+
+        if (clienteEntityExistente == null || string.IsNullOrEmpty(clienteEntityExistente.FotoDni))
+            return null;
+
+        try
+        {
+            var localTempFile = Path.GetTempFileName();
+            await _ftpService.DownloadFileAsync(clienteEntityExistente.FotoDni, localTempFile);
+
+            return new FileStream(localTempFile, FileMode.Open, FileAccess.Read, 
+                FileShare.Read, 4096, FileOptions.DeleteOnClose);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error al descargar foto DNI: {ex.Message}");
+            throw;
+        }
     }
     
     public async Task<IEnumerable<Models.Cliente>> GetAllForStorage()
