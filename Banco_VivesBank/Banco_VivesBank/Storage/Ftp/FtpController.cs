@@ -7,10 +7,10 @@ namespace Banco_VivesBank.Storage.Ftp;
 [Route("[controller]")]
 public class FtpController : ControllerBase
 {
-    private readonly FtpService _ftpService;
+    private readonly IFtpService _ftpService;
     private readonly ILogger<FtpController> _logger;
 
-    public FtpController(FtpService ftpService, ILogger<FtpController> logger)
+    public FtpController(IFtpService ftpService, ILogger<FtpController> logger)
     {
         _ftpService = ftpService;
         _logger = logger;

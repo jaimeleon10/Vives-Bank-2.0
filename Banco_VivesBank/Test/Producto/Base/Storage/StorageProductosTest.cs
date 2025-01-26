@@ -3,7 +3,7 @@ using Banco_VivesBank.Producto.Base.Storage;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.Storage;
+namespace Test.Storage.Csv;
 
 public class StorageProductosTests
 {
