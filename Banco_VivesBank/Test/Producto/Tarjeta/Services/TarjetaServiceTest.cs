@@ -1,6 +1,7 @@
 ﻿using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Validators;
@@ -283,8 +284,9 @@ public class TarjetaServiceTest
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
 
         // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
-        Assert.That(tarjetaNoExiste, Is.Null);
+        Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(guid, tarjetaRequest));
+        
+        
     }
     
     [Test]
@@ -319,8 +321,8 @@ public class TarjetaServiceTest
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
 
         // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
-        Assert.That(tarjetaNoExiste, Is.Null);
+        Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(guid, tarjetaRequest));
+
     }
 
     [Test]
@@ -355,8 +357,8 @@ public class TarjetaServiceTest
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
 
         // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
-        Assert.That(tarjetaNoExiste, Is.Null);
+        Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(guid, tarjetaRequest));
+
     }
     
     [Test]
