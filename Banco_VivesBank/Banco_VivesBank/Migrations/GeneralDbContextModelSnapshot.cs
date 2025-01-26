@@ -93,32 +93,32 @@ namespace Banco_VivesBank.Migrations
                         {
                             Id = 1L,
                             Apellidos = "Picapiedra",
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 706, DateTimeKind.Utc).AddTicks(9562),
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(758),
                             Dni = "12345678Z",
                             Email = "pedro.picapiedra@gmail.com",
                             FotoDni = "https://example.com/fotoDniPedro.jpg",
                             FotoPerfil = "https://example.com/fotoPerfilPedro.jpg",
-                            Guid = "GbJtJkggUOM",
+                            Guid = "LTtXSvg383G",
                             IsDeleted = false,
                             Nombre = "Pedro",
                             Telefono = "612345678",
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 706, DateTimeKind.Utc).AddTicks(9563),
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(759),
                             UserId = 1L
                         },
                         new
                         {
                             Id = 2L,
                             Apellidos = "Martinez",
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 706, DateTimeKind.Utc).AddTicks(9654),
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(821),
                             Dni = "21240915R",
                             Email = "ana.martinez@gmail.com",
                             FotoDni = "https://example.com/fotoDniAna.jpg",
                             FotoPerfil = "https://example.com/fotoPerfilAna.jpg",
-                            Guid = "JdHsgzoHlrb",
+                            Guid = "jkWOwLHrN8O",
                             IsDeleted = false,
                             Nombre = "Ana",
                             Telefono = "623456789",
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 706, DateTimeKind.Utc).AddTicks(9655),
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(822),
                             UserId = 2L
                         });
                 });
@@ -181,27 +181,27 @@ namespace Banco_VivesBank.Migrations
                         {
                             Id = 1L,
                             ClienteId = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(8513),
-                            Guid = "VWt47641yDI",
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(791),
+                            Guid = "YK6PqjYre2P",
                             Iban = "ES7730046576085345979538",
                             IsDeleted = false,
                             ProductoId = 1L,
                             Saldo = BigInteger.Parse("5000", NumberFormatInfo.InvariantInfo),
                             TarjetaId = 1L,
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(8514)
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(793)
                         },
                         new
                         {
                             Id = 2L,
                             ClienteId = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(8574),
-                            Guid = "oVUzRuFwMlf",
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(858),
+                            Guid = "zDaxvemaHSR",
                             Iban = "ES2114656261103572788444",
                             IsDeleted = false,
                             ProductoId = 2L,
                             Saldo = BigInteger.Parse("7000", NumberFormatInfo.InvariantInfo),
                             TarjetaId = 2L,
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(8575)
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(859)
                         });
                 });
 
@@ -254,26 +254,26 @@ namespace Banco_VivesBank.Migrations
                         new
                         {
                             Id = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(849),
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(1886),
                             Descripcion = "Producto para cuenta bancaria de ahorros",
-                            Guid = "yFlOirSXTaL",
+                            Guid = "xnqfxrGckcL",
                             IsDeleted = false,
                             Nombre = "Cuenta de ahorros",
                             Tae = 2.5,
                             TipoProducto = "cuentaAhorros",
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(850)
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(1886)
                         },
                         new
                         {
                             Id = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(904),
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(1951),
                             Descripcion = "Producto para cuenta bancaria corriente",
-                            Guid = "dEmAjXpMTmy",
+                            Guid = "DWNvwqn57Yp",
                             IsDeleted = false,
                             Nombre = "Cuenta corriente",
                             Tae = 1.5,
                             TipoProducto = "cuentaCorriente",
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(904)
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 154, DateTimeKind.Utc).AddTicks(1951)
                         });
                 });
 
@@ -333,32 +333,32 @@ namespace Banco_VivesBank.Migrations
                         new
                         {
                             Id = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(9419),
-                            Cvv = "298",
-                            FechaVencimiento = "04/27",
-                            Guid = "HGyMfulgniP",
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(2202),
+                            Cvv = "423",
+                            FechaVencimiento = "06/27",
+                            Guid = "sKA4H3SjRcI",
                             IsDeleted = false,
                             LimiteDiario = 500.0,
                             LimiteMensual = 10000.0,
                             LimiteSemanal = 2500.0,
-                            Numero = "409130895816094",
+                            Numero = "458963749087423",
                             Pin = "1234",
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(9419)
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(2203)
                         },
                         new
                         {
                             Id = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(9573),
-                            Cvv = "425",
-                            FechaVencimiento = "06/26",
-                            Guid = "W71vOHuFzS4",
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(2428),
+                            Cvv = "525",
+                            FechaVencimiento = "02/30",
+                            Guid = "tNqud56CvyP",
                             IsDeleted = false,
                             LimiteDiario = 100.0,
                             LimiteMensual = 2500.0,
                             LimiteSemanal = 1500.0,
-                            Numero = "476564509443461",
+                            Numero = "482887999475043",
                             Pin = "4321",
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 707, DateTimeKind.Utc).AddTicks(9573)
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 155, DateTimeKind.Utc).AddTicks(2428)
                         });
                 });
 
@@ -404,23 +404,23 @@ namespace Banco_VivesBank.Migrations
                         new
                         {
                             Id = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 526, DateTimeKind.Utc).AddTicks(1671),
-                            Guid = "vz2AWLK8YPS",
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 153, DateTimeKind.Utc).AddTicks(5124),
+                            Guid = "nGB65b7P0LD",
                             IsDeleted = false,
                             Password = "$2a$11$/ClI0T9j8cr/Q1mLtJpCh.aZGfAQjGEiOGMz5uROGUEQnAfM.B.Ki",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 526, DateTimeKind.Utc).AddTicks(1680),
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 153, DateTimeKind.Utc).AddTicks(5125),
                             Username = "pedrito"
                         },
                         new
                         {
                             Id = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 705, DateTimeKind.Utc).AddTicks(7578),
-                            Guid = "6t8gVeTQt2w",
+                            CreatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 153, DateTimeKind.Utc).AddTicks(5204),
+                            Guid = "w2JFmZHc9mE",
                             IsDeleted = false,
                             Password = "$2a$11$/VdPYjEtE7WSEnmI8O/nKuMrZ54vlG5vraWze4dxxjevp8eBhCwoS",
                             Role = 1,
-                            UpdatedAt = new DateTime(2025, 1, 26, 14, 40, 50, 705, DateTimeKind.Utc).AddTicks(7580),
+                            UpdatedAt = new DateTime(2025, 1, 26, 1, 4, 44, 153, DateTimeKind.Utc).AddTicks(5204),
                             Username = "anita"
                         });
                 });
