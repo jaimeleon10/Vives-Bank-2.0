@@ -22,7 +22,7 @@ public class CuentaEntity
     public string Iban { get; set; }
     
     [Required]
-    public BigInteger Saldo { get; set; }
+    public double Saldo { get; set; }
     
     [ForeignKey("Tarjeta")] 
     [Column("tarjeta_id")]

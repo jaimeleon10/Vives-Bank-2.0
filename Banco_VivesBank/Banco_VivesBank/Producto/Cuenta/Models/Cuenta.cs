@@ -14,7 +14,7 @@ public class Cuenta
     
     public string Iban { get; set; } = IbanGenerator.GenerateIban();
 
-    public BigInteger Saldo { get; set; } = 0;
+    public double Saldo { get; set; } = 0;
     
     public Tarjeta.Models.Tarjeta? Tarjeta { get; set; }
     
