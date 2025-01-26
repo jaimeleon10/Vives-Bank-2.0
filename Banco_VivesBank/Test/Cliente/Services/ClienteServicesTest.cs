@@ -1,14 +1,14 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Storage.Ftp.Service;
+using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
-using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using NUnit.Framework;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
@@ -28,6 +27,7 @@ public class ClienteServiceTests
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private ClienteService _clienteService;
+    private Mock<IFtpService> _ftpService;
     private Mock<IUserService> _userServiceMock;
     private Mock<IFileStorageService> _storageService;
     private Mock<IConnectionMultiplexer> _redisConnectionMock;
@@ -59,6 +59,7 @@ public class ClienteServiceTests
 
         _userServiceMock = new Mock<IUserService>();
         _storageService = new Mock<IFileStorageService>();
+        _ftpService = new Mock<IFtpService>();
 
         _memoryCacheMock = new Mock<IMemoryCache>();
         _redisDatabaseMock = new Mock<IDatabase>();
@@ -72,7 +73,7 @@ public class ClienteServiceTests
             .Setup(x => x.CreateEntry(It.IsAny<object>()))
             .Returns(cacheEntryMock.Object);
         
-        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCacheMock.Object, _redisConnectionMock.Object);
+        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCacheMock.Object, _redisConnectionMock.Object, _ftpService.Object);
     }
     
     [SetUp]
@@ -143,7 +144,6 @@ public class ClienteServiceTests
         Assert.That(result.First, Is.True);
         Assert.That(result.Last, Is.False);
     }
-
     
     [Test]
     public async Task GetByGuid_EnBBDD()
@@ -785,7 +785,6 @@ public class ClienteServiceTests
         Assert.That(result.Dni, Is.EqualTo(updateRequest.Dni));
     }
     
-    
     [Test]
     public async Task Update_ClienteNotFound()
     {
@@ -937,87 +936,6 @@ public class ClienteServiceTests
         Assert.That(clienteEliminado.Email, Is.EqualTo(""));
         Assert.That(clienteEliminado.Telefono, Is.EqualTo(""));
     }
-    
-    [Test]
-    public async Task UpdateFotoPerfil_ClienteNotFound()
-    {
-        // Arrange
-        var guid = "algo";
-        var fotoPerfil = new Mock<IFormFile>().Object;
-
-        // Act
-        var result = await _clienteService.UpdateFotoPerfil(guid, fotoPerfil);
-
-        // Assert
-        Assert.That(result, Is.Null);
-    }
-
-    [Test]
-    public async Task UpdateFotoPerfil_Success()
-    {
-        // Arrange
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        var cliente = new ClienteEntity { Nombre = "Cliente 1", Guid = "guid", Dni = "12345678Z", Apellidos = "Perez", Email = "example", Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Telefono = "600000000", UserId = user1.Id};
-
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
-        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>()))
-            .ReturnsAsync(nuevaFotoUrl);
-
-        // Act
-        var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
-
-        // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(nuevaFotoUrl, Is.EqualTo(result!.FotoPerfil));
-        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
-        Assert.That(nuevaFotoUrl, Is.EqualTo(clienteActualizado.FotoPerfil));
-    }
-    
-    [Test]
-    public async Task UpdateFotoDni_ClienteNotFound()
-    {
-        // Arrange
-        var guid = "ALGO";
-        var fotoDni = new Mock<IFormFile>().Object;
-
-        // Act
-        var result = await _clienteService.UpdateFotoDni(guid, fotoDni);
-
-        // Assert
-        Assert.That(result, Is.Null);
-    }
-
-    [Test]
-    public async Task UpdateFotoDni_ClienteExiste_ActualizaFotoDni()
-    {
-        // Arrange
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        var cliente = new ClienteEntity { Nombre = "Cliente 1", Guid = "guid", Dni = "12345678Z", Apellidos = "Perez", Email = "example", Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Telefono = "600000000", UserId = user1.Id};
-
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        var nuevaFotoDniUrl = "https://example.com/newFotoDni.jpg";
-        _storageService
-            .Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>()))
-            .ReturnsAsync(nuevaFotoDniUrl);
-
-        // Act
-        var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
-
-        // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(nuevaFotoDniUrl, Is.EqualTo(result!.FotoDni));
-        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
-        Assert.That(nuevaFotoDniUrl, Is.EqualTo(clienteActualizado.FotoDni));
-    }
 
     [Test]
     public async Task GetClienteModelById()
@@ -1071,5 +989,344 @@ public class ClienteServiceTests
         
         Assert.That(result, Is.Null);
     }
-   
+    
+    
+    
+    
+    [Test]
+    public async Task UpdateFotoPerfilClienteNotFound()
+    {
+        var guid = "non-existing-guid";
+        var fotoPerfil = new Mock<IFormFile>().Object;
+
+        var result = await _clienteService.UpdateFotoPerfil(guid, fotoPerfil);
+
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public async Task UpdateFotoPerfil()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
+
+        var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(nuevaFotoUrl, Is.EqualTo(result!.FotoPerfil));
+        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
+        Assert.That(nuevaFotoUrl, Is.EqualTo(clienteActualizado.FotoPerfil));
+    }
+
+    [Test]
+    public async Task UpdateFotoPerfilFileStorageException()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        var fotoPerfil = new Mock<IFormFile>().Object;
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ThrowsAsync(new FileStorageException("Error saving file"));
+
+        var ex = Assert.ThrowsAsync<FileStorageException>(async () =>
+            await _clienteService.UpdateFotoPerfil(cliente.Guid, fotoPerfil));
+        Assert.That(ex.Message, Is.EqualTo("Error al guardar la foto: Error saving file"));
+    }
+
+    [Test]
+    public async Task UpdateFotoDniClienteNotFound()
+    {
+        // Arrange
+        var guid = "non-existing-guid";
+        var fotoDni = new Mock<IFormFile>().Object;
+
+        // Act
+        var result = await _clienteService.UpdateFotoDni(guid, fotoDni);
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public async Task UpdateFotoDni()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        var nuevaFotoDniUrl = "data/12345678Z";
+        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+        var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
+        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
+        Assert.That(clienteActualizado.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
+    }
+
+    [Test]
+    public async Task UpdateFotoDniException()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        var fotoDni = new Mock<IFormFile>().Object;
+        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("FTP error"));
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _clienteService.UpdateFotoDni(cliente.Guid, fotoDni));
+        Assert.That(ex.Message, Is.EqualTo("Error al subir la nueva foto al servidor FTP."));
+    }
+    
+    
+    
+    
+    [Test]
+    public async Task UpdateFotoPerfil_DeleteOldFileFailure()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+    
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id,
+            FotoPerfil = "https://example.com/oldFoto.jpg"
+        };
+    
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
+        _storageService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new FileStorageNotFoundException("Archivo no encontrado"));
+
+        var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.FotoPerfil, Is.EqualTo(nuevaFotoUrl));
+        _storageService.Verify(fs => fs.DeleteFileAsync("https://example.com/oldFoto.jpg"), Times.Once);
+    }
+
+    [Test]
+    public async Task UpdateFotoPerfil_NullNewFile()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync((string)null);
+
+        // Act & Assert
+        Assert.ThrowsAsync<FileStorageException>(async () => 
+            await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object));
+    }
+
+    [Test]
+    public async Task UpdateFotoDni_DeleteOldFileFails()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id,
+            FotoDni = "data/oldDni.jpg"
+        };
+
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+        _ftpService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new Exception("Delete failed"));
+
+        // Act
+        var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.FotoDni, Is.EqualTo($"data/{cliente.Dni}"));
+    }
+
+    [Test]
+    public async Task GetFotoDniAsync_FileNotFound()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id,
+            FotoDni = "data/testDni.jpg"
+        };
+
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        _ftpService.Setup(fs => fs.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("Download failed"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<Exception>(async () => 
+            await _clienteService.GetFotoDniAsync(cliente.Guid));
+    }
+    
+    [Test]
+    public async Task GetFotoDniAsync_ClienteConFotoDniValido()
+    {
+        var user1 = new UserEntity
+        {
+            Id = 1,
+            Guid = "user-guid",
+            Username = "user1",
+            Password = "password",
+            IsDeleted = false
+        };
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1",
+            Guid = "guid",
+            Dni = "12345678Z",
+            Apellidos = "Perez",
+            Email = "example",
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user1.Id,
+            FotoDni = "ftp://example.com/fotoDni.jpg"
+        };
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        var tempFilePath = Path.GetTempFileName();
+        _ftpService
+            .Setup(ftp => ftp.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Callback<string, string>((url, path) =>
+            {
+                File.WriteAllText(path, "Contenido de prueba");
+            })
+            .Returns(Task.CompletedTask);
+
+        var result = await _clienteService.GetFotoDniAsync(cliente.Guid);
+
+        Assert.That(result, Is.Not.Null);
+        using (var reader = new StreamReader(result))
+        {
+            var content = await reader.ReadToEndAsync();
+            Assert.That(content, Is.EqualTo("Contenido de prueba"));
+        }
+
+        _ftpService.Verify(ftp => ftp.DownloadFileAsync(cliente.FotoDni, It.IsAny<string>()), Times.Once);
+    }
+
 }

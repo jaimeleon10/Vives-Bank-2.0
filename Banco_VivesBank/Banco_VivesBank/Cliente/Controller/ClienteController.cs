@@ -149,7 +149,7 @@ public class ClienteController : ControllerBase
     }
     
     [HttpPost("{guid}/foto_dni")]
-    public async Task<ActionResult<ClienteResponse>> PatchFotoDni(string guid, IFormFile foto)
+    public async Task<ActionResult<ClienteResponse>> PostFotoDni(string guid, IFormFile foto)
     {
         if (foto == null || foto.Length == 0)
         {

@@ -1,5 +1,5 @@
-﻿/*using Banco_VivesBank.Config.Storage;
-using Banco_VivesBank.Storage.Ftp.Exceptions;
+﻿using System.Text;
+using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -8,84 +8,92 @@ using Moq;
 namespace Test.Storage.Ftp;
 
 [TestFixture]
-public class FtpServiceTests
+public class FtpServiceTests 
 {
-    private Mock<ILogger<FtpService>> _loggerMock;
-    private Mock<IOptions<FtpConfig>> _ftpConfigMock;
     private FtpService _ftpService;
-    private Mock<Stream> _streamMock;
+    private Mock<ILogger<FtpService>> _mockLogger;
+    private Mock<IOptions<FtpConfig>> _mockFtpConfig;
 
     [SetUp]
     public void Setup()
     {
-        _loggerMock = new Mock<ILogger<FtpService>>();
-        _ftpConfigMock = new Mock<IOptions<FtpConfig>>();
-        _ftpConfigMock.Setup(c => c.Value).Returns(new FtpConfig
+        _mockLogger = new Mock<ILogger<FtpService>>();
+        _mockFtpConfig = new Mock<IOptions<FtpConfig>>();
+        _mockFtpConfig.Setup(x => x.Value).Returns(new FtpConfig
         {
-            Host = "ftp.test.com",
-            Port = 21
+            Host = "localhost",
+            Port = 21,
+            Username = "mockUser",
+            Password = "mockPassword"
         });
 
-        _ftpService = new FtpService(_loggerMock.Object, _ftpConfigMock.Object);
-        _streamMock = new Mock<Stream>();
+        var mockFtpService = new Mock<IFtpService>();
+
+        // Configura el mock para simular el comportamiento deseado
+        mockFtpService.Setup(s => s.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+        mockFtpService.Setup(s => s.CheckFileExiste(It.IsAny<string>()))
+            .ReturnsAsync(true); // Simula que el archivo existe
+        mockFtpService.Setup(s => s.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        _ftpService = new FtpService(_mockLogger.Object, _mockFtpConfig.Object);
     }
 
     [Test]
-    public async Task UploadFileAsync_ShouldUploadSuccessfully()
+    public async Task UploadFile()
     {
-        var uploadPath = "path/to/file.txt";
+        string uploadPath = "data/test.jpg";
+        var testContent = Encoding.UTF8.GetBytes("test file content");
+        using var inputStream = new MemoryStream(testContent);
 
-        await _ftpService.UploadFileAsync(_streamMock.Object, uploadPath);
+        await _ftpService.UploadFileAsync(inputStream, uploadPath);
 
-        _loggerMock.Verify(log => log.LogInformation(It.IsAny<string>()), Times.Once);
+        var checkResult = await _ftpService.CheckFileExiste(uploadPath);
+        Assert.That(checkResult, Is.True);
     }
 
     [Test]
-    public void UploadFileAsync_ShouldThrowFtpException_WhenErrorOccurs()
+    public async Task DownloadFile()
     {
-        var uploadPath = "path/to/file.txt";
-        _ftpConfigMock.Setup(c => c.Value.Host).Throws(new Exception("FTP Error"));
+        string uploadPath = "data/download-test.jpg";
+        var testContent = Encoding.UTF8.GetBytes("download test content");
+        using var uploadStream = new MemoryStream(testContent);
+        await _ftpService.UploadFileAsync(uploadStream, uploadPath);
 
-        Assert.ThrowsAsync<FtpException>(() => _ftpService.UploadFileAsync(_streamMock.Object, uploadPath));
+        string localFilePath = Path.GetTempFileName();
+
+        await _ftpService.DownloadFileAsync(uploadPath, localFilePath);
+
+        Assert.That(File.Exists(localFilePath), Is.True);
+        var downloadedContent = await File.ReadAllBytesAsync(localFilePath);
+        Assert.That(downloadedContent, Is.EqualTo(testContent));
+    }
+
+    [Test]
+    public async Task DeleteFile()
+    {
+        string uploadPath = "data/delete-test.jpg";
+        var testContent = Encoding.UTF8.GetBytes("delete test content");
+        using var uploadStream = new MemoryStream(testContent);
+        await _ftpService.UploadFileAsync(uploadStream, uploadPath);
+
+        await _ftpService.DeleteFileAsync(uploadPath);
+
+        var checkResult = await _ftpService.CheckFileExiste(uploadPath);
+        Assert.That(checkResult, Is.False);
     }
     
     [Test]
-    public async Task DownloadFileAsync_ShouldDownloadSuccessfully()
-    {
-        var remoteFilePath = "path/to/remote/file.txt";
-        var localFilePath = "path/to/local/file.txt";
-
-        await _ftpService.DownloadFileAsync(remoteFilePath, localFilePath);
-
-        _loggerMock.Verify(log => log.LogInformation(It.IsAny<string>()), Times.Once);
-    }
-
-    [Test]
-    public void DownloadFileAsync_ShouldThrowFtpException_WhenErrorOccurs()
-    {
-        var remoteFilePath = "path/to/remote/file.txt";
-        var localFilePath = "path/to/local/file.txt";
-        _ftpConfigMock.Setup(c => c.Value.Host).Throws(new Exception("FTP Error"));
-
-        Assert.ThrowsAsync<FtpException>(() => _ftpService.DownloadFileAsync(remoteFilePath, localFilePath));
-    }
     
-    [Test]
-    public async Task DeleteFileAsync_ShouldDeleteSuccessfully()
+    public void UploadFileAsyncInvalidMimeType()
     {
-        var remoteFilePath = "path/to/remote/file.txt";
+        var mockInputStream = new MemoryStream(Encoding.UTF8.GetBytes("test content"));
+        string uploadPath = "data/test.invalidext";
 
-        await _ftpService.DeleteFileAsync(remoteFilePath);
-
-        _loggerMock.Verify(log => log.LogInformation(It.IsAny<string>()), Times.Once);
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => 
+            await _ftpService.UploadFileAsync(mockInputStream, uploadPath));
+        
+        Assert.That(ex.Message, Does.Contain("tipo MIME para la extensión"));
     }
-
-    [Test]
-    public void DeleteFileAsync_ShouldThrowFtpException_WhenErrorOccurs()
-    {
-        var remoteFilePath = "path/to/remote/file.txt";
-        _ftpConfigMock.Setup(c => c.Value.Host).Throws(new Exception("FTP Error"));
-
-        Assert.ThrowsAsync<FtpException>(() => _ftpService.DeleteFileAsync(remoteFilePath));
-    }
-}*/
+}
