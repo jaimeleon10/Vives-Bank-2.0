@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
@@ -66,7 +66,7 @@ namespace Banco_VivesBank.User.Service
                 .Take(pageSize)
                 .ToListAsync();
 
-            var totalPages = (int)Math.Ceiling((double) totalElements / pageSize);
+            var totalPages = (int)Math.Ceiling((double)totalElements / pageSize);
 
             var pageResponse = new PageResponse<UserResponse>
             {
@@ -286,6 +286,21 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation("Buscando todos los usuarios en base de datos");
             var usersEntities = await _context.Usuarios.ToListAsync();
             return usersEntities.Select(UserMapper.ToModelFromEntity).ToList();
+        }
+
+        public async Task<Models.User?> GetUserModelByUsernameAsync(string username)
+        {
+            _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
+                return userEntity.ToModelFromEntity();
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
+            return null;
         }
     }
 }
