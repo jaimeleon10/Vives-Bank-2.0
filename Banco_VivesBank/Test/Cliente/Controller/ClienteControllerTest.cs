@@ -9,6 +9,7 @@ using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using NUnit.Framework;
 
 namespace Test.Cliente.Controller;
 
@@ -27,6 +28,126 @@ public class ClienteControllerTest
         _clienteController = new ClienteController(_clienteServiceMock.Object, _paginationLinksUtils.Object);
     }
 
+    [Test]
+    public async Task GetAll()
+    {
+        var response = new ClienteResponse
+        {
+            Guid = "guid",
+            Nombre = "nombreTest",
+            Apellidos =  "apellidosTest",
+            Direccion = new Direccion {
+                Calle = "calleTest",
+                Numero = "numeroTest",
+                CodigoPostal = "codigoPostalTest",
+                Piso = "pisoTest",
+                Letra = "letraTest"
+            },
+            Email = "emailTest",
+            Telefono = "telefonoTest",
+            FotoPerfil = "fotoPerfilTest",
+            FotoDni = "fotoDniTest",
+            UserResponse = new UserResponse 
+            {
+                Guid = "userGuid",
+                Username = "usernameTest",
+                Role = "roleTest",
+                CreatedAt = "createdAtTest",
+                UpdatedAt = "updatedAtTest",
+                IsDeleted = false
+            },
+            CreatedAt = "createdAtTest",
+            UpdatedAt = "updatedAtTest",
+            IsDeleted = false
+        };
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 1,
+            PageSize = 20,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+        var clientes = new PageResponse<ClienteResponse>
+        {
+            Content = new List<ClienteResponse> {response},
+            PageSize = 1,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+        clientes.Content.Add(response);
+        _clienteServiceMock.Setup(service => service.GetAllPagedAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),pageRequest)).ReturnsAsync(clientes);
+        
+        _paginationLinksUtils.Setup(utils => utils.CreateLinkHeader(clientes, It.IsAny<Uri>()))
+            .Returns("<http://localhost/api/clientes>; rel=\"prev\",<http://localhost/api/clientes>; rel=\"next\"");
+
+        // Configurar el contexto HTTP para la prueba
+        var httpContext = new DefaultHttpContext
+        {
+            Request =
+            {
+                Scheme = "http",
+                Host = new HostString("localhost"),
+                PathBase = new PathString("/api/clientes")
+            }
+        };
+        _clienteController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+        
+        var result = await _clienteController.GetAllPaged(null, null, null, 1, 20, "id", "ASC");
+        
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetAll_EmptyList()
+    {
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 1,
+            PageSize = 20,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+        var clientes = new PageResponse<ClienteResponse>
+        {
+            Content = new List<ClienteResponse> (),
+            PageSize = 1,
+            SortBy = "id",
+            Direction = "ASC"
+        };     
+        _clienteServiceMock.Setup(service => service.GetAllPagedAsync(null, null,null, pageRequest)).ReturnsAsync(clientes);
+        
+        var httpContext = new DefaultHttpContext
+        {
+            Request =
+            {
+                Scheme = "http",
+                Host = new HostString("localhost"),
+                PathBase = new PathString("/api/clientes")
+            }
+        };
+        _clienteController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+        
+        var baseUri = new Uri("http://localhost/api/clientes");
+        _paginationLinksUtils.Setup(utils => utils.CreateLinkHeader(It.IsAny<PageResponse<ClienteResponse>>(), baseUri))
+            .Returns("<http://localhost/api/clientes?page=0&size=5>; rel=\"prev\",<http://localhost/api/clientes?page=2&size=5>; rel=\"next\"");
+
+        
+        var result = await _clienteController.GetAllPaged(null, null,null, 1, 20, "id", "ASC");
+
+        
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+    }
+    
     [Test]
     public async Task GetByGuid()
     {
@@ -75,7 +196,7 @@ public class ClienteControllerTest
     }
     
     [Test]
-    public async Task GetByGuid_ReturnsNotFound_WhenClienteDoesNotExist()
+    public async Task GetByGuid_ClienteNotFound()
     {
         _clienteServiceMock.Setup(service => service.GetByGuidAsync(It.IsAny<string>())).ReturnsAsync((ClienteResponse)null);
 
@@ -146,7 +267,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task Create_InvalidRequest_ReturnsBadRequest()
+    public async Task Create_BadRequest()
     {
         _clienteController.ModelState.AddModelError("Nombre", "El campo es obligatorio");
         var clienteRequest = new ClienteRequest();
@@ -157,7 +278,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task Create_ThrowsClienteException_ReturnsBadRequest()
+    public async Task Create_ClienteExistsException()
     {
         var clienteRequest = new ClienteRequest
         {
@@ -175,7 +296,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task Create_ThrowsUserException_ReturnsNotFound()
+    public async Task Create_UserNotFound()
     {
         var clienteRequest = new ClienteRequest
         {
@@ -194,7 +315,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task UpdateCliente_ValidRequest_ReturnsOk()
+    public async Task Update()
     {
         var guid = "valid-guid";
         var clienteRequestUpdate = new ClienteRequestUpdate
@@ -241,7 +362,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task UpdateCliente_InvalidModelState_ReturnsBadRequest()
+    public async Task Update_BadRequest()
     {
         var guid = "valid-guid";
         _clienteController.ModelState.AddModelError("Nombre", "El campo es requerido");
@@ -253,7 +374,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task UpdateCliente_NotFound_ReturnsNotFound()
+    public async Task Update_ClienteNotFound()
     {
         var guid = "nonexistent-guid";
         var clienteRequestUpdate = new ClienteRequestUpdate
@@ -273,7 +394,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task UpdateCliente_ThrowsClienteException_ReturnsBadRequest()
+    public async Task UpdateCliente_ClienteExistsException_()
     {
         var guid = "valid-guid";
         var clienteRequestUpdate = new ClienteRequestUpdate
@@ -293,7 +414,7 @@ public class ClienteControllerTest
     }
     
     [Test]
-    public async Task DeleteByGuid_ValidGuid_ReturnsOk()
+    public async Task DeleteByGuid()
     {
         var guid = "valid-guid";
         var clienteResponse = new ClienteResponse
@@ -315,7 +436,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task DeleteByGuid_NotFound_ReturnsNotFound()
+    public async Task DeleteByGuid_ClienteNotFound()
     {
         var guid = "nonexistent-guid";
 
@@ -378,7 +499,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task PatchFotoPerfil_NotFound()
+    public async Task PatchFotoPerfil_ClienteNotFound()
     {
         // Arrange
         var guid = "non-existent-guid";
@@ -420,7 +541,7 @@ public class ClienteControllerTest
     }
     
     [Test]
-    public async Task PatchFotoDni_NotFound()
+    public async Task PatchFotoDni_ClienteNotFound()
     {
         // Arrange
         var guid = "non-existent-guid";

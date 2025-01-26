@@ -111,7 +111,7 @@ WebApplicationBuilder InitServices()
     
     //Ftp
     myBuilder.Services.Configure<FtpConfig>(myBuilder.Configuration.GetSection("FtpSettings"));
-    myBuilder.Services.AddScoped<FtpService>();
+    myBuilder.Services.AddScoped<IFtpService, FtpService>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();

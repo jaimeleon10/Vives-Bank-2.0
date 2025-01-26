@@ -1,6 +1,8 @@
 ﻿using System.Text;
+using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Models;
-using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Storage.Pdf.Exception;
 using PdfSharp.Pdf;
 using TheArtOfDev.HtmlRenderer.PdfSharp;
@@ -16,16 +18,16 @@ public class PdfStorage : IPdfStorage
         _logger = logger;
     }
     
-    public void ExportPDF(Cuenta cuenta, List<Movimiento> movimientos)
+    public void ExportPDF(ClienteResponse cliente, List<MovimientoResponse> movimientos)
     {
-        if (cuenta == null)
-            throw new CuentaInvalidaException("La cuenta proporcionada es nula.");
+        if (cliente == null)
+            throw new ClienteNotFound("La cliente proporcionada es nula.");
         if (movimientos == null)
             throw new MovimientosInvalidosException("La lista de movimientos proporcionada es nula.");
     
         string html = movimientos.Count == 0
-            ? $"<html><body><h1>No hay movimientos registrados para la cuenta de {cuenta.Cliente.Nombre} {cuenta.Cliente.Apellidos}</h1></body></html>"
-            : GenerarHtml(cuenta, movimientos);
+            ? $"<html><body><h1>No hay movimientos registrados para la cliente de {cliente.Nombre} {cliente.Apellidos}</h1></body></html>"
+            : GenerarHtml(cliente, movimientos);
 
         var pdfDoc = GenerarPdf(html);
 
@@ -33,14 +35,14 @@ public class PdfStorage : IPdfStorage
             throw new PdfGenerateException("No se generaron páginas para el documento PDF.");
 
         string fechaHora = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "data", $"ReporteTransacciones_{cuenta.Cliente.Dni}_{fechaHora}.pdf");
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "data", $"ReporteTransacciones_{cliente.Dni}_{fechaHora}.pdf");
         
         pdfDoc.Save(filePath);
         
         _logger.LogInformation("PDF generado y guardado en la carpeta data: {FilePath}", filePath);
     }
 
-    private string GenerarHtml(Cuenta cuenta, List<Movimiento> movimientos)
+    private string GenerarHtml(ClienteResponse cliente, List<MovimientoResponse> movimientos)
     {
         return $@"
     <html>
@@ -106,19 +108,19 @@ public class PdfStorage : IPdfStorage
     </head>
     <body>
         <div class=""container"">
-            <h1>Reporte de Transacciones de {cuenta.Cliente.Nombre} {cuenta.Cliente.Apellidos}</h1>
+            <h1>Reporte de Transacciones de {cliente.Nombre} {cliente.Apellidos}</h1>
             
             <!-- Información combinada del cliente y banco en una tabla sin bordes -->
             <table class=""info-table"">
                 <tr>
                     <td>
                         <h3>Datos de la Cuenta</h3>
-                        <strong>Nombre:</strong> {cuenta.Cliente.Nombre}<br>
-                        <strong>Apellido:</strong> {cuenta.Cliente.Apellidos}<br>
-                        <strong>DNI:</strong> {cuenta.Cliente.Dni}<br>
-                        <strong>Email:</strong> {cuenta.Cliente.Email}<br>
-                        <strong>Teléfono:</strong> {cuenta.Cliente.Telefono}<br>
-                        <strong>IBAN de la Cuenta:</strong> {cuenta.Iban}<br>
+                        <strong>Username:</strong> {cliente.UserResponse.Username}<br>
+                        <strong>Nombre:</strong> {cliente.Nombre}<br>
+                        <strong>Apellido:</strong> {cliente.Apellidos}<br>
+                        <strong>DNI:</strong> {cliente.Dni}<br>
+                        <strong>Email:</strong> {cliente.Email}<br>
+                        <strong>Teléfono:</strong> {cliente.Telefono}<br>
                     </td>
                     <td style=""text-align: right;"">
                         <h3>Datos del Banco</h3>
@@ -136,7 +138,7 @@ public class PdfStorage : IPdfStorage
     </html>";
     }
 
-    private string GenerarTablaMovimientos(List<Movimiento> movimientos)
+    private string GenerarTablaMovimientos(List<MovimientoResponse> movimientos)
     {
         var tablaHtml = new StringBuilder();
         tablaHtml.AppendLine(@"
@@ -169,7 +171,7 @@ public class PdfStorage : IPdfStorage
         return tablaHtml.ToString();
     }
 
-    private (string tipo, string origen, string destino, string importe) GetDetallesMovimientos(Movimiento movimiento)
+    private (string tipo, string origen, string destino, string importe) GetDetallesMovimientos(MovimientoResponse movimiento)
     {
         return movimiento switch
         {
@@ -177,25 +179,25 @@ public class PdfStorage : IPdfStorage
                 "Domiciliación",
                 movimiento.Domiciliacion.IbanEmpresa,
                 movimiento.Domiciliacion.IbanCliente,
-                movimiento.Domiciliacion.Importe.ToString("F2")
+                movimiento.Domiciliacion.Importe
             ),
             { IngresoNomina: not null } => (
                 "Ingreso Nómina",
                 movimiento.IngresoNomina.IbanEmpresa,
                 movimiento.IngresoNomina.IbanCliente,
-                movimiento.IngresoNomina.Importe.ToString("F2")
+                movimiento.IngresoNomina.Importe
             ),
             { PagoConTarjeta: not null } => (
                 "Pago con Tarjeta",
                 movimiento.PagoConTarjeta.NumeroTarjeta, 
                 movimiento.PagoConTarjeta.NombreComercio, 
-                movimiento.PagoConTarjeta.Importe.ToString("F2") 
+                movimiento.PagoConTarjeta.Importe
             ),
             { Transferencia: not null } => (
                 "Transferencia",
                 movimiento.Transferencia.IbanOrigen,
                 movimiento.Transferencia.IbanDestino,
-                movimiento.Transferencia.Importe.ToString("F2")
+                movimiento.Transferencia.Importe
             ),
             _ => ("Desconocido", "", "", "")
         };

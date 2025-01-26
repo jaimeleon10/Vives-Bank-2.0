@@ -1,6 +1,12 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
+using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Movimientos.Mapper;
+using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Mvc;
@@ -12,13 +18,19 @@ namespace Banco_VivesBank.Cliente.Controller;
 public class ClienteController : ControllerBase
 {
     private readonly IClienteService _clienteService;
+    /*private readonly IPdfStorage _pdfStorage;
+    private readonly IMovimientoService _movimientoService;*/
     private readonly PaginationLinksUtils _paginationLinksUtils;
 
 
-    public ClienteController(IClienteService clienteService, PaginationLinksUtils paginations)
+    public ClienteController(IClienteService clienteService, PaginationLinksUtils paginations
+        //, IPdfStorage pdfStorage, IMovimientoService movimientoService
+        )
     {
         _clienteService = clienteService;
         _paginationLinksUtils = paginations;
+        /*_pdfStorage = pdfStorage;
+        _movimientoService = movimientoService;*/
     }
     
     
@@ -126,12 +138,43 @@ public class ClienteController : ControllerBase
         return Ok(clienteResponse);
     }
     
-    [HttpPatch("{guid}/foto_dni")]
+    [HttpPost("{guid}/foto_dni")]
     public async Task<ActionResult<ClienteResponse>> PatchFotoDni(string guid, IFormFile foto)
     {
-        var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+        if (foto == null || foto.Length == 0)
+        {
+            return BadRequest("Debe proporcionar una foto válida para actualizar el DNI.");
+        }
         
-        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto del dni del cliente con guid: {guid}");
-        return Ok(clienteResponse);
+        try
+        {
+            var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+            return Ok(clienteResponse);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(400, $"Ocurrió un error al actualizar la foto del DNI: {ex.Message}");
+        }
     }
+
+    /*
+    [HttpGet("{guid}/movimientos-pdf")]
+    public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos(string guid)
+    {
+        var clienteResponse = await _clienteService.GetByGuidAsync(guid);
+        if (clienteResponse is null)
+            return NotFound($"No se ha encontrado cliente con guid: {guid}");
+
+        var movimientos = await _movimientoService.GetByClienteGuidAsync(guid);
+
+        if (movimientos is null || !movimientos.Any())
+            return NotFound($"No se han encontrado movimientos del cliente con guid: {guid}");
+
+        var movimientosList = movimientos.ToList();
+
+        _pdfStorage.ExportPDF(clienteResponse, movimientosList);
+        return Ok(movimientosList);
+    }
+*/
+
 }
