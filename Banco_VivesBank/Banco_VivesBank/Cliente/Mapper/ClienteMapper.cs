@@ -11,6 +11,7 @@ public static class ClienteMapper
     {
         return new Models.Cliente
         {
+            Id = entity.Id,
             Dni = entity.Dni,
             Nombre = entity.Nombre,
             Apellidos = entity.Apellidos,
@@ -39,25 +40,25 @@ public static class ClienteMapper
         };
     }
     
-    public static Models.Cliente ToModelFromRequest(this ClienteRequest userRequest, User.Models.User user)
+    public static Models.Cliente ToModelFromRequest(this ClienteRequest clienteRequest, User.Models.User user)
     {
         return new Models.Cliente
         {
-            Dni = userRequest.Dni,
-            Nombre = userRequest.Nombre.Trim(),
-            Apellidos = userRequest.Apellidos.Trim(),
+            Dni = clienteRequest.Dni,
+            Nombre = clienteRequest.Nombre.Trim(),
+            Apellidos = clienteRequest.Apellidos.Trim(),
             Direccion = new Direccion
             {
-                Calle = userRequest.Calle.Trim(),
-                Numero = userRequest.Numero,
-                CodigoPostal = userRequest.CodigoPostal,
-                Piso = userRequest.Piso,
-                Letra = userRequest.Letra,
+                Calle = clienteRequest.Calle.Trim(),
+                Numero = clienteRequest.Numero,
+                CodigoPostal = clienteRequest.CodigoPostal,
+                Piso = clienteRequest.Piso,
+                Letra = clienteRequest.Letra,
             },
-            Email = userRequest.Email,
-            Telefono = userRequest.Telefono,
+            Email = clienteRequest.Email,
+            Telefono = clienteRequest.Telefono,
             User = user,
-            IsDeleted = userRequest.IsDeleted
+            IsDeleted = clienteRequest.IsDeleted
         };
     }
     

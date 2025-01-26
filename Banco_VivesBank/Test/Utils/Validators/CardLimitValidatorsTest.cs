@@ -51,8 +51,12 @@ public class CardLimitValidatorsTest
             LimiteSemanal = 3000,
             LimiteMensual = 9000
         };
+
+        var limiteDiario = 0;
+        var limiteSemanal = 0;
+        var limiteMensual = 0;
         
-        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(tarjetaRequest));
+        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(limiteDiario, limiteSemanal, limiteMensual));
     }
     
     [Test]
@@ -65,8 +69,12 @@ public class CardLimitValidatorsTest
             LimiteSemanal = 2000,
             LimiteMensual = 9000
         };
+        
+        var limiteDiario = 0;
+        var limiteSemanal = 0;
+        var limiteMensual = 0;
 
-                Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(tarjetaRequest));
+        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(limiteDiario, limiteSemanal, limiteMensual));
 
     }
     
@@ -80,8 +88,12 @@ public class CardLimitValidatorsTest
             LimiteSemanal = 3000,
             LimiteMensual = 8000
         };
+        
+        var limiteDiario = 0;
+        var limiteSemanal = 0;
+        var limiteMensual = 0;
 
-        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(tarjetaRequest));
+        Assert.Throws<TarjetaNotFoundException>(() =>  _cardLimitValidators.ValidarLimite(limiteDiario, limiteSemanal, limiteMensual));
         
     }
     

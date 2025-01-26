@@ -22,7 +22,7 @@ public class ClienteController : ControllerBase
     }
     
     
-    [HttpGet("page")]
+    [HttpGet]
     public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
         [FromQuery] string? nombre = null,
         [FromQuery] string? apellido = null,
@@ -46,7 +46,7 @@ public class ClienteController : ControllerBase
             var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
             var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
             
-            Response.Headers.Add("link", linkHeader);
+            Response.Headers.Append("link", linkHeader);
             
             return Ok(pageResult);
 
@@ -55,12 +55,6 @@ public class ClienteController : ControllerBase
         {
             return StatusCode(404, new { message = "No se han encontrado los clientes.", details = e.Message });
         }
-    }
-
-    [HttpGet]
-    public async Task<ActionResult<List<ClienteResponse>>> GetAll()
-    {
-        return Ok(await _clienteService.GetAllAsync());
     }
     
     [HttpGet("{guid}")]

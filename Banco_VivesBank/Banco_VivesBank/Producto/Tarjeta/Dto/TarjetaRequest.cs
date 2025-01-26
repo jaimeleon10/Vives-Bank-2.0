@@ -1,9 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Dto;
 
 public class TarjetaRequest
 {
+    [Required(ErrorMessage = "El campo de cuenta guid es obligatorio")]
+    public string CuentaGuid { get; set; }
+    
     [Required(ErrorMessage = "Es necesario definir un Pin")]
     [Length(4, 4, ErrorMessage = "El pin debe tener una longitud de 4 caracteres")]
     public string Pin { get; set; }
@@ -16,5 +20,4 @@ public class TarjetaRequest
 
     [Required(ErrorMessage = "Debes establecer un limite mensual superior a 0 y al limite semanal")]
     public double LimiteMensual { get; set; }
-
 }

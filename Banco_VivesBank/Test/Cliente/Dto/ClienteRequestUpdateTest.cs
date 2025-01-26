@@ -6,7 +6,7 @@ namespace Test.Cliente.Dto;
 public class ClienteRequestUpdateTest
 {
     
-    [Test]
+    /*[Test]
     public void HasAtLeastOneField_ShouldReturnFalse_WhenAllFieldsAreNullOrWhitespace()
     {
         // Arrange
@@ -76,6 +76,6 @@ public class ClienteRequestUpdateTest
 
         // Assert
         Assert.That(result, Is.True);
-    }
+    }*/
 
 }

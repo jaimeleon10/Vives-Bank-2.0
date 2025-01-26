@@ -6,19 +6,17 @@ namespace Banco_VivesBank.Cliente.Services;
 
 public interface IClienteService
 {
-    public Task<IEnumerable<ClienteResponse>> GetAllAsync();
+    public Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellido, string? dni, PageRequest pageRequest);
     public Task<ClienteResponse?> GetByGuidAsync(string guid);
     public Task<ClienteResponse> CreateAsync(ClienteRequest request);
     public Task<ClienteResponse?> UpdateAsync(string guid, ClienteRequestUpdate requestUpdate);
     public Task<ClienteResponse?> DeleteByGuidAsync(string guid);
     public Task<string> DerechoAlOlvido(string userGuid);
+    
     public Task<ClienteResponse?> UpdateFotoDni(string guid, IFormFile dniFoto);
     public Task<ClienteResponse?> UpdateFotoPerfil(string guid, IFormFile fotoPerfil);
-    
+    public Task<IEnumerable<Models.Cliente>> GetAllForStorage();
+
     public Task<Models.Cliente?> GetClienteModelByGuid(string guid);
     public Task<Models.Cliente?> GetClienteModelById(long id);
-    
-    public Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellido, string? dni, PageRequest pageRequest);
-
-    public Task<IEnumerable<Models.Cliente>> GetAllForStorage();
 }

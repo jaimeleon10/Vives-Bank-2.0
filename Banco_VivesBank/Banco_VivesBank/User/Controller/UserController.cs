@@ -46,7 +46,7 @@ public class UserController : ControllerBase
             var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
             var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
 
-            Response.Headers.Add("link", linkHeader);
+            Response.Headers.Append("link", linkHeader);
 
             return Ok(pageResult);
         }
@@ -71,7 +71,7 @@ public class UserController : ControllerBase
         return Ok(user); 
     }
     
-    [HttpGet("/username/{username}")]
+    [HttpGet("username/{username}")]
     public async Task<ActionResult<UserResponse>> GetByUsername(string username)
     {
         var user = await _userService.GetByUsernameAsync(username);

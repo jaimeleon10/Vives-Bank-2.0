@@ -3,13 +3,14 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Services;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Producto.ProductoBase.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Json.Service;
+using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 
@@ -22,7 +23,7 @@ public class BackupService : IBackupService
     //servicios
     private readonly IUserService _userService;
     private readonly IClienteService _clienteService;
-    private readonly IBaseService _baseService;
+    private readonly IProductoService _productoService;
     private readonly ICuentaService _cuentaService;
     private readonly ITarjetaService _tarjetaService;
     private readonly IMovimientoService _movimientoService;
@@ -34,7 +35,7 @@ public class BackupService : IBackupService
     public BackupService(ILogger<BackupService> logger, 
         IUserService userService, 
         IClienteService clienteService, 
-        IBaseService baseService, 
+        IProductoService productoService, 
         ICuentaService cuentaService, 
         ITarjetaService tarjetaService,
         IMovimientoService movimientoService,
@@ -46,7 +47,7 @@ public class BackupService : IBackupService
         //inicializamos los servicios
         _userService = userService;
         _clienteService = clienteService;
-        _baseService = baseService;
+        _productoService = productoService;
         _cuentaService = cuentaService;
         _tarjetaService = tarjetaService;
         _movimientoService = movimientoService;
@@ -66,7 +67,6 @@ public class BackupService : IBackupService
 
     try
     {
-        // Elimina el archivo ZIP si ya existe
         if (File.Exists(zipFilePath))
         {
             _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
@@ -75,7 +75,7 @@ public class BackupService : IBackupService
 
         var users = await _userService.GetAllForStorage();
         var clientes = await _clienteService.GetAllForStorage();
-        var bases = await _baseService.GetAllForStorage();
+        var bases = await _productoService.GetAllForStorage();
         var cuentas = await _cuentaService.GetAllForStorage();
         var tarjetas = await _tarjetaService.GetAllForStorage();
         var movimientos = await _movimientoService.GetAllAsync();
@@ -97,6 +97,15 @@ public class BackupService : IBackupService
             zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "movimientos.json"), "movimientos.json");
         }
 
+        foreach (var fileName in new[] { "usuarios.json", "clientes.json", "bases.json", "cuentas.json", "tarjetas.json", "movimientos.json" })
+        {
+            var filePath = Path.Combine(sourceDirectory, fileName);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        
         _logger.LogInformation("Exportación de datos a ZIP finalizada.");
     }
     catch (Exception e)
@@ -149,10 +158,10 @@ public class BackupService : IBackupService
 
             if (basesFile.Exists)
             {
-                var bases = _storageJson.ImportJson<BaseRequest>(basesFile);
+                var bases = _storageJson.ImportJson<ProductoRequest>(basesFile);
                 foreach (var baseEntity in bases)
                 {
-                    await _baseService.CreateAsync(baseEntity);
+                    await _productoService.CreateAsync(baseEntity);
                 }
             }
             

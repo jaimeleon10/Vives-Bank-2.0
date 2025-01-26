@@ -1,9 +1,10 @@
 ﻿using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
-using Banco_VivesBank.Producto.Base.Models;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.ProductoBase.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Mappers;
 
 namespace Banco_VivesBank.Producto.Cuenta.Mappers;
 
@@ -13,12 +14,13 @@ public static class CuentaMapper
     {
         return new Models.Cuenta
         {
+            Id = entity.Id,
             Guid = entity.Guid,
             Iban = entity.Iban,
             Saldo = entity.Saldo,
-            Tarjeta = entity.Tarjeta,
-            Cliente = entity.Cliente,
-            Producto = entity.Producto,
+            Tarjeta = entity.Tarjeta?.ToModelFromEntity(),
+            Cliente = entity.Cliente.ToModelFromEntity(),
+            Producto = entity.Producto.ToModelFromEntity(),
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             IsDeleted = entity.IsDeleted
@@ -29,10 +31,11 @@ public static class CuentaMapper
     {
         return new CuentaEntity
         {
+            Id = cuenta.Id,
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
             Saldo = cuenta.Saldo,
-            TarjetaId = cuenta.Tarjeta.Id,
+            TarjetaId = cuenta.Tarjeta?.Id,
             ClienteId = cuenta.Cliente.Id,
             ProductoId = cuenta.Producto.Id,
             CreatedAt = cuenta.CreatedAt,
@@ -47,8 +50,8 @@ public static class CuentaMapper
         {
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
-            Saldo = cuenta.Saldo,
-            TarjetaGuid = cuenta.Tarjeta.Guid,
+            Saldo = cuenta.Saldo.ToString(),
+            TarjetaGuid = cuenta.Tarjeta?.Guid,
             ClienteGuid = cuenta.Cliente.Guid,
             ProductoGuid = cuenta.Producto.Guid,
             CreatedAt = cuenta.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
@@ -63,8 +66,8 @@ public static class CuentaMapper
         {
             Guid = cuentaEntity.Guid,
             Iban = cuentaEntity.Iban,
-            Saldo = cuentaEntity.Saldo,
-            TarjetaGuid = cuentaEntity.Tarjeta.Guid,
+            Saldo = cuentaEntity.Saldo.ToString(),
+            TarjetaGuid = cuentaEntity.Tarjeta?.Guid,
             ClienteGuid = cuentaEntity.Cliente.Guid,
             ProductoGuid = cuentaEntity.Producto.Guid,
             CreatedAt = cuentaEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),

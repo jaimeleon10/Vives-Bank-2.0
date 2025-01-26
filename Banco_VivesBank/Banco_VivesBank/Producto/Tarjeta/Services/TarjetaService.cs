@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Utils.Generators;
@@ -21,9 +22,6 @@ public class TarjetaService : ITarjetaService
     private readonly IMemoryCache _memoryCache;
     private readonly IDatabase _database;
     private readonly IConnectionMultiplexer _redis;
-    private readonly TarjetaGenerator _tarjetaGenerator;
-    private readonly CvvGenerator _cvvGenerator;
-    private readonly ExpDateGenerator _expDateGenerator;
     private readonly CardLimitValidators _cardLimitValidators;
     private const string CacheKeyPrefix = "Tarjeta:"; 
     
@@ -35,18 +33,8 @@ public class TarjetaService : ITarjetaService
         _log = log;
         _redis = redis;
         _memoryCache = memoryCache; 
-        _tarjetaGenerator = new TarjetaGenerator();
-        _cvvGenerator = new CvvGenerator();
-        _expDateGenerator = new ExpDateGenerator();
         _cardLimitValidators = new CardLimitValidators(_log);
         _database = _redis.GetDatabase();
-    }
-
-    public async Task<List<TarjetaResponse>> GetAllAsync()
-    {
-       _logger.LogDebug("Obteniendo todas las tarjetas");
-       List<TarjetaEntity> tarjetas = await _context.Tarjetas.ToListAsync();
-       return tarjetas.ToResponseList();
     }
 
     public async Task<PageResponse<TarjetaResponse>> GetAllPagedAsync(PageRequest page)
@@ -98,21 +86,22 @@ public class TarjetaService : ITarjetaService
         
         if (_memoryCache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
         {
-            _logger.LogInformation("Tarjeta obtenido desde la memoria caché");
-            return TarjetaMapper.ToResponseFromModel(cachedTarjeta);
+            _logger.LogInformation("Tarjeta obtenida desde la memoria caché");
+            return TarjetaMapper.ToResponseFromModel(cachedTarjeta!);
         }
         //Redis
         var redisCache = await _database.StringGetAsync(cacheKey);
-        if (!string.IsNullOrEmpty(redisCache))
+        if (!redisCache.IsNullOrEmpty)
         {
             _logger.LogInformation("Tarjeta obtenido desde Redis");
-            var tarjetaResponse = JsonSerializer.Deserialize<TarjetaResponse>(redisCache);
-            if (tarjetaResponse != null)
+            var tarjetaRedis = JsonSerializer.Deserialize<Models.Tarjeta>(redisCache!);
+            if (tarjetaRedis == null)
             {
-                _memoryCache.Set(cacheKey, tarjetaResponse, TimeSpan.FromMinutes(30));
+                _logger.LogWarning("Error al deserializar tarjeta desde Redis");
+                throw new Exception("Error al deserializar tarjeta desde Redis");
             }
-
-            return tarjetaResponse; 
+            _memoryCache.Set(cacheKey, tarjetaRedis, TimeSpan.FromMinutes(30));
+            return tarjetaRedis.ToResponseFromModel(); 
         }
         
         // Consultar la base de datos
@@ -129,7 +118,7 @@ public class TarjetaService : ITarjetaService
             _memoryCache.Set(cacheKey, tarjetaModel, TimeSpan.FromMinutes(30));
 
             // Guardar en Redis como JSON
-            var redisValue = JsonSerializer.Serialize(tarjetaResponse);
+            var redisValue = JsonSerializer.Serialize(tarjetaModel);
             await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
             return tarjetaResponse;
@@ -143,41 +132,11 @@ public class TarjetaService : ITarjetaService
     {
         _logger.LogDebug($"Obteniendo tarjeta con número de tarjeta: {numeroTarjeta}");
         
-        var cacheKey = CacheKeyPrefix + numeroTarjeta;
-        
-        if (_memoryCache.TryGetValue(cacheKey, out Models.Tarjeta? cachedTarjeta))
-        {
-            _logger.LogDebug("Tarjeta obtenida de cache en memoria");
-            return cachedTarjeta.ToResponseFromModel();
-        }
-        
-        var redisCache = await _database.StringGetAsync(cacheKey);
-        if (!string.IsNullOrEmpty(redisCache))
-        {
-            _logger.LogInformation("Tarjeta obtenida desde Redis");
-            var tarjetaResponseFromRedis = JsonSerializer.Deserialize<TarjetaResponse>(redisCache);
-            if (tarjetaResponseFromRedis != null)
-            {
-                _memoryCache.Set(cacheKey, tarjetaResponseFromRedis, TimeSpan.FromMinutes(30));
-            }
-
-            return tarjetaResponseFromRedis;
-        }
-        
-        _logger.LogDebug("Buscando tarjeta en la base de datos");
         var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Numero == numeroTarjeta);
         if (tarjetaEntity != null)
         {
-            var tarjetaResponse = tarjetaEntity.ToResponseFromEntity();
-            var tarjeta = tarjetaEntity.ToModelFromEntity();
-            
-            _memoryCache.Set(cacheKey, tarjeta, TimeSpan.FromMinutes(30));
-
-            var redisValue = JsonSerializer.Serialize(tarjetaResponse);
-            await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
-            
             _logger.LogInformation($"Tarjeta encontrada con numero: {numeroTarjeta}");
-            return tarjetaResponse;
+            return tarjetaEntity.ToResponseFromEntity();
         }
         
         _logger.LogInformation($"Tarjeta no encontrada con numero: {numeroTarjeta}");
@@ -187,16 +146,37 @@ public class TarjetaService : ITarjetaService
     public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest)
     {
         _logger.LogDebug("Creando una nueva tarjeta");
+        
+        _logger.LogInformation($"Validando que la cuenta con guid {tarjetaRequest.CuentaGuid} existe");
+        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == tarjetaRequest.CuentaGuid);
+        if (cuentaEntity == null)
+        {
+            _logger.LogWarning($"Cuenta con guid: {tarjetaRequest.CuentaGuid} no encontrada");
+            throw new CuentaNotFoundException("Cuenta no encontrada");
+        }
+        
+        _logger.LogInformation($"Validando que la cuenta con guid {tarjetaRequest.CuentaGuid} no tiene tarjeta asignada");
+        if (cuentaEntity.TarjetaId != null)
+        {
+            _logger.LogWarning($"La cuenta con guid: {cuentaEntity.Guid} ya tiene una tarjeta asignada");
+            throw new CuentaException($"La cuenta con guid: {cuentaEntity.Guid} ya tiene una tarjeta asignada");
+        }
+        
+        _cardLimitValidators.ValidarLimite(tarjetaRequest.LimiteDiario, tarjetaRequest.LimiteSemanal, tarjetaRequest.LimiteMensual);
 
-        var tarjeta = tarjetaRequest.ToModelFromRequest();
-        
-        tarjeta.Numero = _tarjetaGenerator.GenerarTarjeta();
-        tarjeta.Cvv = _cvvGenerator.GenerarCvv();
-        tarjeta.FechaVencimiento = _expDateGenerator.GenerarExpDate();
-        
-        var tarjetaEntity = tarjeta.ToEntityFromModel();
+        var tarjetaEntity = new TarjetaEntity
+        {
+            Pin = tarjetaRequest.Pin,
+            LimiteDiario = tarjetaRequest.LimiteDiario,
+            LimiteSemanal = tarjetaRequest.LimiteSemanal,
+            LimiteMensual = tarjetaRequest.LimiteMensual,
+        };
         
         _context.Tarjetas.Add(tarjetaEntity);
+        await _context.SaveChangesAsync();
+        
+        cuentaEntity.TarjetaId = tarjetaEntity.Id;
+        _context.Cuentas.Update(cuentaEntity);
         await _context.SaveChangesAsync();
         
         var tarjetaModel = tarjetaEntity.ToModelFromEntity();
@@ -204,7 +184,7 @@ public class TarjetaService : ITarjetaService
         _memoryCache.Set(cacheKey, tarjetaModel);
         
         // Guardar la tarjeta 
-        var serializedUser = JsonSerializer.Serialize(tarjetaModel.ToResponseFromModel());
+        var serializedUser = JsonSerializer.Serialize(tarjetaModel);
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30));
         
         _logger.LogDebug($"Tarjeta creada correctamente con id: {tarjetaEntity.Id}");
@@ -212,7 +192,7 @@ public class TarjetaService : ITarjetaService
         return tarjetaEntity.ToResponseFromEntity();
     }
 
-    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequest dto)
+    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequestUpdate dto)
     {
         _logger.LogDebug($"Actualizando tarjeta con id: {guid}");
         var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
@@ -222,8 +202,8 @@ public class TarjetaService : ITarjetaService
             _logger.LogWarning($"Tarjeta con id: {guid} no encontrada");
             return null;
         }
-
-        _cardLimitValidators.ValidarLimite(dto);
+        
+        _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
 
         _logger.LogDebug("Actualizando tarjeta");
         tarjeta.Pin = dto.Pin;
@@ -231,18 +211,19 @@ public class TarjetaService : ITarjetaService
         tarjeta.LimiteSemanal = dto.LimiteSemanal;
         tarjeta.LimiteMensual = dto.LimiteMensual;
         tarjeta.UpdatedAt = DateTime.UtcNow;
+        //tarjeta.IsDeleted = dto.IsDeleted;
 
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + tarjeta.ToModelFromEntity().Guid;
+        var cacheKey = CacheKeyPrefix + tarjeta.Guid;
         
         _memoryCache.Remove(cacheKey);  
         await _database.KeyDeleteAsync(cacheKey);  
         
         var tarjetaModel = tarjeta.ToModelFromEntity();
         
-        var serializedUser = JsonSerializer.Serialize(tarjeta);
+        var serializedUser = JsonSerializer.Serialize(tarjetaModel);
         _memoryCache.Set(cacheKey, tarjetaModel, TimeSpan.FromMinutes(30));  
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30)); 
 
@@ -268,8 +249,14 @@ public class TarjetaService : ITarjetaService
 
         _context.Tarjetas.Update(tarjeta);
         await _context.SaveChangesAsync();
+
+        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta!.Guid == guid);
+        cuentaEntity!.TarjetaId = null;
+        cuentaEntity.Tarjeta = null;
+        _context.Cuentas.Update(cuentaEntity);
+        await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + tarjeta.ToModelFromEntity().Guid;
+        var cacheKey = CacheKeyPrefix + tarjeta.Guid;
         
         _memoryCache.Remove(cacheKey);
         await _database.KeyDeleteAsync(cacheKey);
@@ -281,14 +268,6 @@ public class TarjetaService : ITarjetaService
     public async Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando Tarjeta con guid: {guid}");
-        
-        var cacheKey = CacheKeyPrefix + guid;
-        
-        if (_memoryCache.TryGetValue(cacheKey, out Models.Tarjeta? cacheTarjeta))
-        {
-            _logger.LogInformation("Usuario obtenido desde la memoria caché");
-            return cacheTarjeta;
-        }
 
         var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
         if (tarjetaEntity != null)
@@ -304,14 +283,6 @@ public class TarjetaService : ITarjetaService
     public async Task<Models.Tarjeta?> GetTarjetaModelById(long id)
     {
         _logger.LogInformation($"Buscando Tarjeta con id: {id}");
-        
-        var cacheKey = CacheKeyPrefix + id;
-        
-        if (_memoryCache.TryGetValue(cacheKey, out Models.Tarjeta? cacheTarjeta))
-        {
-            _logger.LogInformation("Usuario obtenido desde la memoria caché");
-            return cacheTarjeta;
-        }
 
         var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == id);
         if (tarjetaEntity != null)

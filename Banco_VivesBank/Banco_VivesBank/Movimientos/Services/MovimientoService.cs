@@ -135,7 +135,7 @@ public class MovimientoService : IMovimientoService
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
-        if (cuenta.Saldo < importe)
+        if (BigInteger.Parse(cuenta.Saldo) < importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
             throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
@@ -287,7 +287,7 @@ public class MovimientoService : IMovimientoService
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
         
-        if (cuenta.Saldo < importe)
+        if (BigInteger.Parse(cuenta.Saldo) < importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
             throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
@@ -363,7 +363,7 @@ public class MovimientoService : IMovimientoService
         
         if (cuentaOrigen != null)
         {
-            if (cuentaOrigen.Saldo < importe)
+            if (BigInteger.Parse(cuentaOrigen.Saldo) < importe)
             {
                 _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} €");
                 throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} ���");
@@ -507,7 +507,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {movimiento.Transferencia.IbanDestino}");
         }
 
-        if (cuentaDestino.Saldo < movimiento.Transferencia.Importe)
+        if (BigInteger.Parse(cuentaDestino.Saldo) < movimiento.Transferencia.Importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
             throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
