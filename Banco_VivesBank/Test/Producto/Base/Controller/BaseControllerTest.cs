@@ -370,10 +370,10 @@ public class BaseControllerTests
         Assert.That(returnValue?[0], Is.EqualTo(expectedResponse));
     }
 
-    /*[Test]
+    [Test]
     public async Task ExportToCsv()
     {
-        var products = new List<ProductoResponse>
+        var products = new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>
         {
             new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
         };
@@ -388,7 +388,7 @@ public class BaseControllerTests
         Assert.That(fileResult.ContentType, Is.EqualTo("text/csv"));
         Assert.That(fileResult.FileDownloadName, Does.StartWith("productos_export_"));
         Assert.That(fileResult.FileDownloadName, Does.EndWith(".csv"));
-    }*/
+    }
     
     [Test]
     public async Task ImportFromCsvArchivoNull()
@@ -435,7 +435,7 @@ public class BaseControllerTests
             .Returns(Task.CompletedTask);
 
         _storageProductosMock.Setup(s => s.ImportProductosFromCsv(It.IsAny<FileInfo>()))
-            .Returns(new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>()); // No hay productos
+            .Returns(new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>());
 
         var result = await _controller.ImportFromCsv(formFile.Object);
 
@@ -468,11 +468,11 @@ public class BaseControllerTests
         Assert.That(objectResult?.Value, Is.EqualTo("Error al procesar el archivo: Error inesperado"));
     }
 
-    /*[Test]
+    [Test]
     public async Task ExportToCsvSinProductos()
     {
         _baseServiceMock.Setup(s => s.GetAllForStorage())
-            .ReturnsAsync(new List<ProductoResponse>());
+            .ReturnsAsync(new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>());
 
         var result = await _controller.ExportToCsv();
 
@@ -480,19 +480,20 @@ public class BaseControllerTests
         var okResult = result as OkObjectResult;
         Assert.That(okResult?.Value, Is.EqualTo("No hay productos para exportar"));
     }
-    
+
     [Test]
     public async Task ExportToCsvErrInterno()
     {
-        var products = new List<ProductoResponse>
+        var products = new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>
         {
             new() { Nombre = "Producto1", Descripcion = "Desc1", TipoProducto = "Tipo1", Tae = 5.5 }
         };
 
-        _baseServiceMock.Setup(s => s.GetAllAsync())
+        _baseServiceMock.Setup(s => s.GetAllForStorage())
             .ReturnsAsync(products);
 
-        _storageProductosMock.Setup(s => s.ExportProductosFromCsv(It.IsAny<FileInfo>(), It.IsAny<List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>>()))
+        _storageProductosMock.Setup(s => s.ExportProductosFromCsv(It.IsAny<FileInfo>(),
+                It.IsAny<List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>>()))
             .Throws(new Exception("Error al exportar"));
 
         var result = await _controller.ExportToCsv();
@@ -502,5 +503,4 @@ public class BaseControllerTests
         Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
         Assert.That(objectResult?.Value, Is.EqualTo("Error al exportar los productos: Error al exportar"));
     }
-    */
 }
