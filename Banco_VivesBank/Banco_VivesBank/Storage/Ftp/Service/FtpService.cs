@@ -54,7 +54,6 @@ public class FtpService : IFtpService
                 _logger.LogInformation($"Subida completada con estado: {response.StatusDescription}");
             }
 
-            // Verificar si el archivo se subió correctamente
             bool fileExists = await FileExistsAsync(uploadPath);
             if (!fileExists)
             {
