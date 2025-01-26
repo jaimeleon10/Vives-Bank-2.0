@@ -29,11 +29,21 @@ public class FtpService : IFtpService
         return request;
     }
 
+    public string GetFtpHost()
+    {
+        return $"{_ftpConfig.Host}:{_ftpConfig.Port}";
+    }
+
     public async Task UploadFileAsync(Stream inputStream, string uploadPath)
     {
         try
         {
+            _logger.LogInformation($"Intentando subir archivo a la ruta: {uploadPath}");
             var request = ConfigureFtpRequest(uploadPath, WebRequestMethods.Ftp.UploadFile);
+            
+            _logger.LogInformation(WebRequestMethods.Ftp.UploadFile);
+
+            _logger.LogInformation($"URI de la solicitud FTP: {request.RequestUri}");
             using (var requestStream = request.GetRequestStream())
             {
                 await inputStream.CopyToAsync(requestStream);
@@ -41,13 +51,39 @@ public class FtpService : IFtpService
 
             using (var response = (FtpWebResponse)await request.GetResponseAsync())
             {
-                _logger.LogInformation($"Upload completed with status: {response.StatusDescription}");
+                _logger.LogInformation($"Subida completada con estado: {response.StatusDescription}");
+            }
+
+            // Verificar si el archivo se subió correctamente
+            bool fileExists = await FileExistsAsync(uploadPath);
+            if (!fileExists)
+            {
+                _logger.LogError("El archivo no existe en el servidor después de la subida.");
+                throw new FtpException("El archivo no se encuentra en el servidor FTP.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error uploading file to FTP server: {ex.Message}");
+            _logger.LogError($"Error al subir el archivo al servidor FTP: {ex.Message}");
             throw new FtpException("Error al cargar el archivo al servidor FTP.");
+        }
+    }
+
+    public async Task<bool> FileExistsAsync(string filePath)
+    {
+        try
+        {
+            var request = ConfigureFtpRequest(filePath, WebRequestMethods.Ftp.GetFileSize);
+            using (var response = (FtpWebResponse)await request.GetResponseAsync())
+            {
+                _logger.LogInformation($"El archivo existe con un tamaño de: {response.ContentLength} bytes");
+                return true;
+            }
+        }
+        catch (WebException ex)
+        {
+            _logger.LogWarning($"El archivo no existe: {ex.Message}");
+            return false;
         }
     }
 
@@ -64,13 +100,13 @@ public class FtpService : IFtpService
                 if (responseStream != null)
                     await responseStream.CopyToAsync(fileStream);
 
-                _logger.LogInformation($"Download completed with status: {response.StatusDescription}");
+                _logger.LogInformation($"Descarga completada con estado: {response.StatusDescription}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error downloading file from FTP server: {ex.Message}");
-            throw new FtpException("Error al cargar el archivo al servidor FTP.");
+            _logger.LogError($"Error al descargar el archivo desde el servidor FTP: {ex.Message}");
+            throw new FtpException("Error al descargar el archivo desde el servidor FTP.");
         }
     }
 
@@ -82,13 +118,13 @@ public class FtpService : IFtpService
 
             using (var response = (FtpWebResponse)await request.GetResponseAsync())
             {
-                _logger.LogInformation($"Delete completed with status: {response.StatusDescription}");
+                _logger.LogInformation($"Eliminación completada con estado: {response.StatusDescription}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error deleting file from FTP server: {ex.Message}");
-            throw new FtpException("Error al cargar el archivo al servidor FTP.");
+            _logger.LogError($"Error al eliminar el archivo del servidor FTP: {ex.Message}");
+            throw new FtpException("Error al eliminar el archivo del servidor FTP.");
         }
     }
 }

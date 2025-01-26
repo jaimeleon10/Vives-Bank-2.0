@@ -6,6 +6,7 @@ using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
+using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
@@ -25,11 +26,12 @@ public class ClienteService : IClienteService
     private readonly ILogger<ClienteService> _logger;
     private readonly IUserService _userService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IFtpService _ftpService;
     private readonly IMemoryCache _memoryCache;
     private readonly IDatabase _redisDatabase;
     private const string CacheKeyPrefix = "Cliente:";
 
-    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService, IFileStorageService storageService, IMemoryCache memoryCache, IConnectionMultiplexer redis)
+    public ClienteService(GeneralDbContext context, ILogger<ClienteService> logger, IUserService userService, IFileStorageService storageService, IMemoryCache memoryCache, IConnectionMultiplexer redis, IFtpService ftpService)
     {
         _context = context;
         _logger = logger;
@@ -37,7 +39,8 @@ public class ClienteService : IClienteService
         _fileStorageService = storageService;
         _memoryCache = memoryCache;
         _redis = redis;
-        _redisDatabase = _redis.GetDatabase(); 
+        _database = _redis.GetDatabase(); 
+        _ftpService = ftpService;
     }
 
     public async Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellidos, string? dni, PageRequest page)
@@ -362,7 +365,7 @@ public class ClienteService : IClienteService
     public async Task<ClienteResponse?> UpdateFotoDni(string guid, IFormFile fotoDni)
     {
         _logger.LogInformation($"Actualizando foto del DNI del cliente con guid: {guid}");
-        
+
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
         if (clienteEntityExistente == null)
         {
@@ -371,17 +374,40 @@ public class ClienteService : IClienteService
         }
 
         var fotoAnterior = clienteEntityExistente.FotoDni;
-        if (clienteEntityExistente.FotoDni != "https://example.com/fotoDni.jpg")
+        if (fotoAnterior != "https://example.com/fotoDni.jpg")
         {
-            await _fileStorageService.DeleteFileAsync(fotoAnterior);
-            
+            try
+            {
+                await _ftpService.DeleteFileAsync(fotoAnterior);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error al eliminar la foto anterior del FTP: {ex.Message}");
+            }
         }
-        var nuevaFoto = await _fileStorageService.SaveFileAsync(fotoDni);
-        clienteEntityExistente.FotoDni= nuevaFoto;
+
+        var Path = "data";
+        
+        _logger.LogInformation($"Ruta final del archivo para subir: {Path}");
+
+        using (var stream = fotoDni.OpenReadStream())
+        {
+            try
+            {
+                await _ftpService.UploadFileAsync(stream, Path);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al subir la nueva foto al FTP: {ex.Message}");
+                throw;
+            }
+        }
+
+        clienteEntityExistente.FotoDni = Path;
         clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
         _context.Clientes.Update(clienteEntityExistente);
         await _context.SaveChangesAsync();
-        
+
         return clienteEntityExistente.ToResponseFromEntity();
     }
     

@@ -1,17 +1,21 @@
 using System.IO.Compression;
 using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Dto;
 using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.User.Dto;
+using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 
 namespace Banco_VivesBank.Storage.Zip.Services;
@@ -143,7 +147,14 @@ public class BackupService : IBackupService
                 //hacemos un bucle for ya que no hay un saveAll
                 foreach (var user in usuarios)
                 {
-                    await _userService.CreateAsync(user);
+                    try
+                    {
+                        await _userService.CreateAsync(user);
+                    }
+                    catch (UserExistException ex)
+                    {
+                        _logger.LogWarning($"Usuario duplicado encontrado: {user.Username}. Saltando...");
+                    }
                 }
             }
 
@@ -152,7 +163,14 @@ public class BackupService : IBackupService
                 var clientes = _storageJson.ImportJson<ClienteRequest>(clientesFile);
                 foreach (var cliente in clientes)
                 {
-                    await _clienteService.CreateAsync(cliente);
+                    try
+                    {
+                        await _clienteService.CreateAsync(cliente);
+                    }
+                    catch (ClienteExistsException e)
+                    {
+                        _logger.LogWarning($"Cliente duplicado encontrado: {cliente.Nombre}. Saltando...");
+                    }
                 }
             }
 
@@ -161,7 +179,14 @@ public class BackupService : IBackupService
                 var bases = _storageJson.ImportJson<ProductoRequest>(basesFile);
                 foreach (var baseEntity in bases)
                 {
-                    await _productoService.CreateAsync(baseEntity);
+                    try
+                    {
+                        await _baseService.CreateAsync(baseEntity);
+                    }
+                    catch (BaseDuplicateException e)
+                    {
+                        _logger.LogWarning($"Base duplicada encontrada: {baseEntity.Nombre}. Saltando...");
+                    }
                 }
             }
             
@@ -170,7 +195,14 @@ public class BackupService : IBackupService
                 var cuentas = _storageJson.ImportJson<CuentaRequest>(cuentasFile);
                 foreach (var cuentaDto in cuentas)
                 {
-                    await _cuentaService.CreateAsync(cuentaDto);
+                    try
+                    {
+                        await _cuentaService.CreateAsync(cuentaDto);
+                    }
+                    catch (CuentaException e)
+                    {
+                        _logger.LogWarning($"Cuenta duplicada encontrada: {cuentaDto.ClienteGuid}. Saltando...");
+                    }
                 }
             }
             
@@ -179,14 +211,20 @@ public class BackupService : IBackupService
                 var tarjetas = _storageJson.ImportJson<TarjetaRequest>(tarjetasFile);
                 foreach (var tarjetaDto in tarjetas)
                 {
-                    await _tarjetaService.CreateAsync(tarjetaDto);
+                    try
+                    {
+                        await _tarjetaService.CreateAsync(tarjetaDto);
+                    }
+                    catch (TarjetaException e)
+                    {
+                        _logger.LogWarning($"Tarjeta duplicada encontrada. Saltando...");
+                    }
                 }
             }
             
             if (movimientosFile.Exists)
             {
                 var movimientos = _storageJson.ImportJson<MovimientoRequest>(movimientosFile);
-                //buscamos primero que timpo de movimiento es y lo guardamos con su propio metodo
 
                 foreach (var movimiento in movimientos)
                 {

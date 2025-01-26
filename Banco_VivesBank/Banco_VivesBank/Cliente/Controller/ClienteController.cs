@@ -126,12 +126,23 @@ public class ClienteController : ControllerBase
         return Ok(clienteResponse);
     }
     
-    [HttpPatch("{guid}/foto_dni")]
+    [HttpPost("{guid}/foto_dni")]
     public async Task<ActionResult<ClienteResponse>> PatchFotoDni(string guid, IFormFile foto)
     {
-        var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+        if (foto == null || foto.Length == 0)
+        {
+            return BadRequest("Debe proporcionar una foto válida para actualizar el DNI.");
+        }
         
-        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto del dni del cliente con guid: {guid}");
-        return Ok(clienteResponse);
+        try
+        {
+            var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+            return Ok(clienteResponse);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(400, $"Ocurrió un error al actualizar la foto del DNI: {ex.Message}");
+        }
     }
+
 }
