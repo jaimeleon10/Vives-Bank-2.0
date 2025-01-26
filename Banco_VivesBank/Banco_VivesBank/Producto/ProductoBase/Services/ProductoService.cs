@@ -28,13 +28,6 @@ public class ProductoService : IProductoService
         _memoryCache = memoryCache; 
         _database = _redis.GetDatabase();  
     }
-    
-    public async Task<IEnumerable<ProductoResponse>> GetAllAsync()
-    {
-        _logger.LogDebug("Obteniendo todos los productos");
-        var baseEntityList = await _context.ProductoBase.ToListAsync();
-        return baseEntityList.ToResponseListFromEntityList();
-    }
 
     public async Task<PageResponse<ProductoResponse>> GetAllPagedAsync(PageRequest page)
     {
