@@ -46,7 +46,7 @@ public class CuentaService : ICuentaService
     }
 
     
-    public async Task<PageResponse<CuentaResponse>> GetAllAsync(BigInteger? saldoMax, BigInteger? saldoMin, string? tipoCuenta, PageRequest pageRequest)
+    public async Task<PageResponse<CuentaResponse>> GetAllAsync(double? saldoMax, double? saldoMin, string? tipoCuenta, PageRequest pageRequest)
     {
         _logger.LogInformation("Buscando todos las Cuentas en la base de datos");
         int pageNumber = pageRequest.PageNumber >= 0 ? pageRequest.PageNumber : 0;

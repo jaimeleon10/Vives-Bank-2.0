@@ -38,7 +38,7 @@ public class MovimientoController : ControllerBase
     [HttpGet("cliente/{clienteGuid}")]
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetByClienteGuid(string clienteGuid)
     {
-        return Ok(await _movimientoService.GetByGuidAsync(clienteGuid));
+        return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
     }
 
     [HttpPost("domiciliacion")]

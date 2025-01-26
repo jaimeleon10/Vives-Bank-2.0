@@ -45,6 +45,7 @@ public class MovimientoService : IMovimientoService
     {
         _logger.LogInformation("Buscando todos los movimientos en la base de datos");
         var movimientos = await _movimientoCollection.Find(_ => true).ToListAsync();
+        _logger.LogInformation("1");
         return movimientos.Select(mov => mov.ToResponseFromModel(
             mov.Domiciliacion.ToResponseFromModel(),
             mov.IngresoNomina.ToResponseFromModel(),
@@ -57,7 +58,6 @@ public class MovimientoService : IMovimientoService
     {
         _logger.LogInformation($"Buscando movimiento con guid: {guid}");
         
-        _logger.LogInformation($"Buscando movimiento con guid: {guid} en la base de datos");
         var movimiento = await _movimientoCollection.Find(m => m.Guid == guid).FirstOrDefaultAsync();
         
         if (movimiento != null)
@@ -131,11 +131,11 @@ public class MovimientoService : IMovimientoService
         }
         
         _logger.LogInformation($"Validando saldo suficiente respecto al importe de: {domiciliacionRequest.Importe} €");
-        if (!BigInteger.TryParse(domiciliacionRequest.Importe, out var importe))
+        if (!double.TryParse(domiciliacionRequest.Importe, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
-        if (BigInteger.Parse(cuenta.Saldo) < importe)
+        if (double.Parse(cuenta.Saldo) < importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
             throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
@@ -206,7 +206,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {ingresoNominaRequest.IbanCliente}");
         }
         
-        if (!BigInteger.TryParse(ingresoNominaRequest.Importe, out var importe))
+        if (!double.TryParse(ingresoNominaRequest.Importe, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
@@ -282,12 +282,12 @@ public class MovimientoService : IMovimientoService
         }
         
         _logger.LogInformation($"Validando saldo suficiente en la cuenta con guid: {cuenta.Guid} perteneciente a la tarjeta con guid: {tarjeta.Guid}");
-        if (!BigInteger.TryParse(pagoConTarjetaRequest.Importe, out var importe))
+        if (!double.TryParse(pagoConTarjetaRequest.Importe, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
         
-        if (BigInteger.Parse(cuenta.Saldo) < importe)
+        if (double.Parse(cuenta.Saldo) < importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
             throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
@@ -356,14 +356,14 @@ public class MovimientoService : IMovimientoService
         _logger.LogInformation("Validando saldo suficiente en la cuenta de origen en caso de pertenecer a VivesBank");
         var cuentaOrigen = await _cuentaService.GetByIbanAsync(transferenciaRequest.IbanOrigen);
         
-        if (!BigInteger.TryParse(transferenciaRequest.Importe, out var importe))
+        if (!double.TryParse(transferenciaRequest.Importe, out var importe))
         {
             throw new MovimientoException("El importe proporcionado no es un número entero válido.");
         }
         
         if (cuentaOrigen != null)
         {
-            if (BigInteger.Parse(cuentaOrigen.Saldo) < importe)
+            if (double.Parse(cuentaOrigen.Saldo) < importe)
             {
                 _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} €");
                 throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} ���");
@@ -507,7 +507,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {movimiento.Transferencia.IbanDestino}");
         }
 
-        if (BigInteger.Parse(cuentaDestino.Saldo) < movimiento.Transferencia.Importe)
+        if (double.Parse(cuentaDestino.Saldo) < movimiento.Transferencia.Importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
             throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
