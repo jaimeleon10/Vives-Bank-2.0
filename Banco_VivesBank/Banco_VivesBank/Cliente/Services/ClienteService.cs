@@ -7,6 +7,7 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Storage.Ftp.Service;
+using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
@@ -39,7 +40,6 @@ public class ClienteService : IClienteService
         _fileStorageService = storageService;
         _memoryCache = memoryCache;
         _redis = redis;
-        _database = _redis.GetDatabase(); 
         _ftpService = ftpService;
     }
 
@@ -339,7 +339,7 @@ public class ClienteService : IClienteService
     public async Task<ClienteResponse?> UpdateFotoPerfil(string guid, IFormFile fotoPerfil)
     {
         _logger.LogInformation($"Actualizando foto de perfil del cliente con guid: {guid}");
-        
+    
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
         if (clienteEntityExistente == null)
         {
@@ -350,15 +350,22 @@ public class ClienteService : IClienteService
         var fotoAnterior = clienteEntityExistente.FotoPerfil;
         if (clienteEntityExistente.FotoPerfil != "https://example.com/fotoPerfil.jpg")
         {
-            await _fileStorageService.DeleteFileAsync(fotoAnterior);
-            
+            try
+            {
+                await _fileStorageService.DeleteFileAsync(fotoAnterior);
+            }
+            catch (FileStorageNotFoundException)
+            {
+                _logger.LogInformation($"Archivo no encontrado, omitiendo la eliminación: {fotoAnterior}");
+            }
         }
+
         var nuevaFoto = await _fileStorageService.SaveFileAsync(fotoPerfil);
         clienteEntityExistente.FotoPerfil = nuevaFoto;
         clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
         _context.Clientes.Update(clienteEntityExistente);
         await _context.SaveChangesAsync();
-        
+    
         return clienteEntityExistente.ToResponseFromEntity();
     }
 
