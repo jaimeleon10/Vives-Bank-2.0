@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Storage.Ftp.Exceptions;
-using Banco_VivesBank.Storage.Ftp.Service;
 using Microsoft.Extensions.Options;
 
 namespace Banco_VivesBank.Storage.Ftp.Service;
@@ -17,7 +16,7 @@ public class FtpService : IFtpService
         _logger = logger;
     }
 
-    public virtual FtpWebRequest ConfigureFtpRequest(string path, string method)
+    public virtual FtpWebRequest ConfigureFtpConsulta(string path, string method)
     {
         var request = (FtpWebRequest)WebRequest.Create(new Uri($"ftp://{_ftpConfig.Host}:{_ftpConfig.Port}/{path}"));
         request.Credentials = new NetworkCredential("admin", "password");
@@ -29,21 +28,16 @@ public class FtpService : IFtpService
         return request;
     }
 
-    public string GetFtpHost()
-    {
-        return $"{_ftpConfig.Host}:{_ftpConfig.Port}";
-    }
-
     public async Task UploadFileAsync(Stream inputStream, string uploadPath)
     {
         try
         {
-            _logger.LogInformation($"Intentando subir archivo a la ruta: {uploadPath}");
-            var request = ConfigureFtpRequest(uploadPath, WebRequestMethods.Ftp.UploadFile);
-            
-            _logger.LogInformation(WebRequestMethods.Ftp.UploadFile);
+            _logger.LogInformation($"Ruta completa FTP: ftp://{_ftpConfig.Host}:{_ftpConfig.Port}/{uploadPath}");
 
-            _logger.LogInformation($"URI de la solicitud FTP: {request.RequestUri}");
+            await ChekDirectorioExiste("data");
+
+            var request = ConfigureFtpConsulta(uploadPath, WebRequestMethods.Ftp.UploadFile);
+        
             using (var requestStream = request.GetRequestStream())
             {
                 await inputStream.CopyToAsync(requestStream);
@@ -52,45 +46,23 @@ public class FtpService : IFtpService
             using (var response = (FtpWebResponse)await request.GetResponseAsync())
             {
                 _logger.LogInformation($"Subida completada con estado: {response.StatusDescription}");
-            }
-
-            bool fileExists = await FileExistsAsync(uploadPath);
-            if (!fileExists)
-            {
-                _logger.LogError("El archivo no existe en el servidor después de la subida.");
-                throw new FtpException("El archivo no se encuentra en el servidor FTP.");
+            
+                bool exists = await CheckFileExiste(uploadPath);
+                _logger.LogInformation($"Archivo existe después de subir: {exists}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error al subir el archivo al servidor FTP: {ex.Message}");
-            throw new FtpException("Error al cargar el archivo al servidor FTP.");
+            _logger.LogError($"Error detallado al subir: {ex.GetType()}: {ex.Message}");
+            throw;
         }
     }
-
-    public async Task<bool> FileExistsAsync(string filePath)
-    {
-        try
-        {
-            var request = ConfigureFtpRequest(filePath, WebRequestMethods.Ftp.GetFileSize);
-            using (var response = (FtpWebResponse)await request.GetResponseAsync())
-            {
-                _logger.LogInformation($"El archivo existe con un tamaño de: {response.ContentLength} bytes");
-                return true;
-            }
-        }
-        catch (WebException ex)
-        {
-            _logger.LogWarning($"El archivo no existe: {ex.Message}");
-            return false;
-        }
-    }
-
+    
     public async Task DownloadFileAsync(string remoteFilePath, string localFilePath)
     {
         try
         {
-            var request = ConfigureFtpRequest(remoteFilePath, WebRequestMethods.Ftp.DownloadFile);
+            var request = ConfigureFtpConsulta(remoteFilePath, WebRequestMethods.Ftp.DownloadFile);
 
             using (var response = (FtpWebResponse)await request.GetResponseAsync())
             using (var responseStream = response.GetResponseStream())
@@ -108,12 +80,12 @@ public class FtpService : IFtpService
             throw new FtpException("Error al descargar el archivo desde el servidor FTP.");
         }
     }
-
+    
     public async Task DeleteFileAsync(string remoteFilePath)
     {
         try
         {
-            var request = ConfigureFtpRequest(remoteFilePath, WebRequestMethods.Ftp.DeleteFile);
+            var request = ConfigureFtpConsulta(remoteFilePath, WebRequestMethods.Ftp.DeleteFile);
 
             using (var response = (FtpWebResponse)await request.GetResponseAsync())
             {
@@ -124,6 +96,56 @@ public class FtpService : IFtpService
         {
             _logger.LogError($"Error al eliminar el archivo del servidor FTP: {ex.Message}");
             throw new FtpException("Error al eliminar el archivo del servidor FTP.");
+        }
+    }
+    
+    private async Task ChekDirectorioExiste(string directoryPath)
+    {
+        try
+        {
+            var request = ConfigureFtpConsulta(directoryPath, WebRequestMethods.Ftp.MakeDirectory);
+            using (var response = (FtpWebResponse)await request.GetResponseAsync())
+            {
+                _logger.LogInformation($"Directorio creado/verificado: {response.StatusDescription}");
+            }
+        }
+        catch (WebException ex)
+        {
+            var response = (FtpWebResponse)ex.Response;
+            if (response.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+            {
+                _logger.LogInformation($"Directorio ya existe: {directoryPath}");
+            }
+            else
+            {
+                _logger.LogError($"Error creando directorio: {ex.Message}");
+                throw;
+            }
+        }
+    }
+    
+    public async Task<bool> CheckFileExiste(string filePath)
+    {
+        try
+        {
+            var request = ConfigureFtpConsulta(filePath, WebRequestMethods.Ftp.GetFileSize);
+            using (var response = (FtpWebResponse)await request.GetResponseAsync())
+            {
+                _logger.LogInformation($"El archivo existe con un tamaño de: {response.ContentLength} bytes");
+                return true;
+            }
+        }
+        catch (WebException ex)
+        {
+            var response = ex.Response as FtpWebResponse;
+            if (response?.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+            {
+                _logger.LogWarning($"El archivo no existe: {filePath}");
+                return false;
+            }
+       
+            _logger.LogError($"Error al verificar existencia de archivo: {ex.Message}");
+            throw;
         }
     }
 }
