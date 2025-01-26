@@ -18,19 +18,19 @@ namespace Banco_VivesBank.Cliente.Controller;
 public class ClienteController : ControllerBase
 {
     private readonly IClienteService _clienteService;
-    /*private readonly IPdfStorage _pdfStorage;
-    private readonly IMovimientoService _movimientoService;*/
+    private readonly IPdfStorage _pdfStorage;
+    private readonly IMovimientoService _movimientoService;
     private readonly PaginationLinksUtils _paginationLinksUtils;
 
 
     public ClienteController(IClienteService clienteService, PaginationLinksUtils paginations
-        //, IPdfStorage pdfStorage, IMovimientoService movimientoService
+        , IPdfStorage pdfStorage, IMovimientoService movimientoService
         )
     {
         _clienteService = clienteService;
         _paginationLinksUtils = paginations;
-        /*_pdfStorage = pdfStorage;
-        _movimientoService = movimientoService;*/
+        _pdfStorage = pdfStorage;
+        _movimientoService = movimientoService;
     }
     
     
@@ -157,8 +157,25 @@ public class ClienteController : ControllerBase
         }
     }
 
-    /*
-    [HttpGet("{guid}/movimientos-pdf")]
+    [HttpGet("{guid}/foto_dni")]
+    public async Task<IActionResult> GetFotoDni(string guid)
+    {
+        try
+        {
+            var fotoStream = await _clienteService.GetFotoDniAsync(guid);
+        
+            if (fotoStream == null)
+                return NotFound("No se encontró la foto del DNI para este cliente.");
+
+            return File(fotoStream, "image/jpeg");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error interno al recuperar la foto del DNI.");
+        }
+    }
+    
+    [HttpGet("{guid}/movimientos_pdf")]
     public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos(string guid)
     {
         var clienteResponse = await _clienteService.GetByGuidAsync(guid);
@@ -175,6 +192,5 @@ public class ClienteController : ControllerBase
         _pdfStorage.ExportPDF(clienteResponse, movimientosList);
         return Ok(movimientosList);
     }
-*/
 
 }
