@@ -7,8 +7,8 @@ namespace Banco_VivesBank.Producto.Cuenta.Services;
 public interface ICuentaService
 {
     public Task<PageResponse<CuentaResponse>> GetAllAsync(
-        BigInteger? saldoMax, 
-        BigInteger? saldoMin,
+        double? saldoMax, 
+        double? saldoMin,
         String? tipoCuenta, 
         PageRequest pageRequest);
     

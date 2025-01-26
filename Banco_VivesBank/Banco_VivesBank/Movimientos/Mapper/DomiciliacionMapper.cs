@@ -14,6 +14,7 @@ public static class DomiciliacionMapper
         
         return new DomiciliacionResponse()
         {
+            Guid = domiciliacion.Guid,
             ClienteGuid = domiciliacion.ClienteGuid,
             Acreedor = domiciliacion.Acreedor,
             IbanEmpresa = domiciliacion.IbanEmpresa,

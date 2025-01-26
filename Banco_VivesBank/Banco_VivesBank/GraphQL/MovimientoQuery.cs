@@ -7,14 +7,19 @@ namespace Banco_VivesBank.GraphQL;
 public sealed class MovimientoQuery : ObjectGraphType
 {
     private readonly IMovimientoService _movimientoService;
-    public MovimientoQuery(IMovimientoService movimientoService)
+    private readonly ILogger<MovimientoQuery> _logger;
+    
+    public MovimientoQuery(IMovimientoService movimientoService, ILogger<MovimientoQuery> logger)
     {
         _movimientoService = movimientoService;
+        _logger = logger;
 
         Field<ListGraphType<MovimientoType>>("movimientos")
             .ResolveAsync(async context =>
             {
+                _logger.LogInformation("Obteniendo todos los movimientos con Graphql");
                 var movimientosResponse = await _movimientoService.GetAllAsync();
+                _logger.LogInformation($"Movimientos obtenidos con graphql: {movimientosResponse.Count()}");
                 return movimientosResponse;
             });
 

@@ -15,6 +15,7 @@ public static class MovimientoMapper
     {
         return new MovimientoResponse()
         {
+            Guid = movimiento.Guid,
             ClienteGuid = movimiento.ClienteGuid,
             Domiciliacion = domiciliacionResponse,
             IngresoNomina = ingresoNominaResponse,
