@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
@@ -66,7 +66,7 @@ namespace Banco_VivesBank.User.Service
                 .Take(pageSize)
                 .ToListAsync();
 
-            var totalPages = (int)Math.Ceiling((double) totalElements / pageSize);
+            var totalPages = (int)Math.Ceiling((double)totalElements / pageSize);
 
             var pageResponse = new PageResponse<UserResponse>
             {
@@ -165,6 +165,10 @@ namespace Banco_VivesBank.User.Service
 
             //Crear Usuario
             var userModel = userRequest.ToModelFromRequest();
+            
+            // Generar el hash con bcrypt
+            userModel.Password = BCrypt.Net.BCrypt.HashPassword(userRequest.Password);
+            
             var userEntity = userModel.ToEntityFromModel();
             _context.Usuarios.Add(userEntity);
             await _context.SaveChangesAsync();
@@ -180,7 +184,30 @@ namespace Banco_VivesBank.User.Service
             return userModel.ToResponseFromModel();
         }
 
-        public async Task<UserResponse?> UpdateAsync(string guid, UserRequest userRequest)
+        public async Task<UserResponse> UpdatePasswordAsync(string userGuid, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                _logger.LogWarning("La contraseña no puede estar vacía o contener solo espacios en blanco");
+                throw new UserException("La contraseña no puede estar vacía o contener solo espacios en blanco");
+            }
+            
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == userGuid);
+            if (userEntity == null)
+            {
+                _logger.LogWarning($"Usuario no encontrado con guid: {userGuid}");
+                throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+            }
+            
+            // Generar el hash con bcrypt
+            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            _context.Usuarios.Update(userEntity);
+            await _context.SaveChangesAsync();
+            
+            return userEntity.ToResponseFromEntity();
+        }
+
+        public async Task<UserResponse?> UpdateAsync(string guid, UserRequestUpdate userRequestUpdate)
         {
             _logger.LogInformation($"Actualizando usuario con guid: {guid}");
 
@@ -192,20 +219,19 @@ namespace Banco_VivesBank.User.Service
                 return null;
             }
 
-            if (userEntityExistente.Username != userRequest.Username)
+            if (userEntityExistente.Username != userRequestUpdate.Username)
             {
-                if (await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequest.Username.ToLower()))
+                if (await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequestUpdate.Username.ToLower()))
                 {
-                    _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequest.Username}");
-                    throw new UserExistException($"Ya existe un usuario con el nombre: {userRequest.Username}");
+                    _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequestUpdate.Username}");
+                    throw new UserExistException($"Ya existe un usuario con el nombre: {userRequestUpdate.Username}");
                 }
             }
 
-            userEntityExistente.Username = userRequest.Username;
-            userEntityExistente.Password = userRequest.Password;
-            userEntityExistente.Role = Enum.Parse<Role>(userRequest.Role, true);
+            userEntityExistente.Username = userRequestUpdate.Username;
+            userEntityExistente.Role = Enum.Parse<Role>(userRequestUpdate.Role, true);
             userEntityExistente.UpdatedAt = DateTime.UtcNow;
-            userEntityExistente.IsDeleted = userRequest.IsDeleted;
+            userEntityExistente.IsDeleted = userRequestUpdate.IsDeleted;
 
             _context.Usuarios.Update(userEntityExistente);
             await _context.SaveChangesAsync();
@@ -286,6 +312,21 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation("Buscando todos los usuarios en base de datos");
             var usersEntities = await _context.Usuarios.ToListAsync();
             return usersEntities.Select(UserMapper.ToModelFromEntity).ToList();
+        }
+
+        public async Task<Models.User?> GetUserModelByUsernameAsync(string username)
+        {
+            _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
+                return userEntity.ToModelFromEntity();
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
+            return null;
         }
     }
 }
