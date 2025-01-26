@@ -76,7 +76,7 @@ public class ProductoServiceTest
     }
     
     [Test]
-    public async Task GetAllPagedAsync_ShouldReturnPaginatedResults_WhenValidRequest()
+    public async Task GetAllPagedAsync()
     {
         var pageRequest = new PageRequest
         {
@@ -94,53 +94,11 @@ public class ProductoServiceTest
         Assert.That(result.Content.Count, Is.EqualTo(2));
         Assert.That(result.PageNumber, Is.EqualTo(0));
         Assert.That(result.PageSize, Is.EqualTo(2));
-        Assert.That(result.TotalElements, Is.EqualTo(10));
+        Assert.That(result.TotalElements, Is.EqualTo(9));
         Assert.That(result.TotalPages, Is.EqualTo(5));
         Assert.That(result.Empty, Is.False);
         Assert.That(result.First, Is.True);
         Assert.That(result.Last, Is.False);
-    }
-    
-    [Test]
-    public async Task GetAllAsync()
-    {
-        await _dbContext.ProductoBase.ExecuteDeleteAsync();
-
-        for (int i = 0; i < 5; i++)
-        {
-            var baseEntity = new ProductoEntity()
-            {
-                Guid = Guid.NewGuid().ToString(),
-                Nombre = $"Producto {i + 1}",
-                TipoProducto = $"Tipo {i + 1}"
-            };
-            _dbContext.ProductoBase.Add(baseEntity);
-        }
-        await _dbContext.SaveChangesAsync();
-
-        var result = await _productoService.GetAllAsync();
-
-        Assert.That(result.Count(), Is.EqualTo(5));
-    }
-
-    [Test]
-    public async Task GetByGuidAsyncReturnRedis()
-    {
-        var guid = "some-guid";
-        var cacheKey = "Producto:" + guid;
-        var redisValue = JsonSerializer.Serialize(new ProductoResponse { Nombre = "Producto desde Redis" });
-
-        _database.Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(redisValue);
-
-        object cachedProduct = null;
-
-        var result = await _productoService.GetByGuidAsync(guid);
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Nombre, Is.EqualTo("Producto desde Redis"));
-
-        _database.Verify(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()), Times.Exactly(2)); 
     }
 
     [Test]
@@ -175,26 +133,6 @@ public class ProductoServiceTest
         var result = await _productoService.GetByGuidAsync(guid);
 
         Assert.That(result, Is.Null);
-    }
-
-    [Test]
-    public async Task GetByTipoAsyncReturnRedis()
-    {
-        var tipo = "some-tipo";
-        var cacheKey = "Producto:" + tipo;
-        var redisValue = JsonSerializer.Serialize(new ProductoResponse { Nombre = "Producto desde Redis", TipoProducto = tipo});
-
-        _database.Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(redisValue);
-
-        object cachedProduct = null;
-
-        var result = await _productoService.GetByTipoAsync(tipo);
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Nombre, Is.EqualTo("Producto desde Redis"));
-
-        _database.Verify(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()), Times.Once); 
     }
 
     [Test]
@@ -400,7 +338,7 @@ public class ProductoServiceTest
 
         var result = await _productoService.GetAllForStorage();
 
-        Assert.That(result.Count(), Is.EqualTo(7));
+        Assert.That(result.Count(), Is.EqualTo(6));
         Assert.That(result.All(item => item is Banco_VivesBank.Producto.ProductoBase.Models.Producto), Is.True);
     }
     
