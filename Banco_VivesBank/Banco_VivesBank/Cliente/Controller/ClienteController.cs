@@ -6,6 +6,7 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Mapper;
 using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.Utils.Pagination;
@@ -132,10 +133,19 @@ public class ClienteController : ControllerBase
     [HttpPatch("{guid}/foto_perfil")]
     public async Task<ActionResult<ClienteResponse>> PatchFotoPerfil(string guid, IFormFile foto)
     {
-        var clienteResponse = await _clienteService.UpdateFotoPerfil(guid, foto);
-        
-        if (clienteResponse is null) return NotFound($"No se ha podido actualizar la foto de perfil del cliente con guid: {guid}");
-        return Ok(clienteResponse);
+        try
+        {
+            var clienteResponse = await _clienteService.UpdateFotoPerfil(guid, foto);
+
+            if (clienteResponse is null)
+                return NotFound($"No se ha podido actualizar la foto de perfil del cliente con GUID: {guid}");
+
+            return Ok(clienteResponse);
+        }
+        catch (FileStorageException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
     
     [HttpPost("{guid}/foto_dni")]

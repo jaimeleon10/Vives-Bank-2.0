@@ -24,6 +24,10 @@ public class FileStorageService : IFileStorageService
             throw new FileStorageException("El tamaño del fichero excede el máximo permitido.");
 
         var fileExtension = Path.GetExtension(file.FileName);
+
+        var mimeType = MimeTypes.GetMimeType(fileExtension);
+        _logger.LogInformation($"Detected MIME type: {mimeType}");
+
         if (!_fileStorageConfig.AllowedFileTypes.Contains(fileExtension))
             throw new FileStorageException("Tipo de fichero no permitido.");
 

@@ -339,7 +339,7 @@ public class ClienteService : IClienteService
     public async Task<ClienteResponse?> UpdateFotoPerfil(string guid, IFormFile fotoPerfil)
     {
         _logger.LogInformation($"Actualizando foto de perfil del cliente con guid: {guid}");
-    
+
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
         if (clienteEntityExistente == null)
         {
@@ -348,25 +348,47 @@ public class ClienteService : IClienteService
         }
 
         var fotoAnterior = clienteEntityExistente.FotoPerfil;
-        if (clienteEntityExistente.FotoPerfil != "https://example.com/fotoPerfil.jpg")
+
+        string nuevaFoto = null;
+        try
         {
-            try
-            {
-                await _fileStorageService.DeleteFileAsync(fotoAnterior);
-            }
-            catch (FileStorageNotFoundException)
-            {
-                _logger.LogInformation($"Archivo no encontrado, omitiendo la eliminación: {fotoAnterior}");
-            }
+            nuevaFoto = await _fileStorageService.SaveFileAsync(fotoPerfil);
+        }
+        catch (FileStorageException ex)
+        {
+            _logger.LogError($"Error al guardar la nueva foto de perfil: {ex.Message}");
+            throw new FileStorageException($"Error al guardar la foto: {ex.Message}");
         }
 
-        var nuevaFoto = await _fileStorageService.SaveFileAsync(fotoPerfil);
-        clienteEntityExistente.FotoPerfil = nuevaFoto;
-        clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
-        _context.Clientes.Update(clienteEntityExistente);
-        await _context.SaveChangesAsync();
-    
-        return clienteEntityExistente.ToResponseFromEntity();
+        if (nuevaFoto != null)
+        {
+            if (!string.IsNullOrEmpty(fotoAnterior) && fotoAnterior != "https://example.com/fotoPerfil.jpg")
+            {
+                try
+                {
+                    await _fileStorageService.DeleteFileAsync(fotoAnterior);
+                }
+                catch (FileStorageNotFoundException)
+                {
+                    _logger.LogInformation($"Archivo no encontrado, omitiendo la eliminación: {fotoAnterior}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error al intentar eliminar la foto anterior: {ex.Message}");
+                }
+            }
+
+            clienteEntityExistente.FotoPerfil = nuevaFoto;
+            clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
+            _context.Clientes.Update(clienteEntityExistente);
+            await _context.SaveChangesAsync();
+
+            return clienteEntityExistente.ToResponseFromEntity();
+        }
+        else
+        {
+            throw new FileStorageException("No se pudo guardar la foto de perfil.");
+        }
     }
 
     public async Task<ClienteResponse?> UpdateFotoDni(string guid, IFormFile fotoDni)
@@ -375,14 +397,33 @@ public class ClienteService : IClienteService
 
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User)
             .FirstOrDefaultAsync(c => c.Guid == guid);
-    
+
         if (clienteEntityExistente == null)
         {
             _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
             return null;
         }
 
-        if (!string.IsNullOrEmpty(clienteEntityExistente.FotoDni) && 
+        string fileExtension = Path.GetExtension(fotoDni.FileName);
+        string fileName = $"{clienteEntityExistente.Dni}{fileExtension}";
+        string uploadPath = $"data/{fileName}";
+
+        _logger.LogInformation($"Ruta final del archivo para subir: {uploadPath}");
+
+        try
+        {
+            using (var stream = fotoDni.OpenReadStream())
+            {
+                await _ftpService.UploadFileAsync(stream, uploadPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error al subir la nueva foto al FTP: {ex.Message}");
+            throw new InvalidOperationException("Error al subir la nueva foto al servidor FTP.", ex);
+        }
+
+        if (!string.IsNullOrEmpty(clienteEntityExistente.FotoDni) &&
             clienteEntityExistente.FotoDni != "https://example.com/fotoDni.jpg")
         {
             try
@@ -395,33 +436,15 @@ public class ClienteService : IClienteService
             }
         }
 
-        string fileExtension = Path.GetExtension(fotoDni.FileName);
-        string fileName = $"{clienteEntityExistente.Dni}{fileExtension}";
-        string uploadPath = $"data/{fileName}";
-
-        _logger.LogInformation($"Ruta final del archivo para subir: {uploadPath}");
-
-        using (var stream = fotoDni.OpenReadStream())
-        {
-            try
-            {
-                await _ftpService.UploadFileAsync(stream, uploadPath);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error al subir la nueva foto al FTP: {ex.Message}");
-                throw;
-            }
-        }
-
         clienteEntityExistente.FotoDni = uploadPath;
         clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
-    
+
         _context.Clientes.Update(clienteEntityExistente);
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation($"Foto del DNI del cliente con guid {guid} actualizada correctamente.");
         return clienteEntityExistente.ToResponseFromEntity();
-    }   
+    }
     
     public async Task<Stream> GetFotoDniAsync(string guid)
     {
