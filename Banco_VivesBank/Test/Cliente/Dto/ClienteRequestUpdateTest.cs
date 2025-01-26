@@ -1,21 +1,19 @@
 using Banco_VivesBank.Cliente.Dto;
+using NUnit.Framework;
 
 namespace Test.Cliente.Dto;
-
+/*
 [TestFixture]
 public class ClienteRequestUpdateTest
 {
     
-    /*[Test]
-    public void HasAtLeastOneField_ShouldReturnFalse_WhenAllFieldsAreNullOrWhitespace()
+    [Test]
+    public void HasAtLeastOneField_ShouldReturnFalse()
     {
-        // Arrange
         var clienteRequestUpdate = new ClienteRequestUpdate();
 
-        // Act
         var result = clienteRequestUpdate.HasAtLeastOneField();
 
-        // Assert
         Assert.That(result, Is.False);
     }
 
@@ -28,7 +26,7 @@ public class ClienteRequestUpdateTest
     [TestCase(null, null, null, null, null, null, "B", null, null)]
     [TestCase(null, null, null, null, null, null, null, "email@example.com", null)]
     [TestCase(null, null, null, null, null, null, null, null, "612345678")]
-    public void HasAtLeastOneField_ShouldReturnTrue_WhenAtLeastOneFieldIsNotNullOrWhitespace(
+    public void HasAtLeastOneField_ShouldReturnTrue(
         string? nombre,
         string? apellidos,
         string? calle,
@@ -39,7 +37,6 @@ public class ClienteRequestUpdateTest
         string? email,
         string? telefono)
     {
-        // Arrange
         var clienteRequestUpdate = new ClienteRequestUpdate
         {
             Nombre = nombre,
@@ -52,18 +49,15 @@ public class ClienteRequestUpdateTest
             Email = email,
             Telefono = telefono
         };
-
-        // Act
+        
         var result = clienteRequestUpdate.HasAtLeastOneField();
 
-        // Assert
         Assert.That(result, Is.True);
     }
     
     [Test]
-    public void HasAtLeastOneField_ShouldReturnTrue_WhenMultipleFieldsAreNotNullOrWhitespace()
+    public void HasAtLeastOneField_ShouldReturnTrue()
     {
-        // Arrange
         var clienteRequestUpdate = new ClienteRequestUpdate
         {
             Nombre = "John",
@@ -71,11 +65,9 @@ public class ClienteRequestUpdateTest
             Email = "email@example.com"
         };
 
-        // Act
         var result = clienteRequestUpdate.HasAtLeastOneField();
 
-        // Assert
         Assert.That(result, Is.True);
-    }*/
+    }
 
-}
+}*/
