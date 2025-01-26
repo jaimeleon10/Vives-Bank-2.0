@@ -36,7 +36,7 @@ public class CuentaAdminControllerTests
         };
 
         _cuentaService
-            .Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+            .Setup(service => service.GetAllAsync(It.IsAny<double?>(), It.IsAny<double?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ReturnsAsync(expectedResponse);
 
         var baseUri = new Uri("https://localhost");
@@ -54,10 +54,10 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAllNotFound()
     {
-        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<double?>(), It.IsAny<double?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ThrowsAsync(new CuentaNotFoundException("No se han encontrado las cuentas."));
 
-        var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
+        var result = await _cuentaController.Getall(It.IsAny<double?>(), It.IsAny<double?>(), It.IsAny<string>(), It.IsAny<int>());
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
         
         var objectResult = result.Result as ObjectResult;
@@ -67,10 +67,10 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAll500()
     {
-        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
+        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<double?>(), It.IsAny<double?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
             .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
 
-        var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
+        var result = await _cuentaController.Getall(It.IsAny<double?>(), It.IsAny<double?>(), It.IsAny<string>(), It.IsAny<int>());
         Assert.That(result.Result, Is.TypeOf<ObjectResult>());
         
         var objectResult = result.Result as ObjectResult;
