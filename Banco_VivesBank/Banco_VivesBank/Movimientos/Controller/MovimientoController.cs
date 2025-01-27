@@ -42,19 +42,19 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpGet("domiciliacion")]
-    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetAllDomiciliaciones()
+    public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetAllDomiciliaciones()
     {
         return Ok(await _movimientoService.GetAllDomiciliacionesAsync());
     }
     
     [HttpGet("domiciliacion/{clienteGuid}")]
-    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetDomiciliacionesByClienteGuid(string clienteGuid)
+    public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetDomiciliacionesByClienteGuid(string clienteGuid)
     {
         return Ok(await _movimientoService.GetDomiciliacionesByClienteGuidAsync(clienteGuid));
     }
 
     [HttpPost("domiciliacion")]
-    public async Task<ActionResult<MovimientoResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)
+    public async Task<ActionResult<DomiciliacionResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -80,7 +80,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("ingresoNomina")]
-    public async Task<ActionResult<MovimientoResponse>> CreateIngresoNomina([FromBody] IngresoNominaRequest ingresoNominaRequest)
+    public async Task<ActionResult<IngresoNominaResponse>> CreateIngresoNomina([FromBody] IngresoNominaRequest ingresoNominaRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -102,7 +102,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("pagoConTarjeta")]
-    public async Task<ActionResult<MovimientoResponse>> CreatePagoConTarjeta([FromBody] PagoConTarjetaRequest pagoConTarjetaRequest)
+    public async Task<ActionResult<PagoConTarjetaResponse>> CreatePagoConTarjeta([FromBody] PagoConTarjetaRequest pagoConTarjetaRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -128,7 +128,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("transferencia")]
-    public async Task<ActionResult<MovimientoResponse>> CreateTransferencia([FromBody] TransferenciaRequest transferenciaRequest)
+    public async Task<ActionResult<TransferenciaResponse>> CreateTransferencia([FromBody] TransferenciaRequest transferenciaRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -150,7 +150,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("transferencia/revocar/{movimientoGuid}")]
-    public async Task<ActionResult<MovimientoResponse>> RevocarTransferencia(string movimientoGuid)
+    public async Task<ActionResult<TransferenciaResponse>> RevocarTransferencia(string movimientoGuid)
     {
         try
         {
