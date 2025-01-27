@@ -40,6 +40,18 @@ public class MovimientoController : ControllerBase
     {
         return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
     }
+    
+    [HttpGet("domiciliacion")]
+    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetAllDomiciliaciones()
+    {
+        return Ok(await _movimientoService.GetAllDomiciliacionesAsync());
+    }
+    
+    [HttpGet("domiciliacion/{clienteGuid}")]
+    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetDomiciliacionesByClienteGuid(string clienteGuid)
+    {
+        return Ok(await _movimientoService.GetDomiciliacionesByClienteGuidAsync(clienteGuid));
+    }
 
     [HttpPost("domiciliacion")]
     public async Task<ActionResult<MovimientoResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)

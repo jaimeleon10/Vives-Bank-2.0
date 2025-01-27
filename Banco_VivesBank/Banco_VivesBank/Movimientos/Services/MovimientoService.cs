@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Numerics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
@@ -84,7 +82,7 @@ public class MovimientoService : IMovimientoService
         var redisCacheValue = await _redisDatabase.StringGetAsync(cacheKey);
         if (!redisCacheValue.IsNullOrEmpty)
         {
-            _logger.LogInformation("Usuario obtenido desde Redis");
+            _logger.LogInformation("Movimiento obtenido desde Redis");
             var movFromRedis = JsonSerializer.Deserialize<Movimiento>(redisCacheValue!);
             if (movFromRedis == null)
             {
@@ -117,7 +115,7 @@ public class MovimientoService : IMovimientoService
         return null;
     }
 
-    public async Task<IEnumerable<MovimientoResponse?>> GetByClienteGuidAsync(string clienteGuid)
+    public async Task<IEnumerable<MovimientoResponse>> GetByClienteGuidAsync(string clienteGuid)
     {
         _logger.LogInformation($"Buscando todos los movimientos del cliente con guid: {clienteGuid}");
         var movimientos = await _movimientoCollection.Find(mov => mov.ClienteGuid == clienteGuid).ToListAsync();
@@ -127,6 +125,20 @@ public class MovimientoService : IMovimientoService
             mov.PagoConTarjeta.ToResponseFromModel(),
             mov.Transferencia.ToResponseFromModel()
         ));
+    }
+
+    public async Task<IEnumerable<DomiciliacionResponse>> GetAllDomiciliacionesAsync()
+    {
+        _logger.LogInformation("Buscando todas las domiciliaciones en la base de datos");
+        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+        return domiciliaciones.Select(mov => mov.ToResponseFromModel());
+    }
+
+    public async Task<IEnumerable<DomiciliacionResponse>> GetDomiciliacionesByClienteGuidAsync(string clienteGuid)
+    {
+        _logger.LogInformation($"Buscando todas las domiciliaciones del cliente con guid: {clienteGuid}");
+        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
+        return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
     public async Task CreateAsync(MovimientoRequest movimientoRequest)
