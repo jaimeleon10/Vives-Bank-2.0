@@ -20,7 +20,9 @@ public class DomiciliacionRequest
     public string IbanCliente { get; set; }
     
     [Required(ErrorMessage = "El importe es un campo obligatorio.")]
+    [Range(0, double.MaxValue, ErrorMessage = "El importe debe ser un número positivo")]
     public double Importe { get; set; }
+    
     
     public string Periodicidad { get; set; } = Models.Periodicidad.Semanal.GetType().ToString();
 

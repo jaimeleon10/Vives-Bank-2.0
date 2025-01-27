@@ -21,4 +21,8 @@ public class Transferencia
     [BsonElement("importe")]
     [JsonPropertyName("importe")]
     public required double Importe { get; set; }
+
+    [BsonElement("revocada")]
+    [JsonPropertyName("revocada")]
+    public bool Revocada { get; set; } = false;
 }

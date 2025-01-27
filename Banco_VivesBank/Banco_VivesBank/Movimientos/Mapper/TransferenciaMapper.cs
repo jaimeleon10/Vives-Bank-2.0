@@ -16,7 +16,8 @@ public static class TransferenciaMapper
             IbanOrigen = transferencia.IbanOrigen,
             NombreBeneficiario = transferencia.NombreBeneficiario,
             IbanDestino = transferencia.IbanDestino,
-            Importe = transferencia.Importe.ToString(),
+            Importe = transferencia.Importe,
+            Revocada = transferencia.Revocada
         };
     }
 }

@@ -137,7 +137,7 @@ public class MovimientoController : ControllerBase
         }
     }
     
-    [HttpPost("transferencia/revocar")]
+    [HttpPost("transferencia/revocar/{movimientoGuid}")]
     public async Task<ActionResult<MovimientoResponse>> RevocarTransferencia(string movimientoGuid)
     {
         try
