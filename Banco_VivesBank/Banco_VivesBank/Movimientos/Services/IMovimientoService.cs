@@ -11,6 +11,7 @@ public interface IMovimientoService
     public Task<IEnumerable<DomiciliacionResponse>> GetAllDomiciliacionesAsync();
     public Task<IEnumerable<DomiciliacionResponse>> GetDomiciliacionesByClienteGuidAsync(string clienteGuid);
     // TODO -> Función para cobrar las domiciliaciones
+    public Task CreateAsync(MovimientoRequest movimientoRequest);
     public Task<DomiciliacionResponse> CreateDomiciliacionAsync(DomiciliacionRequest domiciliacionRequest);
     public Task<IngresoNominaResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNomina);
     public Task<PagoConTarjetaResponse> CreatePagoConTarjetaAsync(PagoConTarjetaRequest pagoConTarjeta);

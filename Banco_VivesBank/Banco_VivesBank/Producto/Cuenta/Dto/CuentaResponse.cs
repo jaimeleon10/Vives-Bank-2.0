@@ -9,7 +9,7 @@ public class CuentaResponse
     
     public required string Iban { get; set; } 
     
-    public string Saldo { get; set; }
+    public double Saldo { get; set; }
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TarjetaGuid { get; set; }

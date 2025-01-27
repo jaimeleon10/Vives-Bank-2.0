@@ -1,30 +1,30 @@
-﻿using Banco_VivesBank.Movimientos.Database;
+﻿using Banco_VivesBank.Database;
+using Banco_VivesBank.Movimientos.Database;
+using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Models;
-using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Movimientos.Services;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace Banco_VivesBank.Movimientos.utils;
 
 public class DomiciliacionScheduler : BackgroundService
 {
     private readonly ILogger<DomiciliacionScheduler> _logger;
-    private readonly IMongoCollection<Movimiento> _movimientoCollection;
     private readonly IMongoCollection<Domiciliacion> _domiciliacionCollection;
-    private readonly ICuentaService _cuentaService;
-
-    public DomiciliacionScheduler(
-        IOptions<MovimientosMongoConfig> movimientosDatabaseSettings,
-        ILogger<DomiciliacionScheduler> logger,
-        ICuentaService cuentaService)
+    private readonly GeneralDbContext _context;
+    private readonly IMovimientoService _movimientoService;
+    
+    public DomiciliacionScheduler(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<DomiciliacionScheduler> logger, GeneralDbContext context, IMovimientoService movimientoService)
     {
         _logger = logger;
-        _cuentaService = cuentaService;
+        _context = context;
+        _movimientoService = movimientoService;
         var mongoClient = new MongoClient(movimientosDatabaseSettings.Value.ConnectionString);
         var mongoDatabase = mongoClient.GetDatabase(movimientosDatabaseSettings.Value.DatabaseName);
-        _movimientoCollection = mongoDatabase.GetCollection<Movimiento>(movimientosDatabaseSettings.Value.MovimientosCollectionName);
         _domiciliacionCollection = mongoDatabase.GetCollection<Domiciliacion>(movimientosDatabaseSettings.Value.DomiciliacionesCollectionName);
-        
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -50,10 +50,8 @@ public class DomiciliacionScheduler : BackgroundService
     {
         _logger.LogInformation("Procesando domiciliaciones periódicas");
 
-        var ahora = DateTime.Now;
-        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.Activa == true).ToListAsync()
-            .Where(d => d.Activa && RequiereEjecucion(d, ahora))
-            .ToList();
+        var ahora = DateTime.UtcNow;
+        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.Activa && RequiereEjecucion(dom, ahora)).ToListAsync();
 
         foreach (var domiciliacion in domiciliaciones)
         {
@@ -63,15 +61,18 @@ public class DomiciliacionScheduler : BackgroundService
                 await EjecutarDomiciliacionAsync(domiciliacion);
 
                 domiciliacion.UltimaEjecucion = ahora;
-                await _domiciliacionCollection.UpdateAsync(domiciliacion);
+                
+                var filter = Builders<Domiciliacion>.Filter.Eq(d => d.Guid, domiciliacion.Guid);
+                var update = Builders<Domiciliacion>.Update.Set(d => d.UltimaEjecucion, domiciliacion.UltimaEjecucion);
+                await _domiciliacionCollection.UpdateOneAsync(filter, update);
             }
-            catch (SaldoInsuficienteException ex)
+            catch (MovimientoException)
             {
-                _logger.LogWarning($"Saldo insuficiente para domiciliación: {domiciliacion.Guid}", ex);
+                _logger.LogWarning($"Saldo insuficiente para domiciliación: {domiciliacion.Guid}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error al procesar domiciliación: {domiciliacion.Guid}");
+                _logger.LogWarning($"No se ha podido procesar la domiciliación: {domiciliacion.Guid}\n\n{ex.Message}");
             }
         }
     }
@@ -90,27 +91,30 @@ public class DomiciliacionScheduler : BackgroundService
 
     private async Task EjecutarDomiciliacionAsync(Domiciliacion domiciliacion)
     {
-        var cuentaOrigen = await _cuentaService.GetByIbanAsync(domiciliacion.IbanOrigen);
+        var cuentaCliente = await _context.Cuentas.FirstOrDefaultAsync(c => c.Iban == domiciliacion.IbanCliente);
 
-        var saldoActual = cuentaOrigen.Saldo;
-        var cantidad = domiciliacion.Cantidad;
+        var saldoActual = cuentaCliente!.Saldo;
+        var importe = domiciliacion.Importe;
 
-        if (saldoActual < cantidad)
+        if (saldoActual < importe)
         {
-            throw new SaldoInsuficienteException(cuentaOrigen.Iban, saldoActual);
+            throw new MovimientoException($"La cuenta con iban {cuentaCliente.Iban} no tiene saldo suficiente para tramitar la domiciliación");
         }
 
-        // Actualizar saldos
-        cuentaOrigen.Saldo -= cantidad;
-        await _cuentaService.UpdateAsync(cuentaOrigen);
+        cuentaCliente.Saldo -= importe;
+        _context.Cuentas.Update(cuentaCliente);
 
-        // Registrar movimiento
-        var movimiento = new Movimiento
+        var clienteDomiciliacion = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == cuentaCliente.ClienteId);
+
+        var movimientoRequest = new MovimientoRequest
         {
-            ClienteGuid = cuentaOrigen.ClienteId,
-            Domiciliacion = domiciliacion
+            ClienteGuid = clienteDomiciliacion.Guid,
+            Domiciliacion = domiciliacion,
+            IngresoNomina = null,
+            PagoConTarjeta = null,
+            Transferencia = null
         };
 
-        await _movimientoCollection.SaveAsync(movimiento);
+        await _movimientoService.CreateAsync(movimientoRequest);
     }
 }

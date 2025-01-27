@@ -50,7 +50,7 @@ public static class CuentaMapper
         {
             Guid = cuenta.Guid,
             Iban = cuenta.Iban,
-            Saldo = cuenta.Saldo.ToString(),
+            Saldo = cuenta.Saldo,
             TarjetaGuid = cuenta.Tarjeta?.Guid,
             ClienteGuid = cuenta.Cliente.Guid,
             ProductoGuid = cuenta.Producto.Guid,
@@ -66,7 +66,7 @@ public static class CuentaMapper
         {
             Guid = cuentaEntity.Guid,
             Iban = cuentaEntity.Iban,
-            Saldo = cuentaEntity.Saldo.ToString(),
+            Saldo = cuentaEntity.Saldo,
             TarjetaGuid = cuentaEntity.Tarjeta?.Guid,
             ClienteGuid = cuentaEntity.Cliente.Guid,
             ProductoGuid = cuentaEntity.Producto.Guid,
