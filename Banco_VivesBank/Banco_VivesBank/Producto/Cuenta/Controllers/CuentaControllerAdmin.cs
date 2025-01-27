@@ -66,13 +66,7 @@ public class CuentaControllerAdmin : ControllerBase
         catch (ClienteNotFoundException e)
         {
             return NotFound( new { message = "Error buscando cliente.", details = e.Message });
-
         }
-        catch (Exception e)
-        {
-            return BadRequest( new { message = "Error obteniendo las cuentas.", details = e.Message });
-        }
-        
     }
 
     [HttpGet("{guid}")]
