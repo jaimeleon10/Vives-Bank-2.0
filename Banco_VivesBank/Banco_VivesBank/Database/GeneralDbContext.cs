@@ -227,7 +227,7 @@ public class GeneralDbContext : DbContext
             {
                 Id = 1,
                 Guid = "HGyMfulgniP",
-                Numero = "409130895816094",
+                Numero = "0606579225434779",
                 FechaVencimiento = "04/27",
                 Cvv = "298",
                 Pin = "1234",
@@ -243,7 +243,7 @@ public class GeneralDbContext : DbContext
             {
                 Id = 2,
                 Guid = "W71vOHuFzS4",
-                Numero = "476564509443461",
+                Numero = "0751528101703123",
                 FechaVencimiento = "06/26",
                 Cvv = "425",
                 Pin = "4321",

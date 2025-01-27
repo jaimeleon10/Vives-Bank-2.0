@@ -179,25 +179,25 @@ public class PdfStorage : IPdfStorage
                 "Domiciliación",
                 movimiento.Domiciliacion.IbanEmpresa,
                 movimiento.Domiciliacion.IbanCliente,
-                movimiento.Domiciliacion.Importe
+                movimiento.Domiciliacion.Importe.ToString()
             ),
             { IngresoNomina: not null } => (
                 "Ingreso Nómina",
                 movimiento.IngresoNomina.IbanEmpresa,
                 movimiento.IngresoNomina.IbanCliente,
-                movimiento.IngresoNomina.Importe
+                movimiento.IngresoNomina.Importe.ToString()
             ),
             { PagoConTarjeta: not null } => (
                 "Pago con Tarjeta",
                 movimiento.PagoConTarjeta.NumeroTarjeta, 
                 movimiento.PagoConTarjeta.NombreComercio, 
-                movimiento.PagoConTarjeta.Importe
+                movimiento.PagoConTarjeta.Importe.ToString()
             ),
             { Transferencia: not null } => (
                 "Transferencia",
                 movimiento.Transferencia.IbanOrigen,
                 movimiento.Transferencia.IbanDestino,
-                movimiento.Transferencia.Importe
+                movimiento.Transferencia.Importe.ToString()
             ),
             _ => ("Desconocido", "", "", "")
         };

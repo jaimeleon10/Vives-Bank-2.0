@@ -91,7 +91,7 @@ namespace Banco_VivesBank.Migrations
                         {
                             Id = 1L,
                             Apellidos = "Picapiedra",
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(6957),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(3939),
                             Dni = "12345678Z",
                             Email = "pedro.picapiedra@gmail.com",
                             FotoDni = "https://example.com/fotoDniPedro.jpg",
@@ -100,14 +100,14 @@ namespace Banco_VivesBank.Migrations
                             IsDeleted = false,
                             Nombre = "Pedro",
                             Telefono = "612345678",
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(6958),
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(3940),
                             UserId = 1L
                         },
                         new
                         {
                             Id = 2L,
                             Apellidos = "Martinez",
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(6985),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(4154),
                             Dni = "21240915R",
                             Email = "ana.martinez@gmail.com",
                             FotoDni = "https://example.com/fotoDniAna.jpg",
@@ -116,7 +116,7 @@ namespace Banco_VivesBank.Migrations
                             IsDeleted = false,
                             Nombre = "Ana",
                             Telefono = "623456789",
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(6985),
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(4155),
                             UserId = 2L
                         });
                 });
@@ -179,27 +179,27 @@ namespace Banco_VivesBank.Migrations
                         {
                             Id = 1L,
                             ClienteId = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(2500),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(1429),
                             Guid = "VWt47641yDI",
                             Iban = "ES7730046576085345979538",
                             IsDeleted = false,
                             ProductoId = 1L,
                             Saldo = 5000.0,
                             TarjetaId = 1L,
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(2502)
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(1432)
                         },
                         new
                         {
                             Id = 2L,
                             ClienteId = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(2526),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(1460),
                             Guid = "oVUzRuFwMlf",
                             Iban = "ES2114656261103572788444",
                             IsDeleted = false,
                             ProductoId = 2L,
                             Saldo = 7000.0,
                             TarjetaId = 2L,
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(2526)
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(1461)
                         });
                 });
 
@@ -252,26 +252,26 @@ namespace Banco_VivesBank.Migrations
                         new
                         {
                             Id = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(7598),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(5274),
                             Descripcion = "Producto para cuenta bancaria de ahorros",
                             Guid = "yFlOirSXTaL",
                             IsDeleted = false,
                             Nombre = "Cuenta de ahorros",
                             Tae = 2.5,
                             TipoProducto = "cuentaAhorros",
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(7599)
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(5275)
                         },
                         new
                         {
                             Id = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(7668),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(5293),
                             Descripcion = "Producto para cuenta bancaria corriente",
                             Guid = "dEmAjXpMTmy",
                             IsDeleted = false,
                             Nombre = "Cuenta corriente",
                             Tae = 1.5,
                             TipoProducto = "cuentaCorriente",
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(7669)
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 902, DateTimeKind.Utc).AddTicks(5293)
                         });
                 });
 
@@ -331,7 +331,7 @@ namespace Banco_VivesBank.Migrations
                         new
                         {
                             Id = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(3281),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(2182),
                             Cvv = "298",
                             FechaVencimiento = "04/27",
                             Guid = "HGyMfulgniP",
@@ -339,14 +339,14 @@ namespace Banco_VivesBank.Migrations
                             LimiteDiario = 500.0,
                             LimiteMensual = 10000.0,
                             LimiteSemanal = 2500.0,
-                            Numero = "409130895816094",
+                            Numero = "0606579225434779",
                             Pin = "1234",
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(3282)
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(2183)
                         },
                         new
                         {
                             Id = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(3336),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(2261),
                             Cvv = "425",
                             FechaVencimiento = "06/26",
                             Guid = "W71vOHuFzS4",
@@ -354,9 +354,9 @@ namespace Banco_VivesBank.Migrations
                             LimiteDiario = 100.0,
                             LimiteMensual = 2500.0,
                             LimiteSemanal = 1500.0,
-                            Numero = "476564509443461",
+                            Numero = "0751528101703123",
                             Pin = "4321",
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 628, DateTimeKind.Utc).AddTicks(3336)
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 903, DateTimeKind.Utc).AddTicks(2262)
                         });
                 });
 
@@ -402,23 +402,23 @@ namespace Banco_VivesBank.Migrations
                         new
                         {
                             Id = 1L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(3417),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 901, DateTimeKind.Utc).AddTicks(9067),
                             Guid = "vz2AWLK8YPS",
                             IsDeleted = false,
                             Password = "$2a$11$/ClI0T9j8cr/Q1mLtJpCh.aZGfAQjGEiOGMz5uROGUEQnAfM.B.Ki",
                             Role = 0,
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(3418),
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 901, DateTimeKind.Utc).AddTicks(9068),
                             Username = "pedrito"
                         },
                         new
                         {
                             Id = 2L,
-                            CreatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(3450),
+                            CreatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 901, DateTimeKind.Utc).AddTicks(9103),
                             Guid = "6t8gVeTQt2w",
                             IsDeleted = false,
                             Password = "$2a$11$/VdPYjEtE7WSEnmI8O/nKuMrZ54vlG5vraWze4dxxjevp8eBhCwoS",
                             Role = 1,
-                            UpdatedAt = new DateTime(2025, 1, 26, 18, 8, 11, 627, DateTimeKind.Utc).AddTicks(3451),
+                            UpdatedAt = new DateTime(2025, 1, 27, 16, 29, 30, 901, DateTimeKind.Utc).AddTicks(9104),
                             Username = "anita"
                         });
                 });

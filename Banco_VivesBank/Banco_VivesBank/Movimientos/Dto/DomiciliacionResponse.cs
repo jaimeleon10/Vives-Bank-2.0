@@ -14,7 +14,7 @@ public class DomiciliacionResponse
     
     public string IbanCliente { get; set; }
     
-    public string Importe { get; set; }
+    public double Importe { get; set; }
     
     public string Periodicidad { get; set; }
 

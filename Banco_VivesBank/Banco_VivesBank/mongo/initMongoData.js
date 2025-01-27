@@ -95,7 +95,7 @@ const dbName = "MovimientosDB";
                 pagoConTarjeta: {
                     nombreComercio: "Supermercado A",
                     importe: 200.00,
-                    numeroTarjeta: "409130895816094",
+                    numeroTarjeta: "0606579225434779",
                 },
                 createdAt: new Date(),
             },
@@ -105,7 +105,7 @@ const dbName = "MovimientosDB";
                 pagoConTarjeta: {
                     nombreComercio: "Supermercado B",
                     importe: 500.25,
-                    numeroTarjeta: "476564509443461",
+                    numeroTarjeta: "0751528101703123",
                 },
                 createdAt: new Date(),
             },
@@ -117,6 +117,7 @@ const dbName = "MovimientosDB";
                     nombreBeneficiario: "Ana Martinez",
                     ibanDestino: "ES2114656261103572788444",
                     importe: 1000.00,
+                    revocada: false
                 },
                 createdAt: new Date(),
             },
@@ -128,6 +129,7 @@ const dbName = "MovimientosDB";
                     nombreBeneficiario: "Pedro Picapiedra",
                     ibanDestino: "ES7730046576085345979538",
                     importe: 2000.50,
+                    revocada: false
                 },
                 createdAt: new Date(),
             },

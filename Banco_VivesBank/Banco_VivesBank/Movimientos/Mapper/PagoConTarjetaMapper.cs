@@ -14,7 +14,7 @@ public static class PagoConTarjetaMapper
         return new PagoConTarjetaResponse()
         {
             NombreComercio = pagoConTarjeta.NombreComercio,
-            Importe = pagoConTarjeta.Importe.ToString(),
+            Importe = pagoConTarjeta.Importe,
             NumeroTarjeta = pagoConTarjeta.NumeroTarjeta
         };
     }

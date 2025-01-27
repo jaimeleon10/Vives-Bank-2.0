@@ -17,7 +17,7 @@ public static class IngresoNominaMapper
             CifEmpresa = ingresoNomina.CifEmpresa,
             IbanEmpresa = ingresoNomina.IbanEmpresa,
             IbanCliente = ingresoNomina.IbanCliente,
-            Importe = ingresoNomina.Importe.ToString(),
+            Importe = ingresoNomina.Importe,
         };
     }
 }
