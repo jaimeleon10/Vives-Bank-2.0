@@ -27,8 +27,8 @@ public class CuentaControllerAdmin : ControllerBase
     [HttpGet]
     //[Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<PageResponse<CuentaResponse>>> Getall(
-        [FromQuery] BigInteger? saldoMax = null,
-        [FromQuery] BigInteger? saldoMin = null,
+        [FromQuery] double? saldoMax = null,
+        [FromQuery] double? saldoMin = null,
         [FromQuery] string? tipoCuenta = null,
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,

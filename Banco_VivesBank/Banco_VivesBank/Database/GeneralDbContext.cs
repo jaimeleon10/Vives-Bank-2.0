@@ -28,9 +28,9 @@ public class GeneralDbContext : DbContext
             entity.HasData(new UserEntity
             {
                 Id = 1,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "vz2AWLK8YPS",
                 Username = "pedrito",
-                Password = BCrypt.Net.BCrypt.HashPassword("password"),
+                Password = "$2a$11$/ClI0T9j8cr/Q1mLtJpCh.aZGfAQjGEiOGMz5uROGUEQnAfM.B.Ki",
                 Role = Role.User,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -40,9 +40,9 @@ public class GeneralDbContext : DbContext
             entity.HasData(new UserEntity
             {
                 Id = 2,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "6t8gVeTQt2w",
                 Username = "anita",
-                Password = BCrypt.Net.BCrypt.HashPassword("password"),
+                Password = "$2a$11$/VdPYjEtE7WSEnmI8O/nKuMrZ54vlG5vraWze4dxxjevp8eBhCwoS",
                 Role = Role.Admin,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -76,7 +76,7 @@ public class GeneralDbContext : DbContext
             entity.HasData(new ClienteEntity
             {
                 Id = 1,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "GbJtJkggUOM",
                 Dni = "12345678Z",
                 Nombre = "Pedro",
                 Apellidos = "Picapiedra",
@@ -93,7 +93,7 @@ public class GeneralDbContext : DbContext
             entity.HasData(new ClienteEntity
             {
                 Id = 2,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "JdHsgzoHlrb",
                 Dni = "21240915R",
                 Nombre = "Ana",
                 Apellidos = "Martinez",
@@ -139,7 +139,7 @@ public class GeneralDbContext : DbContext
             entity.HasData(new ProductoEntity
             {
                 Id = 1,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "yFlOirSXTaL",
                 Nombre = "Cuenta de ahorros",
                 Descripcion = "Producto para cuenta bancaria de ahorros",
                 TipoProducto = "cuentaAhorros",
@@ -152,7 +152,7 @@ public class GeneralDbContext : DbContext
             entity.HasData(new ProductoEntity
             {
                 Id = 2,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "dEmAjXpMTmy",
                 Nombre = "Cuenta corriente",
                 Descripcion = "Producto para cuenta bancaria corriente",
                 TipoProducto = "cuentaCorriente",
@@ -190,7 +190,7 @@ public class GeneralDbContext : DbContext
             entity.HasData(new CuentaEntity
             {
                 Id = 1,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "VWt47641yDI",
                 Iban = "ES7730046576085345979538",
                 Saldo = 5000,
                 TarjetaId = 1,
@@ -204,7 +204,7 @@ public class GeneralDbContext : DbContext
             entity.HasData(new CuentaEntity
             {
                 Id = 2,
-                Guid = GuidGenerator.GenerarId(),
+                Guid = "oVUzRuFwMlf",
                 Iban = "ES2114656261103572788444",
                 Saldo = 7000,
                 TarjetaId = 2,
@@ -226,10 +226,10 @@ public class GeneralDbContext : DbContext
             entity.HasData(new TarjetaEntity
             {
                 Id = 1,
-                Guid = GuidGenerator.GenerarId(),
-                Numero = TarjetaGenerator.GenerarTarjeta(),
-                FechaVencimiento = ExpDateGenerator.GenerarExpDate(),
-                Cvv = CvvGenerator.GenerarCvv(),
+                Guid = "HGyMfulgniP",
+                Numero = "409130895816094",
+                FechaVencimiento = "04/27",
+                Cvv = "298",
                 Pin = "1234",
                 LimiteDiario = 500,
                 LimiteSemanal = 2500,
@@ -242,10 +242,10 @@ public class GeneralDbContext : DbContext
             entity.HasData(new TarjetaEntity
             {
                 Id = 2,
-                Guid = GuidGenerator.GenerarId(),
-                Numero = TarjetaGenerator.GenerarTarjeta(),
-                FechaVencimiento = ExpDateGenerator.GenerarExpDate(),
-                Cvv = CvvGenerator.GenerarCvv(),
+                Guid = "W71vOHuFzS4",
+                Numero = "476564509443461",
+                FechaVencimiento = "06/26",
+                Cvv = "425",
                 Pin = "4321",
                 LimiteDiario = 100,
                 LimiteSemanal = 1500,
