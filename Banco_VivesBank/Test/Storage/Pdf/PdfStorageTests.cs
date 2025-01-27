@@ -8,7 +8,7 @@ using Banco_VivesBank.User.Dto;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Test.Storage.Pdf.Service;
+namespace Test.Storage.Pdf;
 
 [TestFixture]
 public class PdfStorageTests

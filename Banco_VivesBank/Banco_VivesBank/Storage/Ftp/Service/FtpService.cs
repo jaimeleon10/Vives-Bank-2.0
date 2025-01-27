@@ -32,12 +32,23 @@ public class FtpService : IFtpService
     {
         try
         {
+            var fileExtension = Path.GetExtension(uploadPath);
+
+            var mimeType = MimeTypes.GetMimeType(fileExtension);
+
+            if (mimeType == "application/octet-stream")
+            {
+                _logger.LogError($"Tipo MIME desconocido para la extensión: {fileExtension}. Operación cancelada.");
+                throw new InvalidOperationException($"El tipo MIME para la extensión '{fileExtension}' no es válido.");
+            }
+
+            _logger.LogInformation($"Tipo MIME detectado para '{uploadPath}': {mimeType}");
             _logger.LogInformation($"Ruta completa FTP: ftp://{_ftpConfig.Host}:{_ftpConfig.Port}/{uploadPath}");
 
             await ChekDirectorioExiste("data");
 
             var request = ConfigureFtpConsulta(uploadPath, WebRequestMethods.Ftp.UploadFile);
-        
+
             using (var requestStream = request.GetRequestStream())
             {
                 await inputStream.CopyToAsync(requestStream);
@@ -46,7 +57,7 @@ public class FtpService : IFtpService
             using (var response = (FtpWebResponse)await request.GetResponseAsync())
             {
                 _logger.LogInformation($"Subida completada con estado: {response.StatusDescription}");
-            
+
                 bool exists = await CheckFileExiste(uploadPath);
                 _logger.LogInformation($"Archivo existe después de subir: {exists}");
             }
