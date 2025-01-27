@@ -7,6 +7,7 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.utils;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Services;
@@ -136,6 +137,9 @@ WebApplicationBuilder InitServices()
 
     // Añadimos los controladores
     myBuilder.Services.AddControllers();
+    
+    // Añadir el servicio de DomiciliacionScheduler
+    // TODO -> myBuilder.Services.AddHostedService<DomiciliacionScheduler>();
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle para documentar la API
     myBuilder.Services.AddEndpointsApiExplorer();
