@@ -188,23 +188,22 @@ namespace Banco_VivesBank.User.Service
             return userModel.ToResponseFromModel();
         }
 
-        public async Task<UserResponse> UpdatePasswordAsync(string userGuid, string newPassword)
+        public async Task<UserResponse> UpdatePasswordAsync(Models.User user, UpdatePasswordRequest updatePasswordRequest)
         {
-            if (string.IsNullOrWhiteSpace(newPassword))
+            if (!BCrypt.Net.BCrypt.Verify(updatePasswordRequest.OldPassword, user.Password))
             {
-                _logger.LogWarning("La contraseña no puede estar vacía o contener solo espacios en blanco");
-                throw new UserException("La contraseña no puede estar vacía o contener solo espacios en blanco");
+                _logger.LogWarning("La actual no coincide con el campo antigua contraseña");
+                throw new InvalidPasswordException("La contraseña actual no coincide con el campo antigua contraseña");
             }
-            
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == userGuid);
-            if (userEntity == null)
+
+            if (updatePasswordRequest.NewPassword != updatePasswordRequest.NewPasswordConfirmation)
             {
-                _logger.LogWarning($"Usuario no encontrado con guid: {userGuid}");
-                throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+                _logger.LogWarning("La nueva contraseña no coincide con la confirmación");
+                throw new InvalidPasswordException("La nueva contraseña no coincide con la confirmación");
             }
-            
-            // Generar el hash con bcrypt
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(updatePasswordRequest.NewPassword);
+            var userEntity = user.ToEntityFromModel();
             _context.Usuarios.Update(userEntity);
             await _context.SaveChangesAsync();
             

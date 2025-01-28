@@ -19,7 +19,7 @@ public interface IUserService
     public Task<Models.User?> GetUserModelByUsernameAsync(string username);
     public Task<UserResponse> CreateAsync(UserRequest userRequest);
     public Task<UserResponse?> UpdateAsync(string guid, UserRequestUpdate userRequestUpdate);
-    public Task<UserResponse> UpdatePasswordAsync(string userGuid, string newPassword);
+    public Task<UserResponse> UpdatePasswordAsync(Models.User user, UpdatePasswordRequest updatePasswordRequest);
     public Task<UserResponse?> DeleteByGuidAsync(string guid);
     public Task<IEnumerable<Models.User>> GetAllForStorage();
     string Authenticate(string username, string password);
