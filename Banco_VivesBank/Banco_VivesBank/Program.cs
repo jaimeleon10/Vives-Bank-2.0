@@ -1,12 +1,13 @@
 using System.Diagnostics;
 using System.Text;
-using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
-using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Scheduler;
+using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Services;
@@ -24,6 +25,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Quartz;
+using Quartz.Spi;
 using Serilog;
 using Serilog.Core;
 using StackExchange.Redis;
@@ -106,12 +109,35 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
     myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>();
+    myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     myBuilder.Services.AddScoped<IBackupService, BackupService>();
     myBuilder.Services.AddScoped<IStorageJson, StorageJson>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
+    myBuilder.Services.AddScoped<DomiciliacionScheduler>();
+    myBuilder.Services.AddScoped<DomiciliacionJob>();
+    
+    // Quartz (domiciliaciones)
+    myBuilder.Services.AddQuartz(q =>
+    {
+        q.UseSimpleTypeLoader();
+
+        // Configure Job and Trigger
+        var jobKey = new JobKey("DomiciliacionJob");
+        q.AddJob<DomiciliacionJob>(opts => opts.WithIdentity(jobKey));
+        
+        q.AddTrigger(opts => opts
+            .ForJob(jobKey)
+            .WithIdentity("DomiciliacionJob-Trigger")
+            .WithSimpleSchedule(x => x
+                .WithIntervalInSeconds(30)
+                .RepeatForever()));
+    });
+    
+    // Quartz Hosted Service
+    myBuilder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
     
     //Ftp
     myBuilder.Services.Configure<FtpConfig>(myBuilder.Configuration.GetSection("FtpSettings"));

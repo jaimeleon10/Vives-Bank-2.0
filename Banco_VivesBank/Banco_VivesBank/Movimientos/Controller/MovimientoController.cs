@@ -1,7 +1,8 @@
-﻿using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -117,6 +118,10 @@ public class MovimientoController : ControllerBase
         {
             return NotFound(e.Message);
         }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (CuentaException e)
         {
             return NotFound(e.Message);
@@ -139,6 +144,10 @@ public class MovimientoController : ControllerBase
         {
             return Ok(await _movimientoService.CreateTransferenciaAsync(transferenciaRequest));
         }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (CuentaException e)
         {
             return NotFound(e.Message);
@@ -156,13 +165,21 @@ public class MovimientoController : ControllerBase
         {
             return Ok(await _movimientoService.RevocarTransferenciaAsync(movimientoGuid));
         }
-        catch (CuentaException e)
+        catch (MovimientoNotFoundException e)
         {
             return NotFound(e.Message);
         }
         catch (MovimientoException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (CuentaException e)
+        {
+            return NotFound(e.Message);
         }
     }
 }
