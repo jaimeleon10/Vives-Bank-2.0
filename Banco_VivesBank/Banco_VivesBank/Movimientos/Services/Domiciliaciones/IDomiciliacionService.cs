@@ -1,6 +1,6 @@
 ﻿using Banco_VivesBank.Movimientos.Dto;
 
-namespace Banco_VivesBank.Movimientos.Services;
+namespace Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 
 public interface IDomiciliacionService
 {

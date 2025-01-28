@@ -1,4 +1,5 @@
 ﻿using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using GraphQL;
 using GraphQL.Types;
 

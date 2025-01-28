@@ -7,6 +7,8 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Movimientos.utils;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;

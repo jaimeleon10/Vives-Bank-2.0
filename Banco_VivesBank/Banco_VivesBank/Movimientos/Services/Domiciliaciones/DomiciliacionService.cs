@@ -7,16 +7,16 @@ using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Mapper;
 using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
-using Banco_VivesBank.Producto.Tarjeta.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
 
-namespace Banco_VivesBank.Movimientos.Services;
+namespace Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 
 public class DomiciliacionService : IDomiciliacionService
 {
@@ -73,7 +73,7 @@ public class DomiciliacionService : IDomiciliacionService
             if (domFromRedis == null)
             {
                 _logger.LogWarning("Error al deserializar domiciliación desde Redis");
-                throw new MovimientoException("Error al deserializar domiciliación desde Redis");
+                throw new MovimientoDeserialiceException("Error al deserializar domiciliación desde Redis");
             }
 
             _memoryCache.Set(cacheKey, domFromRedis, TimeSpan.FromMinutes(30));
@@ -124,21 +124,21 @@ public class DomiciliacionService : IDomiciliacionService
         if (cuenta.ClienteGuid != cliente.Guid)
         {
             _logger.LogWarning($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
-            throw new MovimientoException($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
+            throw new CuentaIbanException($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
         }
         
         _logger.LogInformation($"Validando saldo suficiente respecto al importe de: {domiciliacionRequest.Importe} €");
         if (cuenta.Saldo < domiciliacionRequest.Importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
-            throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
+            throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
         }
         
         _logger.LogInformation("Validando periodicidad valida");
         if (!Enum.TryParse(domiciliacionRequest.Periodicidad, out Periodicidad periodicidad))
         {
             _logger.LogWarning($"Periodicidad no válida: {domiciliacionRequest.Periodicidad}");
-            throw new MovimientoException($"Periodicidad no válida: {domiciliacionRequest.Periodicidad}");
+            throw new PeriodicidadNotValidException($"Periodicidad no válida: {domiciliacionRequest.Periodicidad}");
         }
         
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -161,7 +161,7 @@ public class DomiciliacionService : IDomiciliacionService
         {
             await transaction.RollbackAsync();
             _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuenta.Guid}");
-            throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
+            throw new MovimientoTransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
         }
 
         Domiciliacion domiciliacion = new Domiciliacion
@@ -222,7 +222,7 @@ public class DomiciliacionService : IDomiciliacionService
             if (domFromRedis == null)
             {
                 _logger.LogWarning("Error al deserializar domiciliación desde Redis");
-                throw new MovimientoException("Error al deserializar domiciliación desde Redis");
+                throw new MovimientoDeserialiceException("Error al deserializar domiciliación desde Redis");
             }
 
             _memoryCache.Set(cacheKey, domFromRedis, TimeSpan.FromMinutes(30));

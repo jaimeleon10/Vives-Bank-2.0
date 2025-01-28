@@ -1,7 +1,6 @@
 ﻿using Banco_VivesBank.Movimientos.Dto;
-using Banco_VivesBank.Movimientos.Models;
 
-namespace Banco_VivesBank.Movimientos.Services;
+namespace Banco_VivesBank.Movimientos.Services.Movimientos;
 
 public interface IMovimientoService
 {

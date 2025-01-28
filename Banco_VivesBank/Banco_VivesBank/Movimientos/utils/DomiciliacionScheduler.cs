@@ -4,6 +4,7 @@ using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
