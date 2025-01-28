@@ -107,6 +107,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
     myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>();
+    myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
