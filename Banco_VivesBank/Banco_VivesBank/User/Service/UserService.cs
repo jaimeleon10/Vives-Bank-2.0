@@ -3,6 +3,7 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
+using Banco_VivesBank.Utils.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,17 +20,19 @@ namespace Banco_VivesBank.User.Service
         private readonly IMemoryCache _memoryCache;
         private readonly IDatabase _redisDatabase;
         private const string CacheKeyPrefix = "User:";
+        private readonly IJwtService _jwtService;
 
         public UserService(
             GeneralDbContext context,
             ILogger<UserService> logger,
             IConnectionMultiplexer redis,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache, IJwtService jwtService)
         {
             _context = context;
             _logger = logger;
             _redis = redis;
             _memoryCache = memoryCache;
+            _jwtService = jwtService;
             _redisDatabase = _redis.GetDatabase();
         }
 
@@ -327,6 +330,38 @@ namespace Banco_VivesBank.User.Service
 
             _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
             return null;
+        }
+        
+        public void RegisterUser(UserRequest userRequest)
+        {
+            // Hashear la contraseña usando BCrypt
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userRequest.Password);
+
+            if (!Enum.TryParse<Models.Role>(userRequest.Role, true, out var parsedRole))
+            {
+                throw new ArgumentException("El rol proporcionado no es válido.");
+            }
+
+            var user = new Models.User
+            {
+                Username = userRequest.Username,
+                Password = hashedPassword,
+                Role = parsedRole
+            };
+
+            _context.Usuarios.Add(user.ToEntityFromModel());
+            _context.SaveChanges();
+        }
+
+        public string Authenticate(string username, string password)
+        {
+            var user = _context.Usuarios.SingleOrDefault(u => u.Username == username);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
+                throw new UnauthorizedAccessException("Credenciales inválidas");
+            }
+
+            return _jwtService.GenerateToken(user.ToModelFromEntity());
         }
     }
 }
