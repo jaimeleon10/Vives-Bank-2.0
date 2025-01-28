@@ -28,11 +28,16 @@ public class DomiciliacionController : ControllerBase
     [HttpGet("{domiciliacionGuid}")]
     public async Task<ActionResult<DomiciliacionResponse>> GetDomiciliacionByGuid(string domiciliacionGuid)
     {
-        var domiciliacion = await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
-        
-        if (domiciliacion == null) return NotFound($"No se ha encontrado la domiciliación con guid: {domiciliacionGuid}");
-        
-        return Ok(domiciliacion);
+        try
+        {
+            var domiciliacion = await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
+            if (domiciliacion == null) return NotFound($"No se ha encontrado la domiciliación con guid: {domiciliacionGuid}");
+            return Ok(domiciliacion);
+        }
+        catch (MovimientoException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
     
     [HttpGet("cliente/{clienteGuid}")]
@@ -56,6 +61,10 @@ public class DomiciliacionController : ControllerBase
         catch (ClienteException e)
         {
             return NotFound(e.Message);
+        }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
         }
         catch (CuentaException e)
         {
