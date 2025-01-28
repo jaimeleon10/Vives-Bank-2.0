@@ -67,8 +67,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.UseMiddleware<ExceptionMiddleware>();
-
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
 

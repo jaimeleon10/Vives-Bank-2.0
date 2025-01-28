@@ -5,6 +5,7 @@ using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.Utils.Jwt;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -35,7 +36,7 @@ namespace Banco_VivesBank.User.Service
             _jwtService = jwtService;
             _redisDatabase = _redis.GetDatabase();
         }
-
+        
         public async Task<PageResponse<UserResponse>> GetAllAsync(string? username, Role? role, PageRequest pageRequest)
         {
             _logger.LogInformation("Buscando todos los usuarios en la base de datos");
@@ -331,36 +332,19 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
             return null;
         }
-        
-        public void RegisterUser(UserRequest userRequest)
-        {
-            // Hashear la contraseña usando BCrypt
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userRequest.Password);
-
-            if (!Enum.TryParse<Models.Role>(userRequest.Role, true, out var parsedRole))
-            {
-                throw new ArgumentException("El rol proporcionado no es válido.");
-            }
-
-            var user = new Models.User
-            {
-                Username = userRequest.Username,
-                Password = hashedPassword,
-                Role = parsedRole
-            };
-
-            _context.Usuarios.Add(user.ToEntityFromModel());
-            _context.SaveChanges();
-        }
 
         public string Authenticate(string username, string password)
         {
-            var user = _context.Usuarios.SingleOrDefault(u => u.Username == username);
+            _logger.LogInformation($"Buscando usuario para realizar login");
+            var user = _context.Usuarios.FirstOrDefault(u => u.Username == username);
+            
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
-                throw new UnauthorizedAccessException("Credenciales inválidas");
+                _logger.LogWarning($"Credenciales inválidas para el usuario: {username}");
+                throw new UnauthorizedAccessException($"Credenciales inválidas para el usuario: {username}");
             }
-
+            
+            _logger.LogInformation($"Usuario encontrado y verificado, generando Token");
             return _jwtService.GenerateToken(user.ToModelFromEntity());
         }
     }

@@ -181,7 +181,7 @@ public class TarjetaService : ITarjetaService
         
         var tarjetaModel = tarjetaEntity.ToModelFromEntity();
         var cacheKey = CacheKeyPrefix + tarjetaModel.Guid;
-        //_memoryCache.Set(cacheKey, tarjetaModel);
+        _memoryCache.Set(cacheKey, tarjetaModel);
         
         // Guardar la tarjeta 
         var serializedUser = JsonSerializer.Serialize(tarjetaModel);

@@ -1,9 +1,10 @@
-﻿using Banco_VivesBank.Producto.Cuenta.Exceptions;
-using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
+using Banco_VivesBank.Utils.Jwt;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.User.Controller;
@@ -21,8 +22,22 @@ public class UserController : ControllerBase
         _paginationLinksUtils = paginationLinksUtils;
     }
     
+    [HttpPost("login")]
+    public ActionResult Login([FromBody] LoginRequest loginRequest)
+    {
+        try
+        {
+            var token = _userService.Authenticate(loginRequest.Username, loginRequest.Password);
+            return Ok(new { Token = token });
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return Unauthorized(e.Message);
+        }
+    }
+    
     [HttpGet]
-    //[Authorize(Policy = "AdminPolicy")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PageResponse<UserResponse>>> Getall(
         [FromQuery] string? username = null,
         [FromQuery] Role? role = null,

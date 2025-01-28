@@ -22,6 +22,5 @@ public interface IUserService
     public Task<UserResponse> UpdatePasswordAsync(string userGuid, string newPassword);
     public Task<UserResponse?> DeleteByGuidAsync(string guid);
     public Task<IEnumerable<Models.User>> GetAllForStorage();
-    void RegisterUser(UserRequest userRequest);
     string Authenticate(string username, string password);
 }

@@ -9,7 +9,7 @@ public class UserRequest
     public string Username { get; set; }
     
     [Required(ErrorMessage = "El campo de contraseña es obligatorio")]
-    [MinLength(5, ErrorMessage = "La contraseña debe tener al menos 5 caracteres")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{5,50}$", ErrorMessage = "La contraseña debe tener un número, una mayúscula, una minúscula y entre 5 y 50 caracteres")]
     public string Password { get; set; }
 
     public string Role { get; set; } = Models.Role.User.GetType().ToString();
