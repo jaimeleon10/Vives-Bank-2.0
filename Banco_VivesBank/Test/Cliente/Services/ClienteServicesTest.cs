@@ -30,11 +30,11 @@ public class ClienteServiceTests
     private Mock<IFtpService> _ftpService;
     private Mock<IUserService> _userServiceMock;
     private Mock<IFileStorageService> _storageService;
+    
     private Mock<IConnectionMultiplexer> _redisConnectionMock;
-    private Mock<IDatabase> _redisDatabaseMock;
+    private Mock<IDatabase> _redis;
 
-    private Mock<IMemoryCache> _memoryCacheMock;
-    private Mock<ICacheEntry> _cacheEntryMock;
+    private IMemoryCache _memoryCache;
 
 
     [OneTimeSetUp]
@@ -61,19 +61,14 @@ public class ClienteServiceTests
         _storageService = new Mock<IFileStorageService>();
         _ftpService = new Mock<IFtpService>();
 
-        _memoryCacheMock = new Mock<IMemoryCache>();
-        _redisDatabaseMock = new Mock<IDatabase>();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+        _redis = new Mock<IDatabase>();
         _redisConnectionMock = new Mock<IConnectionMultiplexer>();
         _redisConnectionMock
             .Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
-            .Returns(_redisDatabaseMock.Object);
-
-        var cacheEntryMock = new Mock<ICacheEntry>();
-        _memoryCacheMock
-            .Setup(x => x.CreateEntry(It.IsAny<object>()))
-            .Returns(cacheEntryMock.Object);
+            .Returns(_redis.Object);
         
-        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCacheMock.Object, _redisConnectionMock.Object, _ftpService.Object);
+        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCache, _redisConnectionMock.Object, _ftpService.Object);
     }
     
     [SetUp]
@@ -99,6 +94,11 @@ public class ClienteServiceTests
         {
             await _postgreSqlContainer.StopAsync();
             await _postgreSqlContainer.DisposeAsync();
+        }
+
+        if (_memoryCache != null)
+        {
+            _memoryCache.Dispose();
         }
     }  
     
@@ -190,16 +190,12 @@ public class ClienteServiceTests
 
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
+        var cacheKey ="Cliente:" + cliente.Guid;
         
         _userServiceMock.Setup(x => x.GetUserModelByIdAsync(cliente.UserId)).ReturnsAsync(user);
-
-        _memoryCacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Returns(false);
-
-        _redisDatabaseMock
-            .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(RedisValue.Null);
+        
+        _redis.Setup(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync((RedisValue)string.Empty);
         
         var result = await _clienteService.GetByGuidAsync(cliente.Guid);
 
@@ -208,7 +204,7 @@ public class ClienteServiceTests
     }
     
     [Test]
-    public async Task GetByGuid_ClienteEnMemoria()
+    public async Task GetByGuid_ClienteEnCacheMemoria()
     {
         var clienteGuid = "existing-guid";
         var cacheKey = $"Cliente:{clienteGuid}";
@@ -239,14 +235,10 @@ public class ClienteServiceTests
             Guid = clienteGuid,
             Nombre = "Test Cliente"
         };
-    
-        _memoryCacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Returns(true)
-            .Callback((object key, out object clienteCache) =>
-            {
-                clienteCache = cliente;
-            });
+            
+        cacheKey = $"Cliente:{clienteGuid}";
+        _memoryCache.Set(cacheKey, cliente);
+        
     
         var result = await _clienteService.GetByGuidAsync(clienteGuid);
         
@@ -260,7 +252,6 @@ public class ClienteServiceTests
         Assert.That(result.Direccion.CodigoPostal, Is.EqualTo(cliente.Direccion.CodigoPostal));
         Assert.That(result.Direccion.Piso, Is.EqualTo(cliente.Direccion.Piso));
 
-        _memoryCacheMock.Verify(x => x.TryGetValue(cacheKey, out It.Ref<object>.IsAny), Times.Once);
     }
 
     [Test]
@@ -346,19 +337,14 @@ public class ClienteServiceTests
         _dbContext.Clientes.Add(clienteEntity);
         await _dbContext.SaveChangesAsync();
 
+        var cacheKey = $"Cliente:{clienteGuid}";
+        _memoryCache.Remove(cacheKey);
         var redisValue = JsonSerializer.Serialize(clienteModel);
 
         // Mock de Redis
-        _redisDatabaseMock
-            .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(redisValue);
-        _memoryCacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Returns(false);
-        _redisDatabaseMock
-            .Setup(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(true);
-
+         _redis.Setup(db => db.StringGetAsync(It.Is<RedisKey>(k => k==cacheKey), It.IsAny<CommandFlags>())).ReturnsAsync(redisValue);
+         
+        
         // Act
         var result = await _clienteService.GetByGuidAsync(clienteGuid);
 
@@ -371,12 +357,9 @@ public class ClienteServiceTests
     [Test]
     public async Task GetByGuid_ClienteNotFound()
     {
-        _redisDatabaseMock
-            .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(RedisValue.Null);
-        _memoryCacheMock
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Returns(false);
+        var cacheKey = "Cliente:inexistente";
+        _redis.Setup(x => x.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
+            .ReturnsAsync((RedisValue)string.Empty);
 
         var result = await _clienteService.GetByGuidAsync("algo");
 
@@ -421,10 +404,12 @@ public class ClienteServiceTests
             Telefono = "600000000",
             IsDeleted = false
         };
+        
+        var cacheKey = "Cliente:" + clienteRequest.UserGuid;
 
         _userServiceMock.Setup(x => x.GetUserModelByGuidAsync(clienteRequest.UserGuid)).ReturnsAsync(user);
-        _redisDatabaseMock
-            .Setup(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
+        _redis
+            .Setup(db => db.StringSetAsync(cacheKey, It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
        
         
@@ -433,6 +418,8 @@ public class ClienteServiceTests
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
         Assert.That(result.Email, Is.EqualTo(clienteRequest.Email));
+        
+        _redis.Verify(db => db.StringSetAsync(It.IsAny<string>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
     }
 
     [Test]
@@ -776,9 +763,6 @@ public class ClienteServiceTests
         };
         
         var result = await _clienteService.UpdateAsync(cliente.Guid, updateRequest);
-        _memoryCacheMock.Setup(
-            x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Returns(false);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo(updateRequest.Nombre));
