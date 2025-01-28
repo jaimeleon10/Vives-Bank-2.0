@@ -2,6 +2,7 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Models;
+using NUnit.Framework;
 
 namespace Test.Cliente.Mapper;
 

@@ -5,4 +5,5 @@ public interface IFtpService
     public Task UploadFileAsync(Stream inputStream, string uploadPath);
     public Task DownloadFileAsync(string remoteFilePath, string localFilePath);
     public Task DeleteFileAsync(string remoteFilePath);
+    Task<bool> CheckFileExiste(string remotePath);
 }

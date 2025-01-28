@@ -1,5 +1,5 @@
-﻿using System.Numerics;
-using Banco_VivesBank.Cliente.Exceptions;
+﻿using System.Text.Json;
+using System.Transactions;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Movimientos.Database;
@@ -12,33 +12,39 @@ using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using StackExchange.Redis;
 
-namespace Banco_VivesBank.Movimientos.Services;
+namespace Banco_VivesBank.Movimientos.Services.Movimientos;
 
 public class MovimientoService : IMovimientoService
 {
     private readonly IMongoCollection<Movimiento> _movimientoCollection;
-    private readonly IMongoCollection<Domiciliacion> _domiciliacionCollection;
     private readonly ILogger<MovimientoService> _logger;
     private readonly IClienteService _clienteService;
     private readonly ICuentaService _cuentaService;
     private readonly ITarjetaService _tarjetaService;
     private readonly GeneralDbContext _context;
-
+    private readonly IConnectionMultiplexer _redis;
+    private readonly IDatabase _redisDatabase;
+    private readonly IMemoryCache _memoryCache;
+    private const string CacheKeyPrefix = "Movimientos:";
     
-    public MovimientoService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<MovimientoService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, ITarjetaService tarjetaService)
+    public MovimientoService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<MovimientoService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, ITarjetaService tarjetaService, IConnectionMultiplexer redis, IMemoryCache memoryCache)
     {
         _logger = logger;
         _clienteService = clienteService;
         _cuentaService = cuentaService;
         _context = context;
         _tarjetaService = tarjetaService;
+        _redis = redis;
+        _redisDatabase = _redis.GetDatabase();
+        _memoryCache = memoryCache;
         var mongoClient = new MongoClient(movimientosDatabaseSettings.Value.ConnectionString);
         var mongoDatabase = mongoClient.GetDatabase(movimientosDatabaseSettings.Value.DatabaseName);
         _movimientoCollection = mongoDatabase.GetCollection<Movimiento>(movimientosDatabaseSettings.Value.MovimientosCollectionName);
-        _domiciliacionCollection = mongoDatabase.GetCollection<Domiciliacion>(movimientosDatabaseSettings.Value.DomiciliacionesCollectionName);
     }
     
     public async Task<IEnumerable<MovimientoResponse>> GetAllAsync()
@@ -57,7 +63,40 @@ public class MovimientoService : IMovimientoService
     {
         _logger.LogInformation($"Buscando movimiento con guid: {guid}");
         
-        _logger.LogInformation($"Buscando movimiento con guid: {guid} en la base de datos");
+        var cacheKey = CacheKeyPrefix + guid;
+        
+        // Intentar obtener desde la memoria caché
+        if (_memoryCache.TryGetValue(cacheKey, out Movimiento? memoryCacheMov))
+        {
+            _logger.LogInformation("Movimiento obtenido desde la memoria caché");
+            return memoryCacheMov!.ToResponseFromModel(
+                memoryCacheMov?.Domiciliacion.ToResponseFromModel(), 
+                memoryCacheMov?.IngresoNomina.ToResponseFromModel(), 
+                memoryCacheMov?.PagoConTarjeta.ToResponseFromModel(), 
+                memoryCacheMov?.Transferencia.ToResponseFromModel());
+        }
+
+        // Intentar obtener desde la caché de Redis
+        var redisCacheValue = await _redisDatabase.StringGetAsync(cacheKey);
+        if (!redisCacheValue.IsNullOrEmpty)
+        {
+            _logger.LogInformation("Movimiento obtenido desde Redis");
+            var movFromRedis = JsonSerializer.Deserialize<Movimiento>(redisCacheValue!);
+            if (movFromRedis == null)
+            {
+                _logger.LogWarning("Error al deserializar movimiento desde Redis");
+                throw new MovimientoDeserialiceException("Error al deserializar movimiento desde Redis");
+            }
+
+            _memoryCache.Set(cacheKey, movFromRedis, TimeSpan.FromMinutes(30));
+            return movFromRedis.ToResponseFromModel(
+                memoryCacheMov?.Domiciliacion.ToResponseFromModel(), 
+                memoryCacheMov?.IngresoNomina.ToResponseFromModel(), 
+                memoryCacheMov?.PagoConTarjeta.ToResponseFromModel(), 
+                memoryCacheMov?.Transferencia.ToResponseFromModel());
+        }
+        
+        // Consultar la base de datos
         var movimiento = await _movimientoCollection.Find(m => m.Guid == guid).FirstOrDefaultAsync();
         
         if (movimiento != null)
@@ -74,7 +113,7 @@ public class MovimientoService : IMovimientoService
         return null;
     }
 
-    public async Task<IEnumerable<MovimientoResponse?>> GetByClienteGuidAsync(string clienteGuid)
+    public async Task<IEnumerable<MovimientoResponse>> GetByClienteGuidAsync(string clienteGuid)
     {
         _logger.LogInformation($"Buscando todos los movimientos del cliente con guid: {clienteGuid}");
         var movimientos = await _movimientoCollection.Find(mov => mov.ClienteGuid == clienteGuid).ToListAsync();
@@ -99,99 +138,15 @@ public class MovimientoService : IMovimientoService
             Transferencia = movimientoRequest.Transferencia
         };
         
+        var cacheKey = CacheKeyPrefix + nuevoMovimiento.Guid;
+
+        // Guardar en las cachés 
+        var serializedMov = JsonSerializer.Serialize(nuevoMovimiento);
+        _memoryCache.Set(cacheKey, nuevoMovimiento, TimeSpan.FromMinutes(30));
+        await _redisDatabase.StringSetAsync(cacheKey, serializedMov, TimeSpan.FromMinutes(30));
+        
         await _movimientoCollection.InsertOneAsync(nuevoMovimiento);
         _logger.LogInformation("Movimiento guardado con éxito");
-    }
-
-    public async Task<DomiciliacionResponse> CreateDomiciliacionAsync(DomiciliacionRequest domiciliacionRequest)
-    {
-        _logger.LogInformation("Creando domiciliación");
-        
-        _logger.LogInformation($"Buscando si existe el cliente con guid: {domiciliacionRequest.ClienteGuid}");
-        var cliente = await _clienteService.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid);
-        if (cliente == null)
-        {
-            _logger.LogWarning($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}");
-            throw new ClienteNotFoundException($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}");
-        }
-        
-        _logger.LogInformation($"Validando existencia de la cuenta con iban: {domiciliacionRequest.IbanCliente}");
-        var cuenta = await _cuentaService.GetByIbanAsync(domiciliacionRequest.IbanCliente);
-        if (cuenta == null)
-        {
-            _logger.LogWarning($"No se ha encontrado la cuenta con iban: {domiciliacionRequest.IbanCliente}");
-            throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {domiciliacionRequest.IbanCliente}");
-        }
-        
-        _logger.LogInformation($"Comprobando que el iban con guid: {domiciliacionRequest.IbanCliente} pertenezca a alguna de las cuentas del cliente con guid: {domiciliacionRequest.ClienteGuid}");
-        if (!cliente.Cuentas.Any(c => c.Iban == domiciliacionRequest.IbanCliente)) // No aceptar sugerencia IDE
-        {
-            _logger.LogWarning($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
-            throw new MovimientoException($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
-        }
-        
-        _logger.LogInformation($"Validando saldo suficiente respecto al importe de: {domiciliacionRequest.Importe} €");
-        if (!BigInteger.TryParse(domiciliacionRequest.Importe, out var importe))
-        {
-            throw new MovimientoException("El importe proporcionado no es un número entero válido.");
-        }
-        if (BigInteger.Parse(cuenta.Saldo) < importe)
-        {
-            _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
-            throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €");
-        }
-        
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var cuentaUpdate = await _context.Cuentas.Where(c => c.Guid == cuenta.Guid).FirstOrDefaultAsync();
-
-            if (cuentaUpdate != null)
-            {
-                cuentaUpdate.Saldo -= importe;
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            else
-            {
-                await transaction.RollbackAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuenta.Guid}");
-            throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
-        }
-
-        Domiciliacion domiciliacion = new Domiciliacion
-        {
-            ClienteGuid = cliente.Guid,
-            Acreedor = domiciliacionRequest.Acreedor,
-            IbanEmpresa = domiciliacionRequest.IbanEmpresa,
-            IbanCliente = domiciliacionRequest.IbanCliente,
-            Importe = importe,
-            Periodicidad = (Periodicidad)Enum.Parse(typeof(Periodicidad), domiciliacionRequest.Periodicidad),
-            Activa = domiciliacionRequest.Activa
-        };
-        
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
-        _logger.LogInformation("Domiciliación realizada con éxito");
-
-        MovimientoRequest movimientoRequest = new MovimientoRequest
-        {
-            ClienteGuid = cliente.Guid,
-            Domiciliacion = domiciliacion,
-            IngresoNomina = null,
-            PagoConTarjeta = null,
-            Transferencia = null
-        };
-        
-        await CreateAsync(movimientoRequest);
-        _logger.LogInformation("Movimiento del pago inicial de la domiciliación generado con éxito");
-
-        return domiciliacion.ToResponseFromModel()!;
     }
 
     public async Task<IngresoNominaResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNominaRequest)
@@ -206,11 +161,6 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {ingresoNominaRequest.IbanCliente}");
         }
         
-        if (!BigInteger.TryParse(ingresoNominaRequest.Importe, out var importe))
-        {
-            throw new MovimientoException("El importe proporcionado no es un número entero válido.");
-        }
-        
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
@@ -218,7 +168,7 @@ public class MovimientoService : IMovimientoService
             
             if (cuentaUpdate != null)
             {
-                cuentaUpdate.Saldo += importe;
+                cuentaUpdate.Saldo += ingresoNominaRequest.Importe;
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -232,7 +182,7 @@ public class MovimientoService : IMovimientoService
         {
             await transaction.RollbackAsync();
             _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuenta.Guid}");
-            throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
+            throw new MovimientoTransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
         }
         
         IngresoNomina ingresoNomina = new IngresoNomina
@@ -241,7 +191,7 @@ public class MovimientoService : IMovimientoService
             CifEmpresa = ingresoNominaRequest.CifEmpresa,
             IbanEmpresa = ingresoNominaRequest.IbanEmpresa,
             IbanCliente = ingresoNominaRequest.IbanCliente,
-            Importe = importe
+            Importe = ingresoNominaRequest.Importe
         };
         
         _logger.LogInformation("Ingreso de nómina realizado con éxito");
@@ -282,15 +232,10 @@ public class MovimientoService : IMovimientoService
         }
         
         _logger.LogInformation($"Validando saldo suficiente en la cuenta con guid: {cuenta.Guid} perteneciente a la tarjeta con guid: {tarjeta.Guid}");
-        if (!BigInteger.TryParse(pagoConTarjetaRequest.Importe, out var importe))
-        {
-            throw new MovimientoException("El importe proporcionado no es un número entero válido.");
-        }
-        
-        if (BigInteger.Parse(cuenta.Saldo) < importe)
+        if (cuenta.Saldo < pagoConTarjetaRequest.Importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
-            throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
+            throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {pagoConTarjetaRequest.Importe} €");
         }
         
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -300,7 +245,7 @@ public class MovimientoService : IMovimientoService
 
             if (cuentaUpdate != null)
             {
-                cuentaUpdate.Saldo -= importe;
+                cuentaUpdate.Saldo -= pagoConTarjetaRequest.Importe;
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -314,13 +259,13 @@ public class MovimientoService : IMovimientoService
         {
             await transaction.RollbackAsync();
             _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuenta.Guid}");
-            throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
+            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuenta.Guid}\n\n{ex.Message}");
         }
         
         PagoConTarjeta pagoConTarjeta = new PagoConTarjeta
         {
             NombreComercio = pagoConTarjetaRequest.NombreComercio,
-            Importe = importe,
+            Importe = pagoConTarjetaRequest.Importe,
             NumeroTarjeta = pagoConTarjetaRequest.NumeroTarjeta
         };
         
@@ -356,17 +301,12 @@ public class MovimientoService : IMovimientoService
         _logger.LogInformation("Validando saldo suficiente en la cuenta de origen en caso de pertenecer a VivesBank");
         var cuentaOrigen = await _cuentaService.GetByIbanAsync(transferenciaRequest.IbanOrigen);
         
-        if (!BigInteger.TryParse(transferenciaRequest.Importe, out var importe))
-        {
-            throw new MovimientoException("El importe proporcionado no es un número entero válido.");
-        }
-        
         if (cuentaOrigen != null)
         {
-            if (BigInteger.Parse(cuentaOrigen.Saldo) < importe)
+            if (cuentaOrigen.Saldo < transferenciaRequest.Importe)
             {
                 _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} €");
-                throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} ���");
+                throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} ���");
             }
             
             await using var transactionCuentaOrigen = await _context.Database.BeginTransactionAsync();
@@ -376,7 +316,7 @@ public class MovimientoService : IMovimientoService
 
                 if (cuentaUpdateOrigen != null)
                 {
-                    cuentaUpdateOrigen.Saldo -= importe;
+                    cuentaUpdateOrigen.Saldo -= transferenciaRequest.Importe;
 
                     await _context.SaveChangesAsync();
                     await transactionCuentaOrigen.CommitAsync();
@@ -390,7 +330,7 @@ public class MovimientoService : IMovimientoService
             {
                 await transactionCuentaOrigen.RollbackAsync();
                 _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}");
-                throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
+                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
             }
         }
         
@@ -401,7 +341,7 @@ public class MovimientoService : IMovimientoService
 
             if (cuentaUpdateDestino != null)
             {
-                cuentaUpdateDestino.Saldo += importe;
+                cuentaUpdateDestino.Saldo += transferenciaRequest.Importe;
 
                 await _context.SaveChangesAsync();
                 await transactionCuentaDestino.CommitAsync();
@@ -415,7 +355,7 @@ public class MovimientoService : IMovimientoService
         {
             await transactionCuentaDestino.RollbackAsync();
             _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}");
-            throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
+            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
         }
         
         Transferencia transferencia = new Transferencia
@@ -423,7 +363,7 @@ public class MovimientoService : IMovimientoService
             IbanOrigen = transferenciaRequest.IbanOrigen,
             NombreBeneficiario = transferenciaRequest.NombreBeneficiario,
             IbanDestino = transferenciaRequest.IbanDestino,
-            Importe = importe
+            Importe = transferenciaRequest.Importe
         };
         
         _logger.LogInformation("Transferencia realizada con éxito");
@@ -467,7 +407,14 @@ public class MovimientoService : IMovimientoService
         if (movimiento == null || movimiento.Transferencia == null)
         {
             _logger.LogWarning($"No existe el movimiento con guid: {movimientoGuid} o no es un movimiento de transferencia");
-            throw new MovimientoException($"No existe el movimiento con guid: {movimientoGuid} o no es un movimiento de transferencia");
+            throw new MovimientoNotFoundException($"No existe el movimiento con guid: {movimientoGuid} o no es un movimiento de transferencia");
+        }
+        
+        _logger.LogInformation($"Validando que la transferencia no haya sido revocada previamente");
+        if (movimiento.Transferencia.Revocada)
+        {
+            _logger.LogWarning($"La transferencia con guid de movimiento: {movimientoGuid} ya ha sido revocada previamente");
+            throw new TransferenciaRevocadaException($"La transferencia con guid de movimiento: {movimientoGuid} ya ha sido revocada previamente");
         }
         
         _logger.LogInformation("Validando existencia de la cuenta de origen en caso de pertenecer a VivesBank");
@@ -495,7 +442,7 @@ public class MovimientoService : IMovimientoService
             {
                 await transactionCuentaOrigen.RollbackAsync();
                 _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}");
-                throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
+                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
             }
         }
         
@@ -507,10 +454,10 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {movimiento.Transferencia.IbanDestino}");
         }
 
-        if (BigInteger.Parse(cuentaDestino.Saldo) < movimiento.Transferencia.Importe)
+        if (cuentaDestino.Saldo < movimiento.Transferencia.Importe)
         {
             _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
-            throw new MovimientoException($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
+            throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
         }
         
         await using var transactionCuentaDestino = await _context.Database.BeginTransactionAsync();
@@ -534,7 +481,7 @@ public class MovimientoService : IMovimientoService
         {
             await transactionCuentaDestino.RollbackAsync();
             _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}");
-            throw new MovimientoException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
+            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
         }
         
         Transferencia transferencia = new Transferencia
@@ -544,7 +491,9 @@ public class MovimientoService : IMovimientoService
             IbanDestino = movimiento.Transferencia.IbanDestino,
             Importe = movimiento.Transferencia.Importe
         };
-        
+
+        movimiento.Transferencia.Revocada = true;
+        await _movimientoCollection.ReplaceOneAsync(m => m.Guid == movimientoGuid, movimiento);
         _logger.LogInformation("Transferencia revocada con éxito");
 
         if (cuentaOrigen != null)

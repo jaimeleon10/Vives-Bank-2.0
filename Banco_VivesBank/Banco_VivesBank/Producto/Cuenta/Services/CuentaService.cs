@@ -46,7 +46,7 @@ public class CuentaService : ICuentaService
     }
 
     
-    public async Task<PageResponse<CuentaResponse>> GetAllAsync(BigInteger? saldoMax, BigInteger? saldoMin, string? tipoCuenta, PageRequest pageRequest)
+    public async Task<PageResponse<CuentaResponse>> GetAllAsync(double? saldoMax, double? saldoMin, string? tipoCuenta, PageRequest pageRequest)
     {
         _logger.LogInformation("Buscando todos las Cuentas en la base de datos");
         int pageNumber = pageRequest.PageNumber >= 0 ? pageRequest.PageNumber : 0;
@@ -289,7 +289,7 @@ public class CuentaService : ICuentaService
         if (tipoCuenta == null)
         {
             _logger.LogError($"El tipo de cuenta {cuentaRequest.TipoCuenta} no existe en nuestro catalogo");
-            throw new ProductoNotExistException($"El tipo de cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
+            throw new ProductoNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta} no existe en nuestro catalogo");
         }
 
         var tipoCuentaModel = await _productoService.GetBaseModelByGuid(tipoCuenta.Guid);
@@ -298,7 +298,7 @@ public class CuentaService : ICuentaService
         if (clienteModel == null)
         {
             _logger.LogError($"El cliente {cuentaRequest.ClienteGuid} no existe ");
-            throw new Exception($"El cliente {cuentaRequest.ClienteGuid} no existe");
+            throw new ClienteNotFoundException($"El cliente {cuentaRequest.ClienteGuid} no existe");
         }
         
         var cuentaEntity = new CuentaEntity

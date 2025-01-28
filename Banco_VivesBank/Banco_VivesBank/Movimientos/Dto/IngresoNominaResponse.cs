@@ -12,5 +12,5 @@ public class IngresoNominaResponse
     
     public string IbanCliente { get; set; }
     
-    public string Importe { get; set; }
+    public double Importe { get; set; }
 }

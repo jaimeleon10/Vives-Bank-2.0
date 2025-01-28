@@ -4,31 +4,34 @@ namespace Banco_VivesBank.Utils.Generators;
 
 public class TarjetaGenerator
 {
+    private static readonly Random Random = new Random();
+
     public static string GenerarTarjeta()
     {
-        var numTarjeta = new StringBuilder();
-        numTarjeta.Append("4");
-        var random = new Random();
+        int length = 16; // Longitud fija para tarjetas en España
+        StringBuilder cardNumber = new StringBuilder();
 
-        for (int i = 0; i < 13; i++)
+        // Genera los primeros 15 dígitos aleatorios
+        for (int i = 0; i < length - 1; i++)
         {
-            numTarjeta.Append(random.Next(10));
+            cardNumber.Append(Random.Next(0, 10));
         }
 
-        int digitoDeControl = CalculoLuhn(numTarjeta.ToString());
-        numTarjeta.Append(digitoDeControl);
+        // Calcula el dígito de control (checksum) usando Luhn
+        int checksum = CalculateLuhn(cardNumber.ToString());
+        cardNumber.Append(checksum);
 
-        return numTarjeta.ToString();
+        return cardNumber.ToString();
     }
 
-    private static int CalculoLuhn(string cardNumber)
+    private static int CalculateLuhn(string partialCardNumber)
     {
         int suma = 0;
-        bool duplicar = false;
+        bool duplicar = true;
 
-        for (int i = cardNumber.Length - 1; i >= 0; i--)
+        for (int i = partialCardNumber.Length - 1; i >= 0; i--)
         {
-            int digit = cardNumber[i] - '0';
+            int digit = partialCardNumber[i] - '0';
 
             if (duplicar)
             {
@@ -43,6 +46,7 @@ public class TarjetaGenerator
             duplicar = !duplicar;
         }
 
-        return (10 - (suma % 10)) % 10;
+        int checksum = (10 - (suma % 10)) % 10;
+        return checksum;
     }
 }

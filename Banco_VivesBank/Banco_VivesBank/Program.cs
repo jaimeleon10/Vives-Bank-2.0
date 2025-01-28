@@ -1,11 +1,13 @@
+using System.Diagnostics;
 using System.Text;
-using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
-using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Scheduler;
+using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Services;
@@ -23,6 +25,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Quartz;
+using Quartz.Spi;
 using Serilog;
 using Serilog.Core;
 using StackExchange.Redis;
@@ -34,6 +38,9 @@ var configuration = InitConfiguration();
 
 // Iniciamos la configuración externa de la aplicación
 var logger = InitLogConfig();
+
+// Iniciamos datos en MongoDB
+RunInitMongoScriptIfEmpty();
 
 // Inicializamos los servicios de la aplicación
 var builder = InitServices();
@@ -102,16 +109,39 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<ITarjetaService, TarjetaService>();
     myBuilder.Services.AddScoped<ICuentaService, CuentaService>();
     myBuilder.Services.AddScoped<IMovimientoService, MovimientoService>();
+    myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
     myBuilder.Services.AddScoped<IPdfStorage, PdfStorage>();
     myBuilder.Services.AddScoped<IFileStorageService, FileStorageService>();
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     myBuilder.Services.AddScoped<IBackupService, BackupService>();
     myBuilder.Services.AddScoped<IStorageJson, StorageJson>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
+    myBuilder.Services.AddScoped<DomiciliacionScheduler>();
+    myBuilder.Services.AddScoped<DomiciliacionJob>();
+    
+    // Quartz (domiciliaciones)
+    myBuilder.Services.AddQuartz(q =>
+    {
+        q.UseSimpleTypeLoader();
+
+        // Configure Job and Trigger
+        var jobKey = new JobKey("DomiciliacionJob");
+        q.AddJob<DomiciliacionJob>(opts => opts.WithIdentity(jobKey));
+        
+        q.AddTrigger(opts => opts
+            .ForJob(jobKey)
+            .WithIdentity("DomiciliacionJob-Trigger")
+            .WithSimpleSchedule(x => x
+                .WithIntervalInSeconds(30)
+                .RepeatForever()));
+    });
+    
+    // Quartz Hosted Service
+    myBuilder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
     
     //Ftp
     myBuilder.Services.Configure<FtpConfig>(myBuilder.Configuration.GetSection("FtpSettings"));
-    myBuilder.Services.AddScoped<FtpService>();
+    myBuilder.Services.AddScoped<IFtpService, FtpService>();
     
     // Caché en memoria
     myBuilder.Services.AddMemoryCache();
@@ -219,5 +249,78 @@ void TryConnectionDataBase()
     {
         logger.Error(ex, "🔴 Error connecting to , closing application");
         Environment.Exit(1);
+    }
+}
+
+void RunInitMongoScriptIfEmpty()
+{
+    var connectionString = configuration.GetSection("MovimientosDatabase:ConnectionString").Value;
+    var databaseName = configuration.GetSection("MovimientosDatabase:DatabaseName").Value;
+
+    // Leer los nombres de las colecciones desde la configuración
+    var movimientosCollectionName = configuration.GetSection("MovimientosDatabase:MovimientosCollectionName").Value;
+    var domiciliacionesCollectionName = configuration.GetSection("MovimientosDatabase:DomiciliacionesCollectionName").Value;
+
+    // Validar que los valores no estén vacíos
+    if (string.IsNullOrEmpty(movimientosCollectionName) || string.IsNullOrEmpty(domiciliacionesCollectionName))
+    {
+        throw new ArgumentNullException("Los nombres de las colecciones no están configurados correctamente en appsettings.json");
+    }
+
+    // Crear cliente de MongoDB y base de datos
+    var client = new MongoClient(connectionString);
+    var database = client.GetDatabase(databaseName);
+
+    // Obtener las colecciones
+    var movimientosCollection = database.GetCollection<BsonDocument>(movimientosCollectionName);
+    var domiciliacionesCollection = database.GetCollection<BsonDocument>(domiciliacionesCollectionName);
+
+    // Comprobar si las colecciones están vacías
+    var movimientosVacios = movimientosCollection.CountDocuments(FilterDefinition<BsonDocument>.Empty) == 0;
+    var domiciliacionesVacios = domiciliacionesCollection.CountDocuments(FilterDefinition<BsonDocument>.Empty) == 0;
+
+    if (movimientosVacios || domiciliacionesVacios)
+    {
+        Console.WriteLine("🔄 Una o más colecciones están vacías. Ejecutando el script initMongoData.js...");
+        RunInitMongoScript();
+    }
+    else
+    {
+        Console.WriteLine("✅ Todas las colecciones ya contienen datos. No es necesario ejecutar initMongoData.js.");
+    }
+}
+
+void RunInitMongoScript()
+{
+    var process = new Process
+    {
+        StartInfo = new ProcessStartInfo
+        {
+            FileName = "node",
+            Arguments = "mongo/initMongoData.js",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        }
+    };
+
+    process.Start();
+
+    while (!process.StandardOutput.EndOfStream)
+    {
+        Console.WriteLine(process.StandardOutput.ReadLine());
+    }
+
+    while (!process.StandardError.EndOfStream)
+    {
+        Console.Error.WriteLine(process.StandardError.ReadLine());
+    }
+
+    process.WaitForExit();
+
+    if (process.ExitCode != 0)
+    {
+        throw new Exception("🔴 Error al ejecutar el script initMongoData.js");
     }
 }

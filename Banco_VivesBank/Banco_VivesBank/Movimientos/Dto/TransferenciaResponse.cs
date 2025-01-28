@@ -10,6 +10,7 @@ public class TransferenciaResponse
     
     public string IbanDestino { get; set; }
 
-    public string Importe { get; set; }
-    
+    public double Importe { get; set; }
+ 
+    public bool Revocada { get; set; }
 }

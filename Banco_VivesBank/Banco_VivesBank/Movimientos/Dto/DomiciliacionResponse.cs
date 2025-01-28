@@ -4,6 +4,8 @@ namespace Banco_VivesBank.Movimientos.Dto;
 
 public class DomiciliacionResponse
 {
+    public required string Guid { get; set; }
+    
     public string ClienteGuid { get; set; }
     
     public string Acreedor { get; set; }
@@ -12,7 +14,7 @@ public class DomiciliacionResponse
     
     public string IbanCliente { get; set; }
     
-    public string Importe { get; set; }
+    public double Importe { get; set; }
     
     public string Periodicidad { get; set; }
 

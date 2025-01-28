@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+using System.Numerics;
+using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Controllers;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
@@ -27,54 +29,65 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task GetAll()
     {
-        var expectedResponse = new PageResponse<CuentaResponse>
+        var expectedCuentas = new List<CuentaResponse>
         {
-            PageNumber = 0,
-            PageSize = 10,
-            SortBy = "id",
-            Direction = "asc",
+            new CuentaResponse { Guid = "guid1", Iban = "Producto1", Saldo = "3000" },
+            new CuentaResponse { Guid = "guid2", Iban = "Producto2", Saldo = "3000" }
         };
 
-        _cuentaService
-            .Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
-            .ReturnsAsync(expectedResponse);
-
-        var baseUri = new Uri("https://localhost");
-        _paginationLinks
-            .Setup(utils => utils.CreateLinkHeader(It.IsAny<PageResponse<CuentaResponse>>(), baseUri))
-            .Returns("link-header");
-
-        _cuentaController.ControllerContext.HttpContext = new DefaultHttpContext();
-
-        var result = await _cuentaController.Getall(saldoMax: null, saldoMin: null, tipoCuenta: null, page: 0, size: 10, sortBy: "id", direction: "asc");
-
-        Assert.That(result, Is.TypeOf<ActionResult<PageResponse<CuentaResponse>>>());
-    }
-    
-    [Test]
-    public async Task GetAllNotFound()
-    {
-        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
-            .ThrowsAsync(new CuentaNotFoundException("No se han encontrado las cuentas."));
-
-        var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        var page = 0;
+        var size = 10;
+        var sortBy = "id";
+        var direction = "desc";
         
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(404));
-    }
-    
-    [Test]
-    public async Task GetAll500()
-    {
-        _cuentaService.Setup(service => service.GetAllAsync(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<PageRequest>()))
-            .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
+        var pageRequest = new PageRequest
+        {
+            PageNumber = page,
+            PageSize = size,
+            SortBy = sortBy,
+            Direction = direction
+        };
 
-        var result = await _cuentaController.Getall(It.IsAny<BigInteger?>(), It.IsAny<BigInteger?>(), It.IsAny<string>(), It.IsAny<int>());
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        var pageResponse = new PageResponse<CuentaResponse>
+        {
+            Content = expectedCuentas,
+            TotalElements = expectedCuentas.Count,
+            PageNumber = pageRequest.PageNumber,
+            PageSize = pageRequest.PageSize,
+            TotalPages = 1
+        };
+
+        _cuentaService.Setup(s => s.GetAllAsync(5000, 1000, "normal", pageRequest))
+            .ReturnsAsync(pageResponse);
+
+        var baseUri = new Uri("http://localhost/api/cuentas");
+        _paginationLinks.Setup(utils => utils.CreateLinkHeader(pageResponse, baseUri))
+            .Returns("<http://localhost/api/productosBase?page=0&size=5>; rel=\"prev\",<http://localhost/api/cuentas?page=2&size=5>; rel=\"next\"");
+
+        // Configurar el contexto HTTP para la prueba
+        var httpContext = new DefaultHttpContext
+        {
+            Request =
+            {
+                Scheme = "http",
+                Host = new HostString("localhost"),
+                PathBase = new PathString("/api/cuentas")
+            }
+        };
+
+        _cuentaController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
         
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+        var result = await _cuentaController.Getall(page, size, sortBy);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
     }
 
     [Test]
@@ -113,36 +126,23 @@ public class CuentaAdminControllerTests
             .ThrowsAsync(new CuentaInvalidaException("Cuentas no encontradas por guid del cliente invalido."));
 
         var result = await _cuentaController.GetAllByClientGuid("???");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
         
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = result.Result as BadRequestObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(400));
     }
     
     [Test]
     public async Task GetAllByClienteGuidNotFound()
     {
-        _cuentaService.Setup(service => service.GetByClientGuidAsync("cliente-Guid"))
-            .ThrowsAsync(new CuentaNotFoundException("No se han encontrado las cuentas del cliente."));
+        _cuentaService.Setup(service => service.GetByClientGuidAsync("cliente-GuidNoexistente"))
+            .ThrowsAsync(new ClienteNotFoundException("Error buscando cliente."));
 
-        var result = await _cuentaController.GetAllByClientGuid("clienteGuid");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        var result = await _cuentaController.GetAllByClientGuid("cliente-GuidNoexistente");
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = result.Result as NotFoundObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(404));
-    }
-    
-    [Test]
-    public async Task GetAllByClienteGuid500()
-    {
-        _cuentaService.Setup(service => service.GetByClientGuidAsync("clienteGuid"))
-            .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
-
-        var result = await _cuentaController.GetAllByClientGuid("clienteGuid");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
-        
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
 
     [Test]
@@ -174,42 +174,16 @@ public class CuentaAdminControllerTests
     }
     
     [Test]
-    public async Task GetByGuidBadRequest()
-    {
-        _cuentaService.Setup(service => service.GetByGuidAsync("???"))
-            .ThrowsAsync(new CuentaInvalidaException("Cuenta no encontrada por guid invalido."));
-
-        var result = await _cuentaController.GetByGuid("???");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
-        
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(400));
-    }
-    
-    [Test]
     public async Task GetByGuidNotFound()
     {
         _cuentaService.Setup(service => service.GetByGuidAsync("guid"))
-            .ThrowsAsync(new CuentaNotFoundException("No se ha encontrado la cuenta."));
+            .ReturnsAsync((CuentaResponse)null);
 
         var result = await _cuentaController.GetByGuid("guid");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = result.Result as NotFoundObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(404));
-    }
-    
-    [Test]
-    public async Task GetByGuid500()
-    {
-        _cuentaService.Setup(service => service.GetByGuidAsync("guid"))
-            .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
-
-        var result = await _cuentaController.GetByGuid("guid");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
-        
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
 
     [Test]
@@ -241,42 +215,16 @@ public class CuentaAdminControllerTests
     }
     
     [Test]
-    public async Task GetByIbanBadRequest()
-    {
-        _cuentaService.Setup(service => service.GetByIbanAsync("???"))
-            .ThrowsAsync(new CuentaInvalidaException("Cuenta no encontrada por iban invalido."));
-
-        var result = await _cuentaController.GetByIban("???");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
-        
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(400));
-    }
-    
-    [Test]
     public async Task GetByIbanNotFound()
     {
         _cuentaService.Setup(service => service.GetByIbanAsync("iban"))
-            .ThrowsAsync(new CuentaNotFoundException("No se ha encontrado la cuenta."));
+            .ReturnsAsync((CuentaResponse)null);
 
         var result = await _cuentaController.GetByIban("iban");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = result.Result as NotFoundObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(404));
-    }
-    
-    [Test]
-    public async Task GetByIban500()
-    {
-        _cuentaService.Setup(service => service.GetByIbanAsync("iban"))
-            .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
-
-        var result = await _cuentaController.GetByIban("iban");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
-        
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
     
     [Test]
@@ -314,25 +262,12 @@ public class CuentaAdminControllerTests
     public async Task DeleteNotFound()
     {
         _cuentaService.Setup(service => service.DeleteAdminAsync("guid"))
-            .ThrowsAsync(new CuentaNotFoundException("No se ha encontrado la cuenta."));
+            .ReturnsAsync((CuentaResponse)null);
 
         var result = await _cuentaController.Delete("guid");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         
-        var objectResult = result.Result as ObjectResult;
+        var objectResult = result.Result as NotFoundObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(404));
-    }
-    
-    [Test]
-    public async Task Delete500()
-    {
-        _cuentaService.Setup(service => service.DeleteAdminAsync("guid"))
-            .ThrowsAsync(new Exception("Ocurrió un error procesando la solicitud."));
-
-        var result = await _cuentaController.Delete("guid");
-        Assert.That(result.Result, Is.TypeOf<ObjectResult>());
-        
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
 }

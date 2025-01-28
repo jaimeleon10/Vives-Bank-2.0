@@ -54,6 +54,7 @@ namespace Banco_VivesBank.User.Mapper
             {
                 Guid = usuario.Guid,
                 Username = usuario.Username,
+                Password = usuario.Password,
                 Role = usuario.Role.ToString(),
                 CreatedAt = usuario.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
                 UpdatedAt = usuario.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
@@ -67,6 +68,7 @@ namespace Banco_VivesBank.User.Mapper
             {
                 Guid = userEntity.Guid,
                 Username = userEntity.Username,
+                Password = userEntity.Password,
                 Role = userEntity.Role.ToString(),
                 CreatedAt = userEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
                 UpdatedAt = userEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),

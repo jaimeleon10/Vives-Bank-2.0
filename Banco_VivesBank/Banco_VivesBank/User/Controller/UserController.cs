@@ -99,7 +99,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPut("{guid}")]
-    public async Task<ActionResult<UserResponse>> Update(string guid, [FromBody] UserRequest userRequest)
+    public async Task<ActionResult<UserResponse>> Update(string guid, [FromBody] UserRequestUpdate userRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -109,6 +109,20 @@ public class UserController : ControllerBase
         var userResponse = await _userService.UpdateAsync(guid, userRequest);
         if (userResponse is null) return NotFound($"No se ha podido actualizar el usuario con guid: {guid}"); 
         return Ok(userResponse);
+    }
+    
+    [HttpPut("password/{guid}")]
+    public async Task<IActionResult> UpdatePassword(string guid, string newPassword)
+    {
+        try
+        {
+            var updatedUser = await _userService.UpdatePasswordAsync(guid, newPassword);
+            return Ok(updatedUser);
+        }
+        catch (UserException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
     
     [HttpDelete("{guid}")]

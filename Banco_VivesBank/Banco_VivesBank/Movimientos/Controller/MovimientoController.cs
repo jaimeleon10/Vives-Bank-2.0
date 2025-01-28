@@ -1,7 +1,8 @@
-﻿using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -38,37 +39,11 @@ public class MovimientoController : ControllerBase
     [HttpGet("cliente/{clienteGuid}")]
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetByClienteGuid(string clienteGuid)
     {
-        return Ok(await _movimientoService.GetByGuidAsync(clienteGuid));
-    }
-
-    [HttpPost("domiciliacion")]
-    public async Task<ActionResult<MovimientoResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        try
-        {
-            return Ok(await _movimientoService.CreateDomiciliacionAsync(domiciliacionRequest));
-        }
-        catch (ClienteException e)
-        {
-            return NotFound(e.Message);
-        }
-        catch (CuentaException e)
-        {
-            return NotFound(e.Message);
-        }
-        catch (MovimientoException e)
-        {
-            return BadRequest(e.Message);
-        }
+        return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
     }
     
     [HttpPost("ingresoNomina")]
-    public async Task<ActionResult<MovimientoResponse>> CreateIngresoNomina([FromBody] IngresoNominaRequest ingresoNominaRequest)
+    public async Task<ActionResult<IngresoNominaResponse>> CreateIngresoNomina([FromBody] IngresoNominaRequest ingresoNominaRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -90,7 +65,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("pagoConTarjeta")]
-    public async Task<ActionResult<MovimientoResponse>> CreatePagoConTarjeta([FromBody] PagoConTarjetaRequest pagoConTarjetaRequest)
+    public async Task<ActionResult<PagoConTarjetaResponse>> CreatePagoConTarjeta([FromBody] PagoConTarjetaRequest pagoConTarjetaRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -105,6 +80,10 @@ public class MovimientoController : ControllerBase
         {
             return NotFound(e.Message);
         }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
+        }
         catch (CuentaException e)
         {
             return NotFound(e.Message);
@@ -116,7 +95,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("transferencia")]
-    public async Task<ActionResult<MovimientoResponse>> CreateTransferencia([FromBody] TransferenciaRequest transferenciaRequest)
+    public async Task<ActionResult<TransferenciaResponse>> CreateTransferencia([FromBody] TransferenciaRequest transferenciaRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -126,6 +105,10 @@ public class MovimientoController : ControllerBase
         try
         {
             return Ok(await _movimientoService.CreateTransferenciaAsync(transferenciaRequest));
+        }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
         }
         catch (CuentaException e)
         {
@@ -137,20 +120,28 @@ public class MovimientoController : ControllerBase
         }
     }
     
-    [HttpPost("transferencia/revocar")]
-    public async Task<ActionResult<MovimientoResponse>> RevocarTransferencia(string movimientoGuid)
+    [HttpPost("transferencia/revocar/{movimientoGuid}")]
+    public async Task<ActionResult<TransferenciaResponse>> RevocarTransferencia(string movimientoGuid)
     {
         try
         {
             return Ok(await _movimientoService.RevocarTransferenciaAsync(movimientoGuid));
         }
-        catch (CuentaException e)
+        catch (MovimientoNotFoundException e)
         {
             return NotFound(e.Message);
         }
         catch (MovimientoException e)
         {
             return BadRequest(e.Message);
+        }
+        catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (CuentaException e)
+        {
+            return NotFound(e.Message);
         }
     }
 }
