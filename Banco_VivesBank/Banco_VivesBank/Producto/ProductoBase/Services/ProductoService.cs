@@ -4,6 +4,9 @@ using Banco_VivesBank.Producto.ProductoBase.Dto;
 using Banco_VivesBank.Producto.ProductoBase.Exceptions;
 using Banco_VivesBank.Producto.ProductoBase.Mappers;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -277,6 +280,13 @@ public class ProductoService : IProductoService
             baseModelList.Add(ProductoMapper.ToModelFromEntity(productoEntity));
         }
         return baseModelList;
+    }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin-resource")]
+    public string GetAdminResource()
+    {
+        return "This is a protected admin resource.";
     }
 
 }
