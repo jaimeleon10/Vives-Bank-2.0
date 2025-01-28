@@ -8,11 +8,7 @@ public interface IMovimientoService
     public Task<IEnumerable<MovimientoResponse>> GetAllAsync();
     public Task<MovimientoResponse?> GetByGuidAsync(string guid);
     public Task<IEnumerable<MovimientoResponse>> GetByClienteGuidAsync(string clienteGuid);
-    public Task<IEnumerable<DomiciliacionResponse>> GetAllDomiciliacionesAsync();
-    public Task<IEnumerable<DomiciliacionResponse>> GetDomiciliacionesByClienteGuidAsync(string clienteGuid);
-    // TODO -> Función para cobrar las domiciliaciones
     public Task CreateAsync(MovimientoRequest movimientoRequest);
-    public Task<DomiciliacionResponse> CreateDomiciliacionAsync(DomiciliacionRequest domiciliacionRequest);
     public Task<IngresoNominaResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNomina);
     public Task<PagoConTarjetaResponse> CreatePagoConTarjetaAsync(PagoConTarjetaRequest pagoConTarjeta);
     public Task<TransferenciaResponse> CreateTransferenciaAsync(TransferenciaRequest transferencia);
