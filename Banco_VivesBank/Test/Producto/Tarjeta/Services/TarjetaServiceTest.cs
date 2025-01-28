@@ -1,9 +1,9 @@
-﻿using Banco_VivesBank.Database;
+﻿using System.Text.Json;
+using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
-using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Validators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
+using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Test.Producto.Tarjeta.Services;
 
@@ -20,12 +21,11 @@ public class TarjetaServiceTest
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private TarjetaService _tarjetaService;
-    private Mock<TarjetaGenerator> _tarjetaGeneratorMock;
-    private Mock<CvvGenerator> _cvvGeneratorMock;
-    private Mock<ExpDateGenerator> _expDateGeneratorMock;
-    private Mock<CardLimitValidators> _cardLimitValidatorsMock;
+    private IMemoryCache _memoryCache;
     private Mock<IConnectionMultiplexer> _redisConnectionMock;
     private Mock<IMemoryCache> _memoryCacheMock;
+    private Mock<ICacheEntry> _cacheEntryMock;
+    private Mock<IDatabase> _mockDatabase;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -44,25 +44,27 @@ public class TarjetaServiceTest
         var options = new DbContextOptionsBuilder<GeneralDbContext>()
             .UseNpgsql(_postgreSqlContainer.GetConnectionString())
             .Options;
-
+        
+        
+        
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
-
+       
         // Crear mocks
-        _tarjetaGeneratorMock = new Mock<TarjetaGenerator>();
-        _cvvGeneratorMock = new Mock<CvvGenerator>();
-        _expDateGeneratorMock = new Mock<ExpDateGenerator>();
-        _cardLimitValidatorsMock = new Mock<CardLimitValidators>();
         _redisConnectionMock = new Mock<IConnectionMultiplexer>();
         _memoryCacheMock = new Mock<IMemoryCache>();
-
-        // Crear instancia del servicio con los mocks
+        _mockDatabase = new Mock<IDatabase>();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+        
+        _redisConnectionMock.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object?>()))
+            .Returns(_mockDatabase.Object);
+        
         _tarjetaService = new TarjetaService(
             _dbContext,
             NullLogger<TarjetaService>.Instance,
             NullLogger<CardLimitValidators>.Instance,
             _redisConnectionMock.Object, // Mock de IConnectionMultiplexer
-            _memoryCacheMock.Object      // Mock de IMemoryCache
+            _memoryCache
         );
     }
 
@@ -78,6 +80,10 @@ public class TarjetaServiceTest
         {
             await _postgreSqlContainer.StopAsync();
             await _postgreSqlContainer.DisposeAsync();
+        }
+        if (_memoryCache != null)
+        {
+            _memoryCache.Dispose();
         }
     }
 
@@ -100,6 +106,8 @@ public class TarjetaServiceTest
             UpdatedAt = DateTime.UtcNow
         };
         _dbContext.Tarjetas.Add(tarjeta1);
+        var serializedUser = JsonSerializer.Serialize(tarjeta1);
+        _memoryCache.Set("tarjetaTest", serializedUser, TimeSpan.FromMinutes(30));
         await _dbContext.SaveChangesAsync();
 
         var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
@@ -138,7 +146,7 @@ public class TarjetaServiceTest
         await _dbContext.SaveChangesAsync();
 
         var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync("1234567890123456");
-        Assert.That(tarjeta.Guid, Is.EqualTo(guid));
+        Assert.That(tarjeta1.Guid, Is.EqualTo(guid));
     }
     
     [Test]
@@ -155,18 +163,37 @@ public class TarjetaServiceTest
     [Test]
     public async Task Create()
     {
+        
+        var nuevaCuenta = new CuentaEntity
+        {
+            Guid = "CuentaGuidTest",
+            Iban = "ES7620770024003102575766", // IBAN de ejemplo
+            Saldo = 0, // Saldo inicial
+            TarjetaId = null, // Sin tarjeta asociada por ahora
+            ClienteId = 1, // Id de un cliente existente
+            ProductoId = 2, // Id de un producto existente
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _dbContext.AddAsync(nuevaCuenta);
+        await _dbContext.SaveChangesAsync();
+
+        
         var tarjetaRequest = new TarjetaRequest
         {
-            CuentaGuid = "12345678912",
+            CuentaGuid = "CuentaGuidTest",
             Pin = "1234",
             LimiteDiario = 1000,
             LimiteSemanal = 3000,
             LimiteMensual = 9000
         };
-
-        // TODO -> CREA UNA CUENTA Y POR TANTO UN PRODUCTO, UN CLIENTE Y UN USUARIO PARA PODER CREAR LA TARJETA.
+        
+        
         
         var tarjeta = await _tarjetaService.CreateAsync(tarjetaRequest);
+        var serializedUser = JsonSerializer.Serialize(tarjeta);
+        _memoryCache.Set("tarjetaTest", serializedUser, TimeSpan.FromMinutes(30));
 
         Assert.That(tarjeta.Pin, Is.EqualTo("1234"));
         Assert.That(tarjeta.LimiteDiario, Is.EqualTo(1000));
@@ -198,9 +225,10 @@ public class TarjetaServiceTest
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+        var serializedUser = JsonSerializer.Serialize(tarjeta);
         _dbContext.Tarjetas.Add(tarjeta);
         await _dbContext.SaveChangesAsync();
-
+        _memoryCache.Set("tarjetaTest", serializedUser, TimeSpan.FromMinutes(30));
         var tarjetaActualizada = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
 
         Assert.That(tarjetaActualizada.Pin, Is.EqualTo("1234"));
@@ -337,9 +365,26 @@ public class TarjetaServiceTest
     [Test]
     public async Task Delete()
     {
+        
+        var nuevaCuenta = new CuentaEntity
+        {
+            Guid = "CuentaGuidTest",
+            Iban = "ES7620770024003102575766", // IBAN de ejemplo
+            Saldo = 0, // Saldo inicial
+            TarjetaId = null, // Sin tarjeta asociada por ahora
+            ClienteId = 1, // Id de un cliente existente
+            ProductoId = 2, // Id de un producto existente
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        await _dbContext.AddAsync(nuevaCuenta);
+        await _dbContext.SaveChangesAsync();
+        
+        var guid = "guid-test";
         var tarjeta = new TarjetaEntity
         {
-            Guid = Guid.NewGuid().ToString(),
+            Guid = guid,
             Numero = "1234567890123456",
             Cvv = "123",
             FechaVencimiento = "01/23",
@@ -351,9 +396,14 @@ public class TarjetaServiceTest
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _dbContext.Tarjetas.Add(tarjeta);
+     
+        var serializedUser = JsonSerializer.Serialize(tarjeta);
+        _memoryCache.Set("tarjetaTest", serializedUser, TimeSpan.FromMinutes(30));
+         _dbContext.Tarjetas.Add(tarjeta);
         await _dbContext.SaveChangesAsync();
 
+        nuevaCuenta.Tarjeta = tarjeta;
+        await _dbContext.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta!.Guid == guid);
         await _tarjetaService.DeleteAsync(tarjeta.Guid);
 
         var tarjetaBorrada = await _dbContext.Tarjetas.FirstOrDefaultAsync(t => t.Guid == tarjeta.Guid);
