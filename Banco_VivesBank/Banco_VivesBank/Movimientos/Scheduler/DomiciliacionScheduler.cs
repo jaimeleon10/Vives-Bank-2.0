@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.Database;
+﻿using System.Transactions;
+using Banco_VivesBank.Database;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
@@ -69,6 +70,12 @@ namespace Banco_VivesBank.Movimientos.Scheduler
                 catch (MovimientoException)
                 {
                     _logger.LogWarning($"Saldo insuficiente para domiciliación: {domiciliacion.Guid}");
+                    domiciliacion.Activa = false;
+                    
+                    // Actualizar la última ejecución en MongoDB
+                    var filter = Builders<Domiciliacion>.Filter.Eq(d => d.Guid, domiciliacion.Guid);
+                    var update = Builders<Domiciliacion>.Update.Set(d => d.Activa, domiciliacion.Activa);
+                    await _domiciliacionCollection.UpdateOneAsync(filter, update);
                 }
                 catch (Exception ex)
                 {
@@ -105,8 +112,29 @@ namespace Banco_VivesBank.Movimientos.Scheduler
             }
 
             // Actualizar el saldo de la cuenta
-            cuentaCliente.Saldo -= importe;
-            _context.Cuentas.Update(cuentaCliente);
+            await using var transactionCuenta = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var cuentaUpdate = await _context.Cuentas.Where(c => c.Guid == cuentaCliente.Guid).FirstOrDefaultAsync();
+
+                if (cuentaUpdate != null)
+                {
+                    cuentaUpdate.Saldo -= domiciliacion.Importe;
+
+                    await _context.SaveChangesAsync();
+                    await transactionCuenta.CommitAsync();
+                }
+                else
+                {
+                    await transactionCuenta.RollbackAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await transactionCuenta.RollbackAsync();
+                _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaCliente.Guid}");
+                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaCliente.Guid}\n\n{ex.Message}");
+            }
 
             // Obtener el cliente de la domiciliación
             var clienteDomiciliacion = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == cuentaCliente.ClienteId);
@@ -114,7 +142,7 @@ namespace Banco_VivesBank.Movimientos.Scheduler
             // Crear y procesar el movimiento de la domiciliación
             var movimientoRequest = new MovimientoRequest
             {
-                ClienteGuid = clienteDomiciliacion.Guid,
+                ClienteGuid = clienteDomiciliacion!.Guid,
                 Domiciliacion = domiciliacion,
                 IngresoNomina = null,
                 PagoConTarjeta = null,
