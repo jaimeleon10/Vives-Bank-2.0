@@ -1,65 +1,41 @@
 using System.IO.Compression;
-using Banco_VivesBank.Cliente.Dto;
-using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Cliente.Services;
-using Banco_VivesBank.Movimientos.Dto;
-using Banco_VivesBank.Movimientos.Services;
-using Banco_VivesBank.Movimientos.Services.Movimientos;
-using Banco_VivesBank.Producto.Cuenta.Dto;
-using Banco_VivesBank.Producto.Cuenta.Exceptions;
-using Banco_VivesBank.Producto.Cuenta.Services;
-using Banco_VivesBank.Producto.ProductoBase.Dto;
-using Banco_VivesBank.Producto.ProductoBase.Exceptions;
-using Banco_VivesBank.Producto.ProductoBase.Services;
-using Banco_VivesBank.Producto.Tarjeta.Dto;
-using Banco_VivesBank.Producto.Tarjeta.Exceptions;
-using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.Cliente.Mapper;
+using Banco_VivesBank.Database;
+using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Movimientos.Database;
+using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Producto.Cuenta.Mappers;
+using Banco_VivesBank.Producto.Cuenta.Models;
+using Banco_VivesBank.Producto.Tarjeta.Mappers;
+using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Exceptions;
-using Banco_VivesBank.User.Dto;
-using Banco_VivesBank.User.Exceptions;
-using Banco_VivesBank.User.Service;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace Banco_VivesBank.Storage.Zip.Services;
 
 public class BackupService : IBackupService
 {
+    private readonly GeneralDbContext _context;
     private readonly ILogger<BackupService> _logger;
-    
-    //servicios
-    private readonly IUserService _userService;
-    private readonly IClienteService _clienteService;
-    private readonly IProductoService _productoService;
-    private readonly ICuentaService _cuentaService;
-    private readonly ITarjetaService _tarjetaService;
-    private readonly IMovimientoService _movimientoService;
-
-    
-    //storageJson
+    private readonly IMongoCollection<Movimiento> _movimientoCollection;
+    private readonly IMongoCollection<Domiciliacion> _domiciliacionCollection;
     private readonly IStorageJson _storageJson;
     
-    public BackupService(ILogger<BackupService> logger, 
-        IUserService userService, 
-        IClienteService clienteService, 
-        IProductoService productoService, 
-        ICuentaService cuentaService, 
-        ITarjetaService tarjetaService,
-        IMovimientoService movimientoService,
-        IStorageJson storageJson
+    public BackupService(
+        ILogger<BackupService> logger, GeneralDbContext context,
+        IStorageJson storageJson, IOptions<MovimientosMongoConfig> movimientosDatabaseSettings
         )
     {
         _logger = logger;
-        
-        //inicializamos los servicios
-        _userService = userService;
-        _clienteService = clienteService;
-        _productoService = productoService;
-        _cuentaService = cuentaService;
-        _tarjetaService = tarjetaService;
-        _movimientoService = movimientoService;
-        
-        //inicializamos el storageJson
+        _context = context;
         _storageJson = storageJson;
+        var mongoClient = new MongoClient(movimientosDatabaseSettings.Value.ConnectionString);
+        var mongoDatabase = mongoClient.GetDatabase(movimientosDatabaseSettings.Value.DatabaseName);
+        _movimientoCollection = mongoDatabase.GetCollection<Movimiento>(movimientosDatabaseSettings.Value.MovimientosCollectionName);
+        _domiciliacionCollection = mongoDatabase.GetCollection<Domiciliacion>(movimientosDatabaseSettings.Value.DomiciliacionesCollectionName);
     }
     
     public async Task ExportToZip(string sourceDirectory, string zipFilePath)
@@ -68,6 +44,7 @@ public class BackupService : IBackupService
 
         if (string.IsNullOrWhiteSpace(sourceDirectory))
             throw new ArgumentNullException(nameof(sourceDirectory));
+        
         if (string.IsNullOrWhiteSpace(zipFilePath))
             throw new ArgumentNullException(nameof(zipFilePath));
 
@@ -79,28 +56,55 @@ public class BackupService : IBackupService
                 File.Delete(zipFilePath);
             }
 
-            var users = await _userService.GetAllForStorage();
-            var clientes = await _clienteService.GetAllForStorage();
-            var bases = await _productoService.GetAllForStorage();
-            var cuentas = await _cuentaService.GetAllForStorage();
-            var tarjetas = await _tarjetaService.GetAllForStorage();
-            var movimientos = await _movimientoService.GetAllAsync();
+            var users = await _context.Usuarios.ToListAsync();
+            
+            var clientesEntity = await _context.Clientes.ToListAsync();
+            var clientes = new List<Cliente.Models.Cliente>();
+            foreach (var clienteEntity in clientesEntity)
+            {
+                var clienteResponse = ClienteMapper.ToModelFromEntity(clienteEntity);
+                clientes.Add(clienteResponse);
+            }
 
+            var productos = await _context.ProductoBase.ToListAsync();
+            
+            var CuentasEntity = await _context.Cuentas.ToListAsync();
+            var cuentas = new List<Cuenta>();
+            foreach (var cuentaEntity in CuentasEntity)
+            {
+                var cuenta = CuentaMapper.ToModelFromEntity(cuentaEntity);
+                cuentas.Add(cuenta);
+            }
+            
+            var tarjetasEntity = await _context.Tarjetas.ToListAsync();
+            var tarjetas = new List<Tarjeta>();
+            foreach (var tarjetaEntity in tarjetasEntity)
+            {
+                var tarjeta = TarjetaMapper.ToModelFromEntity(tarjetaEntity);
+                tarjetas.Add(tarjeta);
+            }
+            
+            var movimientos = await _movimientoCollection.Find(_ => true).ToListAsync();
+            var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+            
             _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
             _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "bases.json")), bases.ToList());
+            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos.ToList());
             _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
+            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas.ToList());
             _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos.ToList());
+            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones.ToList());
+
 
             using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
             {
                 zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "usuarios.json"), "usuarios.json");
                 zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "clientes.json"), "clientes.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "bases.json"), "bases.json");
+                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "productos.json"), "productos.json");
                 zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "cuentas.json"), "cuentas.json");
                 zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "tarjetas.json"), "tarjetas.json");
                 zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "movimientos.json"), "movimientos.json");
+                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "domiciliaciones.json"), "domiciliaciones.json");
 
                 var avatarDirectory = Path.Combine("data", "avatares");
                 if (Directory.Exists(avatarDirectory))
@@ -114,7 +118,7 @@ public class BackupService : IBackupService
                 }
             }
 
-            foreach (var fileName in new[] { "usuarios.json", "clientes.json", "bases.json", "cuentas.json", "tarjetas.json", "movimientos.json" })
+            foreach (var fileName in new[] { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" })
             {
                 var filePath = Path.Combine(sourceDirectory, fileName);
                 if (File.Exists(filePath))
@@ -122,7 +126,7 @@ public class BackupService : IBackupService
                     File.Delete(filePath);
                 }
             }
-            
+
             _logger.LogInformation("Exportación de datos a ZIP finalizada.");
         }
         catch (Exception e)
@@ -131,272 +135,136 @@ public class BackupService : IBackupService
             throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
         }
     }
-    
+
     public async Task ImportFromZip(string zipFilePath, string destinationDirectory)
     {
         _logger.LogInformation("Iniciando la importación de datos desde ZIP...");
 
+        if (string.IsNullOrEmpty(zipFilePath))
+            throw new ArgumentException("El archivo ZIP no puede ser nulo o vacío.", nameof(zipFilePath));
+
+        if (string.IsNullOrEmpty(destinationDirectory))
+            throw new ArgumentException("El directorio de destino no puede ser nulo o vacío.", nameof(destinationDirectory));
+
+        if (!File.Exists(zipFilePath))
+            throw new ImportFromZipException("El archivo ZIP no existe.", null);
+        
         try
         {
-            if (!Directory.Exists(destinationDirectory))
+            if (!File.Exists(zipFilePath))
             {
-                Directory.CreateDirectory(destinationDirectory);
+                _logger.LogError($"El archivo ZIP no existe en la ruta: {zipFilePath}");
+                throw new ImportFromZipException("El archivo ZIP no existe.", null);
+            }
+            else {
+                _logger.LogInformation($"El archivo ZIP encontrado: {zipFilePath}");
             }
 
-            ZipFile.ExtractToDirectory(zipFilePath, destinationDirectory, overwriteFiles: true);
-            _logger.LogInformation($"Archivos descomprimidos en {destinationDirectory}");
-
-            var usuariosFile = new FileInfo(Path.Combine(destinationDirectory, "usuarios.json"));
-            var clientesFile = new FileInfo(Path.Combine(destinationDirectory, "clientes.json"));
-            var basesFile = new FileInfo(Path.Combine(destinationDirectory, "bases.json"));
-            var cuentasFile = new FileInfo(Path.Combine(destinationDirectory, "cuentas.json"));
-            var tarjetasFile = new FileInfo(Path.Combine(destinationDirectory, "tarjetas.json"));
-            var movimientosFile = new FileInfo(Path.Combine(destinationDirectory, "movimientos.json"));
-
-            if (usuariosFile.Exists)
+            var temporaryDirectory = Path.Combine(destinationDirectory, "archivos");
+            if (Directory.Exists(temporaryDirectory))
             {
-                var usuarios = _storageJson.ImportJson<UserRequest>(usuariosFile);
-                //hacemos un bucle for ya que no hay un saveAll
-                foreach (var user in usuarios)
+                Directory.Delete(temporaryDirectory, true);
+            }
+
+            Directory.CreateDirectory(temporaryDirectory);
+
+            ZipFile.ExtractToDirectory(zipFilePath, temporaryDirectory, overwriteFiles: true);
+            _logger.LogInformation($"Archivos descomprimidos en {temporaryDirectory}");
+
+            var usuariosFile = new FileInfo(Path.Combine(temporaryDirectory, "usuarios.json"));
+            var clientesFile = new FileInfo(Path.Combine(temporaryDirectory, "clientes.json"));
+            var productoFile = new FileInfo(Path.Combine(temporaryDirectory, "productos.json"));
+            var cuentasFile = new FileInfo(Path.Combine(temporaryDirectory, "cuentas.json"));
+            var tarjetasFile = new FileInfo(Path.Combine(temporaryDirectory, "tarjetas.json"));
+            var movimientosFile = new FileInfo(Path.Combine(temporaryDirectory, "movimientos.json"));
+            var domiciliacionesFile = new FileInfo(Path.Combine(temporaryDirectory, "domiciliaciones.json"));
+
+            if (!usuariosFile.Exists || !clientesFile.Exists || !productoFile.Exists || !cuentasFile.Exists ||
+                !tarjetasFile.Exists || !movimientosFile.Exists || !domiciliacionesFile.Exists)
+            {
+                throw new ImportFromZipException("Uno o más archivos necesarios para importar no están presentes en el ZIP.", null);
+            }
+
+            var users = _storageJson.ImportJson<UserEntity>(usuariosFile);
+            var clientesModel = _storageJson.ImportJson<Cliente.Models.Cliente>(clientesFile);
+            var clientes = new List<ClienteEntity>();
+            foreach (var clienteModel in clientesModel)
+            {
+                var clienteEntity = ClienteMapper.ToEntityFromModel(clienteModel);
+                clientes.Add(clienteEntity);
+            }
+
+            var productos = _storageJson.ImportJson<ProductoEntity>(productoFile);
+            var cuentasModel = _storageJson.ImportJson<Cuenta>(cuentasFile);
+            var cuentas = new List<CuentaEntity>();
+            foreach (var cuentaModel in cuentasModel)
+            {
+                var cuentaEntity = CuentaMapper.ToEntityFromModel(cuentaModel);
+                cuentas.Add(cuentaEntity);
+            }
+
+            var tarjetasModel = _storageJson.ImportJson<Tarjeta>(tarjetasFile);
+            var tarjetas = new List<TarjetaEntity>();
+            foreach (var tarjetaModel in tarjetasModel)
+            {
+                var tarjetaEntity = TarjetaMapper.ToEntityFromModel(tarjetaModel);
+                tarjetas.Add(tarjetaEntity);
+            }
+
+            var movimientos = _storageJson.ImportJson<Movimiento>(movimientosFile);
+            var domiciliaciones = _storageJson.ImportJson<Domiciliacion>(domiciliacionesFile);
+
+            _logger.LogInformation("Almacenando Usuarios en la base de datos...");
+            await SaveEntidadesSiNoExistenAsync(users, _context.Usuarios, u => u.Id.ToString(), u => u.Guid);
+            _logger.LogInformation("Almacenando Clientes en la base de datos...");
+            await SaveEntidadesSiNoExistenAsync(clientes, _context.Clientes, c => c.Id.ToString(), c => c.Guid);
+            _logger.LogInformation("Almacenando Productos en la base de datos...");
+            await SaveEntidadesSiNoExistenAsync(productos, _context.ProductoBase, p => p.Id.ToString(), p => p.Guid);
+            _logger.LogInformation("Almacenando Cuentas en la base de datos...");
+            await SaveEntidadesSiNoExistenAsync(cuentas, _context.Cuentas, c => c.Id.ToString(), c => c.Guid);
+            _logger.LogInformation("Almacenando Tarjetas en la base de datos...");
+            await SaveEntidadesSiNoExistenAsync(tarjetas, _context.Tarjetas, t => t.Id.ToString(), t => t.Guid);
+
+            _logger.LogInformation("Almacenando Movimientos en MongoDB...");
+            await SaveSiNoExistenAsyncMongo(movimientos, _movimientoCollection, m => m.Guid.ToString());
+            _logger.LogInformation("Almacenando Domiciliaciones en MongoDB...");
+            await SaveSiNoExistenAsyncMongo(domiciliaciones, _domiciliacionCollection, d => d.Guid.ToString());
+
+            var avatarDirectory = Path.Combine(temporaryDirectory, "avatares");
+            if (Directory.Exists(avatarDirectory))
+            {
+                _logger.LogInformation("Agregando avatares al proyecto...");
+
+                var directorioDestino = Path.Combine("data", "avatares");
+                if (!Directory.Exists(directorioDestino))
                 {
-                    try
+                    Directory.CreateDirectory(directorioDestino);
+                }
+
+                foreach (var file in Directory.GetFiles(avatarDirectory))
+                {
+                    var fileName = Path.GetFileName(file);
+                    var avatarPath = Path.Combine(directorioDestino, fileName);
+
+                    if (!File.Exists(avatarPath))
                     {
-                        await _userService.CreateAsync(user);
+                        _logger.LogInformation($"Copiando el avatar {fileName}...");
+                        File.Copy(file, avatarPath, overwrite: true);
                     }
-                    catch (UserExistException ex)
+                    else
                     {
-                        _logger.LogWarning($"Usuario duplicado encontrado: {user.Username}. Saltando...");
+                        _logger.LogInformation($"La foto {fileName} ya existe, saltando...");
                     }
                 }
             }
-
-            if (clientesFile.Exists)
+            else
             {
-                var clientes = _storageJson.ImportJson<ClienteRequest>(clientesFile);
-                foreach (var cliente in clientes)
-                {
-                    try
-                    {
-                        await _clienteService.CreateAsync(cliente);
-                    }
-                    catch (ClienteExistsException e)
-                    {
-                        _logger.LogWarning($"Cliente duplicado encontrado: {cliente.Nombre}. Saltando...");
-                    }
-                }
+                _logger.LogWarning($"El directorio de avatares {avatarDirectory} no existe.");
             }
 
-            if (basesFile.Exists)
-            {
-                var bases = _storageJson.ImportJson<ProductoRequest>(basesFile);
+            _logger.LogInformation("Eliminando archivos descomprimidos...");
+            Directory.Delete(temporaryDirectory, true);
 
-                var processedProducts = new HashSet<string>();
-
-                foreach (var baseEntity in bases)
-                {
-                    try
-                    {
-                        if (processedProducts.Contains(baseEntity.Nombre))
-                        {
-                            _logger.LogWarning($"Base duplicada encontrada: {baseEntity.Nombre}. Saltando...");
-                            continue;
-                        }
-
-                        processedProducts.Add(baseEntity.Nombre);
-                        await _productoService.CreateAsync(baseEntity);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(e, $"Error al crear la base: {baseEntity.Nombre}");
-                    }
-                }
-            }
-            
-/*
-            if (cuentasFile.Exists)
-            {
-                var cuentas = _storageJson.ImportJson<CuentaRequest>(cuentasFile);
-
-                var processedCuentas = new HashSet<Guid>();
-
-                foreach (var cuentaDto in cuentas)
-                {
-                    try
-                    {
-                        if (processedCuentas.Contains(cuentaDto.ClienteGuid))
-                        {
-                            _logger.LogWarning($"Cuenta duplicada encontrada: {cuentaDto.ClienteGuid}. Saltando...");
-                            continue;
-                        }
-
-                        processedCuentas.Add(cuentaDto.ClienteGuid);
-                        await _cuentaService.CreateAsync(cuentaDto);
-                    }
-                    catch (CuentaException e)
-                    {
-                        _logger.LogWarning($"Cuenta duplicada encontrada: {cuentaDto.ClienteGuid}. Saltando...");
-                    }
-                }
-            }
-
-            if (tarjetasFile.Exists)
-            {
-                var tarjetas = _storageJson.ImportJson<TarjetaRequest>(tarjetasFile);
-
-                var processedTarjetas = new HashSet<string>();
-
-                foreach (var tarjetaDto in tarjetas)
-                {
-                    try
-                    {
-                        if (processedTarjetas.Contains(tarjetaDto.NumeroTarjeta))
-                        {
-                            _logger.LogWarning($"Tarjeta duplicada encontrada: {tarjetaDto.NumeroTarjeta}. Saltando...");
-                            continue;
-                        }
-
-                        processedTarjetas.Add(tarjetaDto.NumeroTarjeta);
-                        await _tarjetaService.CreateAsync(tarjetaDto);
-                    }
-                    catch (TarjetaException e)
-                    {
-                        _logger.LogWarning($"Tarjeta duplicada encontrada: {tarjetaDto.NumeroTarjeta}. Saltando...");
-                    }
-                }
-            }
-
-            if (movimientosFile.Exists)
-            {
-                var movimientos = _storageJson.ImportJson<MovimientoRequest>(movimientosFile);
-
-                var processedDomiciliaciones = new HashSet<string>();
-                var processedPagosConTarjeta = new HashSet<string>();
-                var processedTransferencias = new HashSet<string>();
-                var processedIngresosNomina = new HashSet<string>();
-
-                foreach (var movimiento in movimientos)
-                {
-                    try
-                    {
-                        if (movimiento.Domiciliacion != null)
-                        {
-                            var domiciliacionKey = $"{movimiento.Domiciliacion.ClienteGuid}-{movimiento.Domiciliacion.IbanCliente}-{movimiento.Domiciliacion.Acreedor}";
-                            if (processedDomiciliaciones.Contains(domiciliacionKey))
-                            {
-                                _logger.LogWarning($"Domiciliación duplicada encontrada: {domiciliacionKey}. Saltando...");
-                                continue;
-                            }
-
-                            processedDomiciliaciones.Add(domiciliacionKey);
-
-                            var domiciliacionRequest = new DomiciliacionRequest
-                            {
-                                ClienteGuid = movimiento.Domiciliacion.ClienteGuid,
-                                Acreedor = movimiento.Domiciliacion.Acreedor,
-                                IbanEmpresa = movimiento.Domiciliacion.IbanEmpresa,
-                                IbanCliente = movimiento.Domiciliacion.IbanCliente,
-                                Importe = movimiento.Domiciliacion.Importe.ToString(),
-                                Periodicidad = movimiento.Domiciliacion.Periodicidad.ToString(),
-                                Activa = movimiento.Domiciliacion.Activa
-                            };
-
-                            await _movimientoService.CreateDomiciliacionAsync(domiciliacionRequest);
-                        }
-
-                        if (movimiento.PagoConTarjeta != null)
-                        {
-                            var pagoConTarjetaKey = $"{movimiento.PagoConTarjeta.NumeroTarjeta}-{movimiento.PagoConTarjeta.NombreComercio}-{movimiento.PagoConTarjeta.Importe}";
-                            if (processedPagosConTarjeta.Contains(pagoConTarjetaKey))
-                            {
-                                _logger.LogWarning($"Pago con tarjeta duplicado encontrado: {pagoConTarjetaKey}. Saltando...");
-                                continue;
-                            }
-
-                            processedPagosConTarjeta.Add(pagoConTarjetaKey);
-
-                            var pagoConTarjetaRequest = new PagoConTarjetaRequest
-                            {
-                                NombreComercio = movimiento.PagoConTarjeta.NombreComercio,
-                                Importe = movimiento.PagoConTarjeta.Importe.ToString(),
-                                NumeroTarjeta = movimiento.PagoConTarjeta.NumeroTarjeta
-                            };
-
-                            await _movimientoService.CreatePagoConTarjetaAsync(pagoConTarjetaRequest);
-                        }
-
-                        if (movimiento.Transferencia != null)
-                        {
-                            var transferenciaKey = $"{movimiento.Transferencia.IbanOrigen}-{movimiento.Transferencia.IbanDestino}-{movimiento.Transferencia.Importe}";
-                            if (processedTransferencias.Contains(transferenciaKey))
-                            {
-                                _logger.LogWarning($"Transferencia duplicada encontrada: {transferenciaKey}. Saltando...");
-                                continue;
-                            }
-
-                            processedTransferencias.Add(transferenciaKey);
-
-                            var transferenciaRequest = new TransferenciaRequest
-                            {
-                                IbanOrigen = movimiento.Transferencia.IbanOrigen,
-                                NombreBeneficiario = movimiento.Transferencia.NombreBeneficiario,
-                                IbanDestino = movimiento.Transferencia.IbanDestino,
-                                Importe = movimiento.Transferencia.Importe.ToString()
-                            };
-
-                            await _movimientoService.CreateTransferenciaAsync(transferenciaRequest);
-                        }
-
-                        if (movimiento.IngresoNomina != null)
-                        {
-                            var ingresoNominaKey = $"{movimiento.IngresoNomina.CifEmpresa}-{movimiento.IngresoNomina.IbanCliente}-{movimiento.IngresoNomina.Importe}";
-                            if (processedIngresosNomina.Contains(ingresoNominaKey))
-                            {
-                                _logger.LogWarning($"Ingreso de nómina duplicado encontrado: {ingresoNominaKey}. Saltando...");
-                                continue;
-                            }
-
-                            processedIngresosNomina.Add(ingresoNominaKey);
-
-                            var ingresoNominaRequest = new IngresoNominaRequest
-                            {
-                                NombreEmpresa = movimiento.IngresoNomina.NombreEmpresa,
-                                CifEmpresa = movimiento.IngresoNomina.CifEmpresa,
-                                IbanEmpresa = movimiento.IngresoNomina.IbanEmpresa,
-                                IbanCliente = movimiento.IngresoNomina.IbanCliente,
-                                Importe = movimiento.IngresoNomina.Importe.ToString()
-                            };
-
-                            await _movimientoService.CreateIngresoNominaAsync(ingresoNominaRequest);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(e, $"Error al procesar movimiento: {movimiento}");
-                    }
-                }
-            }
-*/
-            
-            var avatarDirectory = Path.Combine(destinationDirectory, "avatares");
-            if (!Directory.Exists(avatarDirectory))
-            {
-                Directory.CreateDirectory(avatarDirectory);
-            }
-
-            var avatarFiles = Directory.GetFiles(avatarDirectory);
-            foreach (var avatarFile in avatarFiles)
-            {
-                var avatarName = Path.GetFileName(avatarFile);
-                var avatarPath = Path.Combine("data", "avatares");
-                if (File.Exists(avatarPath))
-                {
-                    File.Copy(avatarPath, Path.Combine(avatarDirectory, avatarName), overwrite: true);
-                }
-                else
-                {
-                    _logger.LogWarning($"Archivo de avatar {avatarName} no encontrado.");
-                }
-            }
             _logger.LogInformation("Importación de datos desde ZIP finalizada.");
         }
         catch (Exception ex)
@@ -405,4 +273,79 @@ public class BackupService : IBackupService
             throw new ImportFromZipException("Ocurrió un error durante la importación de datos desde el archivo ZIP.", ex);
         }
     }
+    
+    async Task SaveEntidadesSiNoExistenAsync<TEntity>(
+        IEnumerable<TEntity> entidades, 
+        DbSet<TEntity> dbSet, 
+        Func<TEntity, string> selectorId, 
+        Func<TEntity, string> selectorGuid) where TEntity : class
+    {
+        var idsEntidades = entidades
+            .Select(e => selectorId(e))
+            .ToList();
+
+        var guidsEntidades = entidades
+            .Select(e => selectorGuid(e))
+            .ToList();
+
+        var entidadesExistentes = dbSet
+            .AsEnumerable()
+            .Where(e => 
+                idsEntidades.Contains(selectorId(e)) || 
+                guidsEntidades.Contains(selectorGuid(e)))
+            .ToList();
+
+        var nuevasEntidades = entidades
+            .Where(e => !entidadesExistentes
+                .Any(existing => 
+                    selectorId(existing) == selectorId(e) || 
+                    selectorGuid(existing) == selectorGuid(e)))
+            .ToList();
+
+        foreach (var entidad in nuevasEntidades)
+        {
+            var entidadExistente = dbSet.Local.FirstOrDefault(e => 
+                selectorId(e) == selectorId(entidad) || 
+                selectorGuid(e) == selectorGuid(entidad));
+
+            if (entidadExistente != null)
+            {
+                dbSet.Entry(entidadExistente).State = EntityState.Detached;
+            }
+        }
+
+        if (nuevasEntidades.Any())
+        {
+            await dbSet.AddRangeAsync(nuevasEntidades);
+            await _context.SaveChangesAsync();
+        }
+    }
+    
+    async Task SaveSiNoExistenAsyncMongo<TEntity>(
+        IEnumerable<TEntity> entidades, 
+        IMongoCollection<TEntity> collection, 
+        Func<TEntity, string> selectorId) where TEntity : class
+    {
+        var guidsEntidades = entidades
+            .Select(e => selectorId(e))
+            .Where(id => !string.IsNullOrEmpty(id))
+            .ToList();
+
+        var filter = Builders<TEntity>.Filter.In("Guid", guidsEntidades);
+
+        var documentosExistentes = await collection
+            .Find(filter)
+            .ToListAsync();
+
+        var nuevasEntidades = entidades
+            .Where(e => !documentosExistentes
+                .Any(existing => selectorId(existing) == selectorId(e)))
+            .ToList();
+
+        if (nuevasEntidades.Any())
+        {
+            await collection.InsertManyAsync(nuevasEntidades);
+        }
+    }
+
 }

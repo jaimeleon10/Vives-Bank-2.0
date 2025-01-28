@@ -666,7 +666,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task GetMovimientosClienteNotFound()
+    public async Task GetPdfMovimientosClienteNotFound()
     {
         var guid = "non-existent-guid";
 
@@ -682,7 +682,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task GetMovimientosSinMovimientos()
+    public async Task GetMovimientosSinMovimientosPdf()
     {
         var guid = "cliente-guid";
         var clienteResponse = new ClienteResponse
@@ -707,7 +707,7 @@ public class ClienteControllerTest
     }
 
     [Test]
-    public async Task GetMovimientos()
+    public async Task GetPdfMovimientos()
     {
         var guid = "cliente-guid";
         var clienteResponse = new ClienteResponse
@@ -720,6 +720,7 @@ public class ClienteControllerTest
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-25",
                 Domiciliacion = null,
@@ -729,9 +730,13 @@ public class ClienteControllerTest
             },
             new MovimientoResponse
             {
+                Guid = "git_mov_2",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-24",
-                Domiciliacion = new DomiciliacionResponse(),
+                Domiciliacion = new DomiciliacionResponse()
+                {
+                    Guid = "git_dom_1",
+                },
                 IngresoNomina = null,
                 PagoConTarjeta = null,
                 Transferencia = null
@@ -773,6 +778,7 @@ public class ClienteControllerTest
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-25",
                 Domiciliacion = null,

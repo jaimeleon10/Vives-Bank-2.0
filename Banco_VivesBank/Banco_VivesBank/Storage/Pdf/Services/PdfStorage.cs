@@ -3,6 +3,7 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Exception;
 using PdfSharp.Pdf;
 using TheArtOfDev.HtmlRenderer.PdfSharp;
@@ -21,7 +22,7 @@ public class PdfStorage : IPdfStorage
     public void ExportPDF(ClienteResponse cliente, List<MovimientoResponse> movimientos)
     {
         if (cliente == null)
-            throw new ClienteNotFound("La cliente proporcionada es nula.");
+            throw new CuentaNotFoundException("cliente null");
         if (movimientos == null)
             throw new MovimientosInvalidosException("La lista de movimientos proporcionada es nula.");
     
