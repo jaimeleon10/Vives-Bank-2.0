@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Services;
@@ -40,6 +40,44 @@ public class MovimientoController : ControllerBase
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetByClienteGuid(string clienteGuid)
     {
         return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
+    }
+    
+    [HttpGet("domiciliacion")]
+    public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetAllDomiciliaciones()
+    {
+        return Ok(await _movimientoService.GetAllDomiciliacionesAsync());
+    }
+    
+    [HttpGet("domiciliacion/{clienteGuid}")]
+    public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetDomiciliacionesByClienteGuid(string clienteGuid)
+    {
+        return Ok(await _movimientoService.GetDomiciliacionesByClienteGuidAsync(clienteGuid));
+    }
+
+    [HttpPost("domiciliacion")]
+    public async Task<ActionResult<DomiciliacionResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            return Ok(await _movimientoService.CreateDomiciliacionAsync(domiciliacionRequest));
+        }
+        catch (ClienteException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (CuentaException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (MovimientoException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
     
     [HttpPost("ingresoNomina")]
