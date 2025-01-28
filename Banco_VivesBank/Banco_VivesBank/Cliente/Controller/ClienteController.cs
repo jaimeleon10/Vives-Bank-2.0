@@ -1,11 +1,11 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Mapper;
-using Banco_VivesBank.Movimientos.Services;
+using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Exceptions;
