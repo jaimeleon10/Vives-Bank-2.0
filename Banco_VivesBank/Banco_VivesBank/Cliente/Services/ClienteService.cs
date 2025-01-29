@@ -40,6 +40,7 @@ public class ClienteService : IClienteService
         _fileStorageService = storageService;
         _memoryCache = memoryCache;
         _redis = redis;
+        _redisDatabase = _redis.GetDatabase();
         _ftpService = ftpService;
     }
 

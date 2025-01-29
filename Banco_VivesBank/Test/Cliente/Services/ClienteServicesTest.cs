@@ -31,8 +31,8 @@ public class ClienteServiceTests
     private Mock<IUserService> _userServiceMock;
     private Mock<IFileStorageService> _storageService;
     
-    private Mock<IConnectionMultiplexer> _redisConnectionMock;
-    private Mock<IDatabase> _redis;
+    private Mock<IConnectionMultiplexer> _redis;
+    private Mock<IDatabase> _redisDatabase;
 
     private IMemoryCache _memoryCache;
 
@@ -62,13 +62,21 @@ public class ClienteServiceTests
         _ftpService = new Mock<IFtpService>();
 
         _memoryCache = new MemoryCache(new MemoryCacheOptions());
-        _redis = new Mock<IDatabase>();
-        _redisConnectionMock = new Mock<IConnectionMultiplexer>();
-        _redisConnectionMock
+        _redisDatabase = new Mock<IDatabase>();
+        _redis = new Mock<IConnectionMultiplexer>();
+        _redis
             .Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
-            .Returns(_redis.Object);
+            .Returns(_redisDatabase.Object);
         
-        _clienteService = new ClienteService(_dbContext, NullLogger<ClienteService>.Instance, _userServiceMock.Object, _storageService.Object, _memoryCache, _redisConnectionMock.Object, _ftpService.Object);
+        _clienteService = new ClienteService(
+            _dbContext, 
+            NullLogger<ClienteService>.Instance,
+            _userServiceMock.Object,
+            _storageService.Object,
+            _memoryCache,
+            _redis.Object,
+            _ftpService.Object
+            );
     }
     
     [SetUp]
@@ -194,7 +202,7 @@ public class ClienteServiceTests
         
         _userServiceMock.Setup(x => x.GetUserModelByIdAsync(cliente.UserId)).ReturnsAsync(user);
         
-        _redis.Setup(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+        _redisDatabase.Setup(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
         
         var result = await _clienteService.GetByGuidAsync(cliente.Guid);
@@ -342,7 +350,7 @@ public class ClienteServiceTests
         var redisValue = JsonSerializer.Serialize(clienteModel);
 
         // Mock de Redis
-         _redis.Setup(db => db.StringGetAsync(It.Is<RedisKey>(k => k==cacheKey), It.IsAny<CommandFlags>())).ReturnsAsync(redisValue);
+         _redisDatabase.Setup(db => db.StringGetAsync(It.Is<RedisKey>(k => k==cacheKey), It.IsAny<CommandFlags>())).ReturnsAsync(redisValue);
          
         
         // Act
@@ -358,7 +366,7 @@ public class ClienteServiceTests
     public async Task GetByGuid_ClienteNotFound()
     {
         var cacheKey = "Cliente:inexistente";
-        _redis.Setup(x => x.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
+        _redisDatabase.Setup(x => x.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
 
         var result = await _clienteService.GetByGuidAsync("algo");
@@ -408,8 +416,9 @@ public class ClienteServiceTests
         var cacheKey = "Cliente:" + clienteRequest.UserGuid;
 
         _userServiceMock.Setup(x => x.GetUserModelByGuidAsync(clienteRequest.UserGuid)).ReturnsAsync(user);
-        _redis
-            .Setup(db => db.StringSetAsync(cacheKey, It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
+        
+        _redisDatabase
+            .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
        
         
@@ -419,7 +428,7 @@ public class ClienteServiceTests
         Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
         Assert.That(result.Email, Is.EqualTo(clienteRequest.Email));
         
-        _redis.Verify(db => db.StringSetAsync(It.IsAny<string>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
+        _redisDatabase.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
     }
 
     [Test]
