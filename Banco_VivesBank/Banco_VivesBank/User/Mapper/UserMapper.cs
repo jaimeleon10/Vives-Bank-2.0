@@ -73,10 +73,5 @@ namespace Banco_VivesBank.User.Mapper
                 IsDeleted = userEntity.IsDeleted
             };
         }
-        
-        public static IEnumerable<UserResponse> ToResponseListFromEntityList(this IEnumerable<UserEntity> userEntityList)
-        {
-            return userEntityList.Select(userEntity => ToResponseFromEntity(userEntity));
-        }
     }
 }
