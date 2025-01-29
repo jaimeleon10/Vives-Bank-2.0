@@ -159,7 +159,7 @@ public class ClienteService : IClienteService
         return null;
     }
 
-    public async Task<ClienteResponse?> GetMyClienteAsync(User.Models.User userAuth)
+    public async Task<ClienteResponse?> GetMeAsync(User.Models.User userAuth)
     {
         _logger.LogInformation($"Buscando cliente correspondiente al usuario con guid {userAuth.Guid}");
         var clienteExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Id == userAuth.Id);
@@ -210,13 +210,13 @@ public class ClienteService : IClienteService
         return clienteModel.ToResponseFromModel();
     }
 
-    public async Task<ClienteResponse?> UpdateAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
+    public async Task<ClienteResponse?> UpdateMeAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
         _logger.LogInformation($"Actualizando cliente correspondiente al usuario con guid {userAuth.Guid}");
         
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
+            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
             return null;
         }
 
@@ -279,8 +279,23 @@ public class ClienteService : IClienteService
 
         clienteExistenteEntity.IsDeleted = true;
         clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
-
         _context.Clientes.Update(clienteExistenteEntity);
+        
+        _logger.LogInformation($"Desactivando cuentas y tarjetas pertenecientes al cliente con guid {clienteExistenteEntity.Guid}");
+        var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+        foreach (var cuenta in cuentas)
+        {
+            cuenta.IsDeleted = true;
+            _context.Cuentas.Update(cuenta);
+
+            if (cuenta.TarjetaId == null) continue;
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+        }
+        
+        _logger.LogInformation("Guardando todos los cambios en la base de datos");
         await _context.SaveChangesAsync();
         
         var cacheKey = CacheKeyPrefix + clienteExistenteEntity.Guid;
@@ -288,6 +303,46 @@ public class ClienteService : IClienteService
         await _redisDatabase.KeyDeleteAsync(cacheKey);
         
         _logger.LogInformation($"Cliente borrado (desactivado) con guid: {guid}");
+        return clienteExistenteEntity.ToResponseFromEntity();
+    }
+    
+    public async Task<ClienteResponse?> DeleteMeAsync(User.Models.User userAuth) 
+    {
+        _logger.LogInformation($"Borrando cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        
+        var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
+        if (clienteExistenteEntity == null)
+        {
+            _logger.LogInformation($"Cliente no encontrado correspondiente al usuario con guid: {userAuth.Guid}");
+            return null;
+        }
+
+        clienteExistenteEntity.IsDeleted = true;
+        clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
+        _context.Clientes.Update(clienteExistenteEntity);
+        
+        _logger.LogInformation($"Desactivando cuentas y tarjetas pertenecientes al cliente con guid {clienteExistenteEntity.Guid}");
+        var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+        foreach (var cuenta in cuentas)
+        {
+            cuenta.IsDeleted = true;
+            _context.Cuentas.Update(cuenta);
+
+            if (cuenta.TarjetaId == null) continue;
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+        }
+        
+        _logger.LogInformation("Guardando todos los cambios en la base de datos");
+        await _context.SaveChangesAsync();
+        
+        var cacheKey = CacheKeyPrefix + clienteExistenteEntity.Guid;
+        _memoryCache.Remove(cacheKey);
+        await _redisDatabase.KeyDeleteAsync(cacheKey);
+        
+        _logger.LogInformation($"Cliente borrado (desactivado) con guid: {clienteExistenteEntity.Guid}");
         return clienteExistenteEntity.ToResponseFromEntity();
     }
 
