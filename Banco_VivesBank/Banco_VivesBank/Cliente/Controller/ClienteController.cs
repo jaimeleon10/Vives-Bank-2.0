@@ -9,7 +9,10 @@ using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Models;
+using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Cliente.Controller;
@@ -22,20 +25,21 @@ public class ClienteController : ControllerBase
     private readonly IPdfStorage _pdfStorage;
     private readonly IMovimientoService _movimientoService;
     private readonly PaginationLinksUtils _paginationLinksUtils;
-
+    private readonly IUserService _userService;
 
     public ClienteController(IClienteService clienteService, PaginationLinksUtils paginations
-        , IPdfStorage pdfStorage, IMovimientoService movimientoService
-        )
+        , IPdfStorage pdfStorage, IMovimientoService movimientoService, IUserService userService)
     {
         _clienteService = clienteService;
         _paginationLinksUtils = paginations;
         _pdfStorage = pdfStorage;
         _movimientoService = movimientoService;
+        _userService = userService;
     }
     
     
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
         [FromQuery] string? nombre = null,
         [FromQuery] string? apellido = null,
@@ -71,6 +75,7 @@ public class ClienteController : ControllerBase
     }
     
     [HttpGet("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {
         var cliente = await _clienteService.GetByGuidAsync(guid);
@@ -90,7 +95,11 @@ public class ClienteController : ControllerBase
 
         try
         {
-            return Ok(await _clienteService.CreateAsync(clienteRequest));
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            if (userAuth.Role == Role.Admin) return BadRequest("El usuario es administrador. Un administrador no puede ser cliente");
+            
+            return Ok(await _clienteService.CreateAsync(userAuth, clienteRequest));
         }
         catch (ClienteException e)
         {
@@ -103,6 +112,7 @@ public class ClienteController : ControllerBase
     }
     
     [HttpPut("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ClienteResponse>> UpdateCliente(string guid, [FromBody] ClienteRequestUpdate clienteRequestUpdate)
     {
         if (!ModelState.IsValid)
@@ -123,6 +133,7 @@ public class ClienteController : ControllerBase
     }
 
     [HttpDelete("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ClienteResponse>> DeleteByGuid(string guid)
     {
         var clienteResponse = await _clienteService.DeleteByGuidAsync(guid);

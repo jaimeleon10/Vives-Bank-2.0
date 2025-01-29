@@ -359,7 +359,7 @@ public class CuentaService : ICuentaService
     }
 */
     
-    public async Task<CuentaResponse?> DeleteAdminAsync(string guid)
+    public async Task<CuentaResponse?> DeleteByGuidAsync(string guid)
     {
         _logger.LogInformation($"Eliminando cuenta {guid}");
         

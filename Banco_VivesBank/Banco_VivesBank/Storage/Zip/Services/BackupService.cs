@@ -190,8 +190,18 @@ public class BackupService : IBackupService
             var clientes = new List<ClienteEntity>();
             foreach (var clienteModel in clientesModel)
             {
-                var clienteEntity = ClienteMapper.ToEntityFromModel(clienteModel);
-                clientes.Add(clienteEntity);
+                var clientes = _storageJson.ImportJson<ClienteRequest>(clientesFile);
+                foreach (var cliente in clientes)
+                {
+                    try
+                    {
+                        // TODO await _clienteService.CreateAsync(cliente);
+                    }
+                    catch (ClienteExistsException e)
+                    {
+                        _logger.LogWarning($"Cliente duplicado encontrado: {cliente.Nombre}. Saltando...");
+                    }
+                }
             }
 
             var productos = _storageJson.ImportJson<ProductoEntity>(productoFile);

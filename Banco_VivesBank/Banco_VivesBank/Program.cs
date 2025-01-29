@@ -18,10 +18,13 @@ using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.User.Service;
+using Banco_VivesBank.Utils.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using GraphiQl;
 using GraphQL;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -57,13 +60,12 @@ if (app.Environment.IsDevelopment())
 // Habilita redirección HTTPS si está habilitado
 app.UseHttpsRedirection();
 
-// Añadir para la autorización
-app.UseAuthorization();
-
 // Añadir esto si utilizas MVC para definir rutas, decimos que activamos el uso de rutas
 app.UseRouting();
 
-//app.UseMiddleware<ExceptionMiddleware>();
+// Añadir para la autorización
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
@@ -118,6 +120,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
     myBuilder.Services.AddScoped<DomiciliacionScheduler>();
     myBuilder.Services.AddScoped<DomiciliacionJob>();
+    myBuilder.Services.AddHttpContextAccessor();
     
     // Quartz (domiciliaciones)
     myBuilder.Services.AddQuartz(q =>
@@ -132,7 +135,7 @@ WebApplicationBuilder InitServices()
             .ForJob(jobKey)
             .WithIdentity("DomiciliacionJob-Trigger")
             .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(30)
+                .WithIntervalInSeconds(3000) // TODO -> Cambiar cuando acabe el proyecto
                 .RepeatForever()));
     });
     
@@ -199,6 +202,33 @@ WebApplicationBuilder InitServices()
             throw new InvalidOperationException("Failed to connect to Redis", ex);
         }
     });
+    
+    //Auth
+    myBuilder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = myBuilder.Configuration["Jwt:Issuer"],
+            ValidAudience = myBuilder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(myBuilder.Configuration["Jwt:Key"]))
+        };
+    });
+    
+    // Importante aquí definimos los roles de los usuarios permitidos
+    myBuilder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    });
+    
+    myBuilder.Services.AddScoped<IJwtService, JwtService>();
 
     return myBuilder;
 }

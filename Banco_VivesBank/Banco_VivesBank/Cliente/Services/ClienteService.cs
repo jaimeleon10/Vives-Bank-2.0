@@ -40,6 +40,7 @@ public class ClienteService : IClienteService
         _fileStorageService = storageService;
         _memoryCache = memoryCache;
         _redis = redis;
+        _redisDatabase = _redis.GetDatabase();
         _ftpService = ftpService;
     }
 
@@ -156,7 +157,7 @@ public class ClienteService : IClienteService
         return null;
     }
 
-    public async Task<ClienteResponse> CreateAsync(ClienteRequest clienteRequest)
+    public async Task<ClienteResponse> CreateAsync(User.Models.User userAuth, ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
         
@@ -164,23 +165,26 @@ public class ClienteService : IClienteService
         ValidateEmailExistente(clienteRequest.Email);
         ValidateTelefonoExistente(clienteRequest.Telefono);
         
-        var user = await _userService.GetUserModelByGuidAsync(clienteRequest.UserGuid);
-        if (user == null)
+        _logger.LogInformation($"Validando que el usuario con guid {userAuth.Guid} no sea ya un cliente");
+        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
+        if (clienteEntityExistente != null)
         {
-            _logger.LogInformation($"Usuario no encontrado con guid: {clienteRequest.UserGuid}");
-            throw new UserNotFoundException($"Usuario no encontrado con guid: {clienteRequest.UserGuid}");
+            _logger.LogWarning($"El usuario con guid {userAuth.Guid} ya es un cliente");
+            throw new ClienteExistsException($"El usuario con guid {userAuth.Guid} ya es un cliente");
         }
         
-        var clienteModel = clienteRequest.ToModelFromRequest(user);
+        _logger.LogInformation("Guardando cliente en base de datos");
+        var clienteModel = clienteRequest.ToModelFromRequest(userAuth);
         var clienteEntity = clienteModel.ToEntityFromModel();
         _context.Clientes.Add(clienteEntity); 
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation($"Guardando cliente con guid {clienteModel.Guid} en caché");
         var cacheKey = CacheKeyPrefix + clienteModel.Guid;
-        var redisValue = JsonSerializer.Serialize(clienteModel);
-        _memoryCache.Set(cacheKey, clienteModel);
-        await _redisDatabase.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
-
+        var serializedCliente = JsonSerializer.Serialize(clienteModel);
+        _memoryCache.Set(cacheKey, clienteModel, TimeSpan.FromMinutes(30));
+        await _redisDatabase.StringSetAsync(cacheKey, serializedCliente, TimeSpan.FromMinutes(30));
+        
         _logger.LogInformation("Cliente creado con éxito");
         return clienteModel.ToResponseFromModel();
     }
