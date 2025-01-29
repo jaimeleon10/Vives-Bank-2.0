@@ -5,6 +5,7 @@ using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Movimientos.Controller;
@@ -21,6 +22,7 @@ public class MovimientoController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetAll()
     {
         return Ok(await _movimientoService.GetAllAsync());
@@ -37,6 +39,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpGet("cliente/{clienteGuid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetByClienteGuid(string clienteGuid)
     {
         return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
