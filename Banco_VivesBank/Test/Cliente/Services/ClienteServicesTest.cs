@@ -399,7 +399,6 @@ public class ClienteServiceTests
         
         var clienteRequest = new ClienteRequest
         {
-            UserGuid = "user-guid",
             Dni = "12345678Z",
             Nombre = "Juan",
             Apellidos = "Perez",
@@ -413,16 +412,14 @@ public class ClienteServiceTests
             IsDeleted = false
         };
         
-        var cacheKey = "Cliente:" + clienteRequest.UserGuid;
-
-        _userServiceMock.Setup(x => x.GetUserModelByGuidAsync(clienteRequest.UserGuid)).ReturnsAsync(user);
+        var cacheKey = "Cliente:" + userEntity.Guid;
         
         _redisDatabase
             .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
        
         
-        var result = await _clienteService.CreateAsync(clienteRequest);
+        var result = await _clienteService.CreateAsync(user , clienteRequest);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
@@ -431,38 +428,44 @@ public class ClienteServiceTests
         _redisDatabase.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
     }
 
-    [Test]
-    public async Task Create_UserNotFound()
-    {
-        var clienteRequest = new ClienteRequest
-        {
-            UserGuid = "non-existing-user-guid",
-            Dni = "12345678A",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanaperez@example.com",
-            Telefono = "600100000",
-            IsDeleted = false
-        };
-
-        _userServiceMock.Setup(x => x.GetUserModelByGuidAsync(clienteRequest.UserGuid)).ReturnsAsync((Banco_VivesBank.User.Models.User?)null);
-        
-        var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => await _clienteService.CreateAsync(clienteRequest));
-        Assert.That(ex.Message, Is.EqualTo($"Usuario no encontrado con guid: {clienteRequest.UserGuid}"));
-    }
+    // [Test] Cambiar para que user ya este asociado a un cliente
+    // public async Task Create_UserNotFound()
+    // {
+    //     var user = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var user
+    //     var clienteRequest = new ClienteRequest
+    //     {
+    //         Dni = "12345678A",
+    //         Nombre = "Juana",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanaperez@example.com",
+    //         Telefono = "600100000",
+    //         IsDeleted = false
+    //     };
+    //     
+    //     var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => await _clienteService.CreateAsync( user , clienteRequest));
+    //     Assert.That(ex.Message, Is.EqualTo($"Usuario no encontrado con guid: {user.Guid}"));
+    // }
     
     [Test]
     public async Task CreateAsync_ClienteConDniExistente()
     {
+        CleanDatabase();
         // Arrange
         var clienteRequest = new ClienteRequest
         {
-            UserGuid = "user-guid",
             Dni = "12345678A",
             Nombre = "Juana",
             Apellidos = "Perez",
@@ -520,9 +523,9 @@ public class ClienteServiceTests
             .ReturnsAsync(user2);
 
         // Simulamos que ya existe un cliente con ese DNI
-        await _clienteService.CreateAsync(new ClienteRequest
+        await _clienteService.CreateAsync(user2, new ClienteRequest
         {
-            UserGuid = "user-guid2",
+            
             Dni = "12345678A",
             Nombre = "Juana",
             Apellidos = "Perez",
@@ -536,7 +539,7 @@ public class ClienteServiceTests
             IsDeleted = false
         });
         var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-            _clienteService.CreateAsync(clienteRequest) 
+            _clienteService.CreateAsync(user, clienteRequest) 
         );
         // Act & Assert
         Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el DNI: 12345678A"));
@@ -549,7 +552,6 @@ public class ClienteServiceTests
         // Arrange
         var clienteRequest = new ClienteRequest
         {
-            UserGuid = "user-guid",
             Dni = "12345678S",
             Nombre = "Juana",
             Apellidos = "Perez",
@@ -607,9 +609,8 @@ public class ClienteServiceTests
             .ReturnsAsync(user2);
 
         // Simulamos que ya existe un cliente con ese DNI
-        await _clienteService.CreateAsync(new ClienteRequest
+        await _clienteService.CreateAsync(user2, new ClienteRequest
         {
-            UserGuid = "user-guid2",
             Dni = "12345678A",
             Nombre = "Juana",
             Apellidos = "Perez",
@@ -623,7 +624,7 @@ public class ClienteServiceTests
             IsDeleted = false
         });
         var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-            _clienteService.CreateAsync(clienteRequest) 
+            _clienteService.CreateAsync(user, clienteRequest) 
         );
         // Act & Assert
         Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el teléfono: 600000000"));
@@ -636,7 +637,6 @@ public class ClienteServiceTests
         // Arrange
         var clienteRequest = new ClienteRequest
         {
-            UserGuid = "user-guid",
             Dni = "12345678B",
             Nombre = "Juana",
             Apellidos = "Perez",
@@ -694,9 +694,8 @@ public class ClienteServiceTests
             .ReturnsAsync(user2);
 
         // Simulamos que ya existe un cliente con ese DNI
-        await _clienteService.CreateAsync(new ClienteRequest
+        await _clienteService.CreateAsync(user2, new ClienteRequest
         {
-            UserGuid = "user-guid2",
             Dni = "12345678A",
             Nombre = "Juana",
             Apellidos = "Perez",
@@ -710,7 +709,7 @@ public class ClienteServiceTests
             IsDeleted = false
         });
         var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-            _clienteService.CreateAsync(clienteRequest) 
+            _clienteService.CreateAsync(user, clienteRequest) 
         );
         // Act & Assert
         Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el email: juanaperez@example.com"));
