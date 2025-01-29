@@ -174,7 +174,7 @@ namespace Banco_VivesBank.User.Service
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             if (userEntity != null)
             {
-                _logger.LogInformation($"Usuario encontrado con guid: {guid} en base de datos");
+                _logger.LogInformation($"Usuario encontrado con guid: {guid}");
                 return userEntity.ToModelFromEntity();
             }
 
@@ -189,11 +189,26 @@ namespace Banco_VivesBank.User.Service
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
             if (userEntity != null)
             {
-                _logger.LogInformation($"Usuario encontrado con id: {id} en base de datos");
+                _logger.LogInformation($"Usuario encontrado con id: {id}");
                 return userEntity.ToModelFromEntity();
             }
 
             _logger.LogInformation($"Usuario no encontrado con id: {id}");
+            return null;
+        }
+
+        public async Task<UserResponse?> GetMeAsync(Models.User userAuth)
+        {
+            _logger.LogInformation($"Buscando usuario con guid: {userAuth.Guid}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == userAuth.Guid);
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con guid: {userAuth.Guid}");
+                return userEntity.ToResponseFromEntity();
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con id: {userAuth.Guid}");
             return null;
         }
 

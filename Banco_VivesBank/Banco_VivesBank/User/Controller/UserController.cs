@@ -86,6 +86,20 @@ public class UserController : ControllerBase
         return Ok(user); 
     }
     
+    [HttpGet("me")]
+    [Authorize(Policy = "ClienteOrUserPolicy")]
+    public async Task<ActionResult<UserResponse>> GetMe()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        
+        var user = await _userService.GetMeAsync(userAuth);
+
+        if (user is null) return NotFound($"No se ha encontrado usuario con guid: {userAuth.Guid}");
+
+        return Ok(user); 
+    }
+    
     [HttpGet("username/{username}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<UserResponse>> GetByUsername(string username)
@@ -134,9 +148,9 @@ public class UserController : ControllerBase
     {
         try
         {
-            var user = _userService.GetAuthenticatedUser();
-            if (user is null) return NotFound("No se ha podido identificar al usuario logeado");
-            var updatedUser = await _userService.UpdatePasswordAsync(user, updatePasswordRequest);
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            var updatedUser = await _userService.UpdatePasswordAsync(userAuth, updatePasswordRequest);
             return Ok(updatedUser);
         }
         catch (UserException ex)

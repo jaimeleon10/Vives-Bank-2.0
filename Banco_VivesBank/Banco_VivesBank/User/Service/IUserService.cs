@@ -14,6 +14,7 @@ public interface IUserService
     public Task<UserResponse?> GetByUsernameAsync(string username);
     public Task<Models.User?> GetUserModelByGuidAsync(string guid);
     public Task<Models.User?> GetUserModelByIdAsync(long id);
+    public Task<UserResponse?> GetMeAsync(User.Models.User userAuth);
     
     public Task<UserResponse> CreateAsync(UserRequest userRequest);
     
