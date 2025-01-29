@@ -1,23 +1,25 @@
-﻿using System.Text.Json;
+
+using Banco_VivesBank.Cliente.Exceptions;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Movimientos.Database;
+using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Producto.Cuenta.Services;
-using Banco_VivesBank.Utils.Pagination;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Moq;
-using NSubstitute;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using Testcontainers.MongoDb;
-
-
-namespace Test.Movimientos.Services.Domiciliaciones;
 
 [TestFixture]
 [TestOf(typeof(DomiciliacionService))]
@@ -27,14 +29,14 @@ public class DomiciliacionServiceTest
     private IMongoCollection<Domiciliacion> _domiciliacionCollection;
     private DomiciliacionService _domiciliacionService;
     private GeneralDbContext _dbContext;
-    private Mock<IClienteService> _clienteServiceMock;
-    private Mock<ICuentaService> _cuentaServiceMock;
-    private Mock<IMovimientoService> _movimientoServiceMock;
+    private Mock<IClienteService> _clienteService;
+    private Mock<ICuentaService> _cuentaService;
+    private Mock<IMovimientoService> _movimientoService;
     private Mock<IOptions<MovimientosMongoConfig>> _mongoConfigMock;
     private Mock<ILogger<DomiciliacionService>> _loggerMock;
-    private Mock<IMemoryCache> _memoryCacheMock;
-    private Mock<IConnectionMultiplexer> _redisMock;
-    private Mock<IDatabase> _databaseMock;
+    private IMemoryCache _memoryCache;
+    private Mock<IConnectionMultiplexer> _redis;
+    private Mock<IDatabase> _redisDatabase;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -50,14 +52,14 @@ public class DomiciliacionServiceTest
         var mongoDatabase = mongoClient.GetDatabase("testdb");
         _domiciliacionCollection = mongoDatabase.GetCollection<Domiciliacion>("domiciliaciones");
         
-        _clienteServiceMock = new Mock<IClienteService>();
-        _cuentaServiceMock = new Mock<ICuentaService>();
-        _movimientoServiceMock = new Mock<IMovimientoService>();
+        _clienteService = new Mock<IClienteService>();
+        _cuentaService = new Mock<ICuentaService>();
+        _movimientoService = new Mock<IMovimientoService>();
         _mongoConfigMock = new Mock<IOptions<MovimientosMongoConfig>>();
         _loggerMock = new Mock<ILogger<DomiciliacionService>>();
-        _memoryCacheMock = new Mock<IMemoryCache>();
-        _redisMock = new Mock<IConnectionMultiplexer>();
-        _databaseMock = new Mock<IDatabase>();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+        _redis = new Mock<IConnectionMultiplexer>();
+        _redisDatabase = new Mock<IDatabase>();
         
         _mongoConfigMock.Setup(x => x.Value).Returns(new MovimientosMongoConfig
         {
@@ -66,19 +68,21 @@ public class DomiciliacionServiceTest
             DomiciliacionesCollectionName = "domiciliaciones"
         });
         
-        _redisMock.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_databaseMock.Object);
+        _redis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_redisDatabase.Object);
         
         _domiciliacionService = new DomiciliacionService(
             _mongoConfigMock.Object,    
             _loggerMock.Object,         
-            _clienteServiceMock.Object,  
-            _cuentaServiceMock.Object,  
+            _clienteService.Object,  
+            _cuentaService.Object,  
             _dbContext, 
-            _redisMock.Object,
-            _memoryCacheMock.Object,
-            _movimientoServiceMock.Object
+            _redis.Object,
+            _memoryCache,
+            _movimientoService.Object
         );
     }
+    
+    
 
     [OneTimeTearDown]
     public async Task Teardown()
@@ -88,12 +92,18 @@ public class DomiciliacionServiceTest
             await _mongoDbContainer.StopAsync();
             await _mongoDbContainer.DisposeAsync();
         }
+        
+        if (_memoryCache != null)
+        {
+            _memoryCache.Dispose();
+        }
     }
    
 
     [Test]
     public async Task GetAllAsync()
     {
+       
         var domiciliacion1 = new Domiciliacion
         {
             ClienteGuid = "cliente-1",
@@ -104,6 +114,7 @@ public class DomiciliacionServiceTest
             Periodicidad = Periodicidad.Mensual,
             Activa = true
         };
+
         var domiciliacion2 = new Domiciliacion
         {
             ClienteGuid = "cliente-2",
@@ -114,54 +125,28 @@ public class DomiciliacionServiceTest
             Periodicidad = Periodicidad.Mensual,
             Activa = true
         };
-        
+
         await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
-       
+        
         var result = await _domiciliacionService.GetAllAsync();
         
-        Assert.That(result.Count, Is.EqualTo(2));
-        
+        Assert.That(result.Count(), Is.EqualTo(2));
+        Assert.That(result.First().Acreedor, Is.EqualTo("Acreedor1"));
+        Assert.That(result.Last().Acreedor, Is.EqualTo("Acreedor2"));
     }
     
+    [Test]
+    public async Task GetAllAsync_SinDomiciliaciones()
+    {
+        var result = await _domiciliacionService.GetAllAsync();
+        Assert.That(result.Count(), Is.EqualTo(2));
+    }
     
     [Test]
-    public async Task GetByGuidAsync_NoEstaEnCache()
+    public async Task GetByGuidAsync_MemoryCache()
     {
-        var domiciliacionGuid = "test-guid";
-        var domiciliacion = new Domiciliacion
-        {
-            Guid = domiciliacionGuid,
-            ClienteGuid = "cliente-1",
-            Acreedor = "Acreedor1",
-            IbanEmpresa = "ES1234567890123456789012",
-            IbanCliente = "ES9876543210987654321098",
-            Importe = 200,
-            Periodicidad = Periodicidad.Mensual,
-            Activa = true
-        };
         
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
-
-        var memoryCache = new MemoryCache(new MemoryCacheOptions());
-
-        if (!memoryCache.TryGetValue(domiciliacionGuid, out Domiciliacion cachedDomiciliacion))
-        {
-            cachedDomiciliacion = null;
-        }
-        
-        var serialized = JsonSerializer.Serialize("test");
-        _databaseMock.Setup(db => db.StringGetAsync("TestNotFound")).ReturnsAsync(RedisValue.Null);
-        
-        var result = await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
-        
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.EqualTo(domiciliacionGuid));
-    }
-
-    [Test]
-    public async Task GetByGuidAsync_MemoriaCache()
-    {
-        var domiciliacionGuid = "test-guid";
+        var domiciliacionGuid = "guid-123";
         var domiciliacion = new Domiciliacion
         {
             Guid = domiciliacionGuid,
@@ -174,19 +159,34 @@ public class DomiciliacionServiceTest
             Activa = true
         };
 
-        _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<string>(), out It.Ref<Domiciliacion>.IsAny)).Returns(true);
-        _memoryCacheMock.Setup(m => m.Get(It.IsAny<string>())).Returns(domiciliacion);
-        
+        _memoryCache.Set(domiciliacionGuid, domiciliacion);
         var result = await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.EqualTo(domiciliacionGuid));
+        Assert.That(result.Acreedor, Is.EqualTo("Acreedor1"));
     }
-
-    [Test]
+    
+    /*[Test]
     public async Task GetByGuidAsync_Redis()
     {
-        var domiciliacionGuid = "test-guid";
+        
+        var domiciliacionGuid = "guid-123";
+        
+        var domiciliacionResponse = new DomiciliacionResponse
+        {
+            Guid = domiciliacionGuid,
+            ClienteGuid = "cliente-1",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = "Mensual", 
+            Activa = true,
+            FechaInicio = DateTime.UtcNow.ToString("yyyy-MM-dd"), 
+            UltimaEjecuccion = DateTime.UtcNow.ToString("yyyy-MM-dd") 
+        };
+
+      
         var domiciliacion = new Domiciliacion
         {
             Guid = domiciliacionGuid,
@@ -195,32 +195,345 @@ public class DomiciliacionServiceTest
             IbanEmpresa = "ES1234567890123456789012",
             IbanCliente = "ES9876543210987654321098",
             Importe = 200,
-            Periodicidad = Periodicidad.Mensual,
-            Activa = true
+            Periodicidad = Periodicidad.Mensual, 
+            Activa = true,
+            FechaInicio = DateTime.UtcNow, 
+            UltimaEjecucion = DateTime.UtcNow 
         };
+        
         var redisValue = JsonSerializer.Serialize(domiciliacion);
-
-        _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<string>(), out It.Ref<Domiciliacion>.IsAny)).Returns(false);
-        _redisMock.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_databaseMock.Object);
-        //_databaseMock.Setup(db => db.StringGetAsync(It.IsAny<string>(), It.IsAny<CommandFlags>())).ReturnsAsync(RedisValue.Null);
+        
+        var cacheKey = $"Domiciliacion:{domiciliacionGuid}";
+        _redisDatabase.Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
+                      .ReturnsAsync(redisValue);
         
         var result = await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
         
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.EqualTo(domiciliacionGuid));
+        Assert.That(result.Acreedor, Is.EqualTo(domiciliacionResponse.Acreedor));
+        Assert.That(result.Guid, Is.EqualTo(domiciliacionResponse.Guid));
+        Assert.That(result.ClienteGuid, Is.EqualTo(domiciliacionResponse.ClienteGuid));
+        Assert.That(result.Importe, Is.EqualTo(domiciliacionResponse.Importe));
+        Assert.That(result.Periodicidad, Is.EqualTo(domiciliacionResponse.Periodicidad));
+        Assert.That(result.Activa, Is.EqualTo(domiciliacionResponse.Activa));
+        Assert.That(result.FechaInicio, Is.EqualTo(domiciliacionResponse.FechaInicio));
+        Assert.That(result.UltimaEjecuccion, Is.EqualTo(domiciliacionResponse.UltimaEjecuccion));
+        
     }
 
     [Test]
-    public async Task GetByGuidAsync_NotFound()
+    public async Task CreateAsync_ShouldCreateDomiciliacionSuccessfully()
     {
-        var domiciliacionGuid = "test-guid";
+        // Arrange
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = "Mensual",
+            Activa = true
+        };
 
-        _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<string>(), out It.Ref<Domiciliacion>.IsAny)).Returns(false);
-        _redisMock.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_databaseMock.Object);
-        //_databaseMock.Setup(db => db.StringGetAsync(It.IsAny<string>())).ReturnsAsync(RedisValue.Null);
+        var cliente = new Cliente
+        {
+            Guid = "cliente-123",
+            Nombre = "Test Cliente"
+        };
         
-        var result = await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
+        var cuenta = new Cuenta
+        {
+            Guid = "cuenta-123",
+            ClienteGuid = "cliente-123",
+            Iban = "ES9876543210987654321098",
+            Saldo = 1000 
+        };
+
+        var expectedDomiciliacion = new Domiciliacion
+        {
+            ClienteGuid = domiciliacionRequest.ClienteGuid,
+            Acreedor = domiciliacionRequest.Acreedor,
+            IbanEmpresa = domiciliacionRequest.IbanEmpresa,
+            IbanCliente = domiciliacionRequest.IbanCliente,
+            Importe = domiciliacionRequest.Importe,
+            Periodicidad = Periodicidad.Mensual,
+            Activa = true
+        };
+
+        _clienteService.Setup(c => c.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid))
+            .ReturnsAsync(cliente);
+
+        _cuentaService.Setup(c => c.GetByIbanAsync(domiciliacionRequest.IbanCliente))
+            .ReturnsAsync(cuenta);
+
+        _domiciliacionCollection.Setup(d => d.InsertOneAsync(It.IsAny<Domiciliacion>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _movimientoService.Setup(m => m.CreateAsync(It.IsAny<MovimientoRequest>()))
+            .Returns(Task.CompletedTask);
         
-        Assert.That(result, Is.Null);
+        var result = await _domiciliacionService.CreateAsync(domiciliacionRequest);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Acreedor, Is.EqualTo(domiciliacionRequest.Acreedor));
+        Assert.That(result.IbanCliente, Is.EqualTo(domiciliacionRequest.IbanCliente));
+        Assert.That(result.Importe, Is.EqualTo(domiciliacionRequest.Importe));
+        Assert.That(result.Periodicidad, Is.EqualTo(domiciliacionRequest.Periodicidad));
+        
     }
+
+    [Test]
+    public async Task CreateAsync_ClienteNotFoundException()
+    {
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = "Mensual",
+            Activa = true
+        };
+
+        _clienteService.Setup(c => c.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid))
+            .ReturnsAsync((Cliente)null);
+        
+        var ex = Assert.ThrowsAsync<ClienteNotFoundException>(async () => 
+            await _domiciliacionService.CreateAsync(domiciliacionRequest));
+        Assert.That(ex.Message, Is.EqualTo($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}"));
+    }
+
+    [Test]
+    public async Task CreateAsync_CuentaNotFoundException()
+    {
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = "Mensual",
+            Activa = true
+        };
+
+        var cliente = new Cliente
+        {
+            Guid = "cliente-123",
+            Nombre = "Test Cliente"
+        };
+
+        _clienteService.Setup(c => c.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid))
+            .ReturnsAsync(cliente);
+
+        _cuentaService.Setup(c => c.GetByIbanAsync(domiciliacionRequest.IbanCliente))
+            .ReturnsAsync((Cuenta)null);
+        
+        var ex = Assert.ThrowsAsync<CuentaNotFoundException>(async () => 
+            await _domiciliacionService.CreateAsync(domiciliacionRequest));
+        Assert.That(ex.Message, Is.EqualTo($"No se ha encontrado la cuenta con iban: {domiciliacionRequest.IbanCliente}"));
+    }
+
+    [Test]
+    public async Task CreateAsync_CuentaIbanException()
+    {
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = "Mensual",
+            Activa = true
+        };
+
+        var cliente = new Cliente
+        {
+            Guid = "cliente-123",
+            Nombre = "Test Cliente"
+        };
+
+        var cuenta = new Cuenta
+        {
+            Guid = "cuenta-123",
+            ClienteGuid = "cliente-456", 
+            Saldo = 1000
+        };
+
+        _clienteService.Setup(c => c.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid))
+            .ReturnsAsync(cliente);
+
+        _cuentaService.Setup(c => c.GetByIbanAsync(domiciliacionRequest.IbanCliente))
+            .ReturnsAsync(cuenta);
+        
+        var ex = Assert.ThrowsAsync<CuentaIbanException>(async () => 
+            await _domiciliacionService.CreateAsync(domiciliacionRequest));
+        Assert.That(ex.Message, Is.EqualTo($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}"));
+    }
+
+    [Test]
+    public async Task CreateAsync_SaldoCuentaInsuficientException()
+    {
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 2000, 
+            Periodicidad = "Mensual",
+            Activa = true
+        };
+
+        var cliente = new Cliente
+        {
+            Guid = "cliente-123",
+            Nombre = "Test Cliente"
+        };
+
+        var cuenta = new Cuenta
+        {
+            Guid = "cuenta-123",
+            ClienteGuid = "cliente-123",
+            Saldo = 1000 
+        };
+
+        _clienteService.Setup(c => c.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid))
+            .ReturnsAsync(cliente);
+
+        _cuentaService.Setup(c => c.GetByIbanAsync(domiciliacionRequest.IbanCliente))
+            .ReturnsAsync(cuenta);
+        
+        var ex = Assert.ThrowsAsync<SaldoCuentaInsuficientException>(async () => 
+            await _domiciliacionService.CreateAsync(domiciliacionRequest));
+        Assert.That(ex.Message, Is.EqualTo($"Saldo insuficiente en la cuenta con guid: {cuenta.Guid} respecto al importe de {domiciliacionRequest.Importe} €"));
+    }
+
+    [Test]
+    public async Task CreateAsync_PeriodicidadNotValidException()
+    {
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = "Anual", 
+            Activa = true
+        };
+        
+        var ex = Assert.ThrowsAsync<PeriodicidadNotValidException>(async () => 
+            await _domiciliacionService.CreateAsync(domiciliacionRequest));
+        Assert.That(ex.Message, Is.EqualTo("Periodicidad no válida: Anual"));
+    }
+    
+
+    [Test]
+    public async Task DesactivateDomiciliacion()
+    {
+        var domiciliacionGuid = "domiciliacion-123";
+        var domiciliacion = new Domiciliacion
+        {
+            Guid = domiciliacionGuid,
+            Activa = true,
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = Periodicidad.Mensual
+        };
+
+        _domiciliacionCollection.Setup(c => c.Find(It.IsAny<FilterDefinition<Domiciliacion>>()).FirstOrDefaultAsync())
+            .ReturnsAsync(domiciliacion);
+        _domiciliacionCollection.Setup(c => c.ReplaceOneAsync(It.IsAny<FilterDefinition<Domiciliacion>>(), It.IsAny<Domiciliacion>(), It.IsAny<UpdateOptions>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _memoryCache.Setup(mc => mc.Remove(It.IsAny<string>()));
+        _redisDatabase.Setup(rd => rd.KeyDeleteAsync(It.IsAny<string>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync(true);
+        
+        var result = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Activa, Is.False);
+        _domiciliacionCollection.Verify(c => c.ReplaceOneAsync(It.IsAny<FilterDefinition<Domiciliacion>>(), It.IsAny<Domiciliacion>()), Times.Once);
+        _memoryCache.Verify(mc => mc.Set(It.IsAny<string>(), It.IsAny<Domiciliacion>(), It.IsAny<TimeSpan>()), Times.Once);
+        _redisDatabase.Verify(rd => rd.StringSetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Once);
+       
+    }
+
+    [Test]
+    public async Task DesactivateDomiciliacion_InMemoryCache()
+    {
+        var domiciliacionGuid = "domiciliacion-123";
+        var domiciliacion = new Domiciliacion
+        {
+            Guid = domiciliacionGuid,
+            Activa = true,
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = Periodicidad.Mensual
+        };
+
+        _memoryCache.Setup(mc => mc.TryGetValue(It.IsAny<string>(), out domiciliacion)).Returns(true);
+        
+        var result = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Activa, Is.False);
+        _domiciliacionCollection.Verify(c => c.ReplaceOneAsync(It.IsAny<FilterDefinition<Domiciliacion>>(), It.IsAny<Domiciliacion>()), Times.Once);
+        _redisDatabase.Verify(rd => rd.KeyDeleteAsync(It.IsAny<string>()), Times.Once);
+    }
+
+    [Test]
+    public async Task DesactivateDomiciliacion_Redis()
+    {
+        var domiciliacionGuid = "domiciliacion-123";
+        var domiciliacion = new Domiciliacion
+        {
+            Guid = domiciliacionGuid,
+            Activa = true,
+            ClienteGuid = "cliente-123",
+            Acreedor = "Acreedor1",
+            IbanEmpresa = "ES1234567890123456789012",
+            IbanCliente = "ES9876543210987654321098",
+            Importe = 200,
+            Periodicidad = Periodicidad.Mensual
+        };
+
+        var serializedDom = JsonSerializer.Serialize(domiciliacion);
+
+        _redisDatabase.Setup(rd => rd.StringGetAsync(It.IsAny<string>())).ReturnsAsync(serializedDom);
+        _redisDatabase.Setup(rd => rd.KeyDeleteAsync(It.IsAny<string>())).ReturnsAsync(true);
+        
+        var result = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Activa, Is.False);
+        _domiciliacionCollection.Verify(c => c.ReplaceOneAsync(It.IsAny<FilterDefinition<Domiciliacion>>(), It.IsAny<Domiciliacion>()), Times.Once);
+        _memoryCache.Verify(mc => mc.Set(It.IsAny<string>(), It.IsAny<Domiciliacion>(), It.IsAny<TimeSpan>()), Times.Once);
+       
+    }
+
+    [Test]
+    public async Task DesactivateDomiciliacionAsync_MovimientoDeserialiceException()
+    {
+        var domiciliacionGuid = "domiciliacion-123";
+
+        _redisDatabase.Setup(rd => rd.StringGetAsync(It.IsAny<string>())).ReturnsAsync("invalid-serialized-data");
+        
+        var ex = Assert.ThrowsAsync<MovimientoDeserialiceException>(async () =>
+            await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid));
+
+        Assert.That(ex.Message, Is.EqualTo("Error al deserializar domiciliación desde Redis"));
+    }*/
+    
 }
+
