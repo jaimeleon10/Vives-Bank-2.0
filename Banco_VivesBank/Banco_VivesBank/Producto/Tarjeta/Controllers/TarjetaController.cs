@@ -4,6 +4,7 @@ using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Controllers;
@@ -27,6 +28,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<PageResponse<Models.Tarjeta>>>> GetAllTarjetas(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
@@ -52,6 +54,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByGuid(string guid)
     {
         var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
@@ -60,6 +63,7 @@ public class TarjetaController : ControllerBase
     }
     
     [HttpGet("numero/{numeroTarjeta}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByNumeroTarjeta(string numeroTarjeta)
     {
         var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync(numeroTarjeta);
@@ -118,6 +122,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpDelete("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<TarjetaResponse>> DeleteTarjeta(string guid)
     {
         var tarjeta = await _tarjetaService.DeleteAsync(guid);

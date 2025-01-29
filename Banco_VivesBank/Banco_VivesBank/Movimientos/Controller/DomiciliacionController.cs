@@ -4,6 +4,7 @@ using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Movimientos.Controller;
@@ -20,6 +21,7 @@ public class DomiciliacionController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetAllDomiciliaciones()
     {
         return Ok(await _domiciliacionService.GetAllAsync());
@@ -41,6 +43,7 @@ public class DomiciliacionController : ControllerBase
     }
     
     [HttpGet("cliente/{clienteGuid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetDomiciliacionesByClienteGuid(string clienteGuid)
     {
         return Ok(await _domiciliacionService.GetByClienteGuidAsync(clienteGuid));
@@ -77,6 +80,7 @@ public class DomiciliacionController : ControllerBase
     }
 
     [HttpDelete("{domiciliacionGuid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DomiciliacionResponse?>> DesactivateDomiciliacion(string domiciliacionGuid)
     {
         try
