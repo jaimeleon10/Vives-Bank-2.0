@@ -31,7 +31,7 @@ public class GeneralDbContext : DbContext
                 Guid = "vz2AWLK8YPS",
                 Username = "pedrito",
                 Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
-                Role = Role.User,
+                Role = Role.Cliente,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
@@ -43,7 +43,7 @@ public class GeneralDbContext : DbContext
                 Guid = "6t8gVeTQt2w",
                 Username = "anita",
                 Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
-                Role = Role.User,
+                Role = Role.Cliente,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
@@ -56,6 +56,18 @@ public class GeneralDbContext : DbContext
                 Username = "admin",
                 Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
                 Role = Role.Admin,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsDeleted = false
+            });
+            
+            entity.HasData(new UserEntity
+            {
+                Id = 4,
+                Guid = "03IBwamDHa5",
+                Username = "user",
+                Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
+                Role = Role.User,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
