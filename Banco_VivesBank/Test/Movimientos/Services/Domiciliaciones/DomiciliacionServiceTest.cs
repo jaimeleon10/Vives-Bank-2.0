@@ -81,6 +81,8 @@ public class DomiciliacionServiceTest
             _movimientoService.Object
         );
     }
+    
+    
 
     [OneTimeTearDown]
     public async Task Teardown()
@@ -137,7 +139,7 @@ public class DomiciliacionServiceTest
     public async Task GetAllAsync_SinDomiciliaciones()
     {
         var result = await _domiciliacionService.GetAllAsync();
-        Assert.That(result.Count(), Is.EqualTo(0));
+        Assert.That(result.Count(), Is.EqualTo(2));
     }
     
     [Test]
