@@ -164,7 +164,7 @@ public class PdfStorageTests
                     ClienteGuid = _cliente.Guid,
                     IbanEmpresa = "ES00998877665544387856",
                     IbanCliente = "ES00998877665544332211",
-                    Importe = "50000",
+                    Importe = 50000,
                     Acreedor = "Compañía Eléctrica",
                     FechaInicio = new DateTime(2024, 1, 1).ToString(),
                     Periodicidad = "Mensual",
@@ -180,7 +180,7 @@ public class PdfStorageTests
                 {
                     NombreEmpresa = "Empresa ABC",
                     CifEmpresa = "B12345678",
-                    Importe = "200000",
+                    Importe = 200000,
                     IbanCliente = "ES11223344556677889900",
                     IbanEmpresa = "ES11223344556677889900"
                 },
@@ -194,7 +194,7 @@ public class PdfStorageTests
                 {
                     NumeroTarjeta = "4111111111111111",
                     NombreComercio = "Tienda XYZ",
-                    Importe = "50000"
+                    Importe = 50000
                 },
                 CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             },
@@ -207,7 +207,7 @@ public class PdfStorageTests
                     IbanOrigen = "ES12345678901234567456",
                     NombreBeneficiario = "Jane Doe",
                     IbanDestino = "ES12345678901234567890",
-                    Importe = "50000"
+                    Importe = 50000
                 },
                 CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             }

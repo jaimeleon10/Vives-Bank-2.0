@@ -29,11 +29,10 @@ public class FtpServiceTests
 
         var mockFtpService = new Mock<IFtpService>();
 
-        // Configura el mock para simular el comportamiento deseado
         mockFtpService.Setup(s => s.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
         mockFtpService.Setup(s => s.CheckFileExiste(It.IsAny<string>()))
-            .ReturnsAsync(true); // Simula que el archivo existe
+            .ReturnsAsync(true);
         mockFtpService.Setup(s => s.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
