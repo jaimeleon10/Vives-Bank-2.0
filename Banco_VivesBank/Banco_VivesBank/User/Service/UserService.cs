@@ -1,13 +1,12 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
-using Banco_VivesBank.Utils.Jwt;
+using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -175,7 +174,7 @@ namespace Banco_VivesBank.User.Service
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             if (userEntity != null)
             {
-                _logger.LogInformation($"Usuario encontrado con guid: {guid} en base de datos");
+                _logger.LogInformation($"Usuario encontrado con guid: {guid}");
                 return userEntity.ToModelFromEntity();
             }
 
@@ -190,11 +189,26 @@ namespace Banco_VivesBank.User.Service
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
             if (userEntity != null)
             {
-                _logger.LogInformation($"Usuario encontrado con id: {id} en base de datos");
+                _logger.LogInformation($"Usuario encontrado con id: {id}");
                 return userEntity.ToModelFromEntity();
             }
 
             _logger.LogInformation($"Usuario no encontrado con id: {id}");
+            return null;
+        }
+
+        public async Task<UserResponse?> GetMeAsync(Models.User userAuth)
+        {
+            _logger.LogInformation($"Buscando usuario con guid: {userAuth.Guid}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == userAuth.Guid);
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con guid: {userAuth.Guid}");
+                return userEntity.ToResponseFromEntity();
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con id: {userAuth.Guid}");
             return null;
         }
 
@@ -302,8 +316,36 @@ namespace Banco_VivesBank.User.Service
 
             userExistenteEntity.IsDeleted = true;
             userExistenteEntity.UpdatedAt = DateTime.UtcNow;
-
             _context.Usuarios.Update(userExistenteEntity);
+        
+            _logger.LogInformation($"Desactivando cliente, cuentas y tarjetas pertenecientes al usuario con guid {userExistenteEntity.Guid}");
+            var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == guid);
+            if (clienteExistenteEntity == null)
+            {
+                _logger.LogWarning($"Cliente no encontrado para el usuario con guid: {guid}");
+                throw new ClienteNotFound($"Cliente no encontrado para el usuario con guid: {guid}");
+            }
+
+            clienteExistenteEntity.IsDeleted = true;
+            clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
+            _context.Clientes.Update(clienteExistenteEntity);
+            
+            var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+            foreach (var cuenta in cuentas)
+            {
+                cuenta.IsDeleted = true;
+                cuenta.UpdatedAt = DateTime.UtcNow;
+                _context.Cuentas.Update(cuenta);
+
+                if (cuenta.TarjetaId == null) continue;
+                var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+                tarjetaExistente!.IsDeleted = true;
+                tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
+            
+                _context.Tarjetas.Update(tarjetaExistente);
+            }
+        
+            _logger.LogInformation("Guardando todos los cambios en la base de datos");
             await _context.SaveChangesAsync();
 
             var cacheKey = CacheKeyPrefix + userExistenteEntity.Guid;

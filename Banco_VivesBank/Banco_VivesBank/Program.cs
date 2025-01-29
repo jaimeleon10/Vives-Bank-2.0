@@ -18,7 +18,8 @@ using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.User.Service;
-using Banco_VivesBank.Utils.Jwt;
+using Banco_VivesBank.Utils.Auth;
+using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using GraphiQl;
 using GraphQL;
@@ -220,12 +221,41 @@ WebApplicationBuilder InitServices()
             ValidAudience = myBuilder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(myBuilder.Configuration["Jwt:Key"]))
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    message = "Acceso no autorizado. Debe iniciar sesión para acceder al recurso solicitado.",
+                    path = context.Request.Path
+                }));
+            },
+            OnForbidden = async context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    message = "Acceso denegado. No tiene los permisos requeridos para acceder al recurso solicitado.",
+                    path = context.Request.Path
+                }));
+            }
+        };
     });
     
     // Importante aquí definimos los roles de los usuarios permitidos
     myBuilder.Services.AddAuthorization(options =>
     {
         options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+        options.AddPolicy("ClientePolicy", policy => policy.RequireRole("Cliente"));
+        options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+        options.AddPolicy("ClienteOrUserPolicy", policy => policy.RequireRole("Cliente", "User"));
     });
     
     myBuilder.Services.AddScoped<IJwtService, JwtService>();

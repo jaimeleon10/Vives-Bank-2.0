@@ -36,7 +36,7 @@ public class UserController : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<PageResponse<UserResponse>>> Getall(
         [FromQuery] string? username = null,
         [FromQuery] Role? role = null,
@@ -76,7 +76,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<UserResponse>> GetByGuid(string guid)
     {
         var user = await _userService.GetByGuidAsync(guid);
@@ -86,8 +86,22 @@ public class UserController : ControllerBase
         return Ok(user); 
     }
     
+    [HttpGet("me")]
+    [Authorize(Policy = "ClienteOrUserPolicy")]
+    public async Task<ActionResult<UserResponse>> GetMe()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        
+        var user = await _userService.GetMeAsync(userAuth);
+
+        if (user is null) return NotFound($"No se ha encontrado usuario con guid: {userAuth.Guid}");
+
+        return Ok(user); 
+    }
+    
     [HttpGet("username/{username}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<UserResponse>> GetByUsername(string username)
     {
         var user = await _userService.GetByUsernameAsync(username);
@@ -115,7 +129,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPut("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<UserResponse>> Update(string guid, [FromBody] UserRequestUpdate userRequest)
     {
         if (!ModelState.IsValid)
@@ -129,13 +143,14 @@ public class UserController : ControllerBase
     }
     
     [HttpPut("password")]
-    public async Task<ActionResult> UpdatePassword([FromBody] UpdatePasswordRequest updatePasswordRequest)
+    [Authorize(Policy = "ClienteOrUserPolicy")]
+    public async Task<ActionResult> UpdateMyPassword([FromBody] UpdatePasswordRequest updatePasswordRequest)
     {
         try
         {
-            var user = _userService.GetAuthenticatedUser();
-            if (user is null) return NotFound("No se ha podido identificar al usuario logeado");
-            var updatedUser = await _userService.UpdatePasswordAsync(user, updatePasswordRequest);
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            var updatedUser = await _userService.UpdatePasswordAsync(userAuth, updatePasswordRequest);
             return Ok(updatedUser);
         }
         catch (UserException ex)
@@ -145,7 +160,7 @@ public class UserController : ControllerBase
     }
     
     [HttpDelete("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<UserResponse>> DeleteByGuid(string guid)
     {
         var userResponse = await _userService.DeleteByGuidAsync(guid);

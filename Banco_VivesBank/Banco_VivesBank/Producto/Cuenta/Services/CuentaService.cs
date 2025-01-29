@@ -386,6 +386,7 @@ public class CuentaService : ICuentaService
         {
             var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuentaExistenteEntity.TarjetaId);
             tarjetaExistente!.IsDeleted = true;
+            tarjetaExistente.UpdatedAt = DateTime.UtcNow;
             
             _context.Tarjetas.Update(tarjetaExistente);
             await _context.SaveChangesAsync();

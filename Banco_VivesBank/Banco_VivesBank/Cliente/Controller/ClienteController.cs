@@ -39,7 +39,7 @@ public class ClienteController : ControllerBase
     
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
         [FromQuery] string? nombre = null,
         [FromQuery] string? apellido = null,
@@ -75,7 +75,7 @@ public class ClienteController : ControllerBase
     }
     
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {
         var cliente = await _clienteService.GetByGuidAsync(guid);
@@ -84,8 +84,23 @@ public class ClienteController : ControllerBase
         
         return Ok(cliente);
     }
+    
+    [HttpGet("me")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> GetMe()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+     
+        if (cliente is null) return NotFound($"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        
+        return Ok(cliente);
+    }
 
     [HttpPost]
+    [Authorize(Policy = "UserPolicy")]
     public async Task<ActionResult<ClienteResponse>> Create([FromBody] ClienteRequest clienteRequest)
     {
         if (!ModelState.IsValid)
@@ -97,7 +112,6 @@ public class ClienteController : ControllerBase
         {
             var userAuth = _userService.GetAuthenticatedUser();
             if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
-            if (userAuth.Role == Role.Admin) return BadRequest("El usuario es administrador. Un administrador no puede ser cliente");
             
             return Ok(await _clienteService.CreateAsync(userAuth, clienteRequest));
         }
@@ -111,9 +125,9 @@ public class ClienteController : ControllerBase
         }
     }
     
-    [HttpPut("{guid}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ClienteResponse>> UpdateCliente(string guid, [FromBody] ClienteRequestUpdate clienteRequestUpdate)
+    [HttpPut]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> UpdateMe([FromBody] ClienteRequestUpdate clienteRequestUpdate)
     {
         if (!ModelState.IsValid)
         {
@@ -122,8 +136,11 @@ public class ClienteController : ControllerBase
         
         try
         {
-            var clienteResponse = await _clienteService.UpdateAsync(guid, clienteRequestUpdate);
-            if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente con guid: {guid}"); 
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            
+            var clienteResponse = await _clienteService.UpdateMeAsync(userAuth, clienteRequestUpdate);
+            if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente correspondiente al usuario con guid {userAuth.Guid}"); 
             return Ok(clienteResponse);
         }
         catch (ClienteException e)
@@ -133,11 +150,23 @@ public class ClienteController : ControllerBase
     }
 
     [HttpDelete("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<ClienteResponse>> DeleteByGuid(string guid)
     {
         var clienteResponse = await _clienteService.DeleteByGuidAsync(guid);
         if (clienteResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
+        return Ok(clienteResponse);
+    }
+    
+    [HttpDelete]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> DeleteMe()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        
+        var clienteResponse = await _clienteService.DeleteMeAsync(userAuth);
+        if (clienteResponse is null) return NotFound($"No se ha podido borrar el cliente correspondiente al usuario con guid: {userAuth.Guid}"); 
         return Ok(clienteResponse);
     }
 
