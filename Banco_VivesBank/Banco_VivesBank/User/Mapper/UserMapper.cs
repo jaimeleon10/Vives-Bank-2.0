@@ -11,9 +11,7 @@ namespace Banco_VivesBank.User.Mapper
             return new Models.User
             {
                 Username = userRequest.Username,
-                Password = userRequest.Password,
-                Role = (Role)Enum.Parse(typeof(Role), userRequest.Role),
-                IsDeleted = userRequest.IsDeleted
+                Password = userRequest.Password
             };
         }
 
@@ -74,11 +72,6 @@ namespace Banco_VivesBank.User.Mapper
                 UpdatedAt = userEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
                 IsDeleted = userEntity.IsDeleted
             };
-        }
-        
-        public static IEnumerable<UserResponse> ToResponseListFromEntityList(this IEnumerable<UserEntity> userEntityList)
-        {
-            return userEntityList.Select(userEntity => ToResponseFromEntity(userEntity));
         }
     }
 }

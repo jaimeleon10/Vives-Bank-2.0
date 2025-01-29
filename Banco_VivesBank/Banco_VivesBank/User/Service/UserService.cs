@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.User.Dto;
@@ -5,6 +7,7 @@ using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.Utils.Jwt;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -21,21 +24,23 @@ namespace Banco_VivesBank.User.Service
         private readonly IDatabase _redisDatabase;
         private const string CacheKeyPrefix = "User:";
         private readonly IJwtService _jwtService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserService(
             GeneralDbContext context,
             ILogger<UserService> logger,
             IConnectionMultiplexer redis,
-            IMemoryCache memoryCache, IJwtService jwtService)
+            IMemoryCache memoryCache, IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _logger = logger;
             _redis = redis;
             _memoryCache = memoryCache;
             _jwtService = jwtService;
+            _httpContextAccessor = httpContextAccessor;
             _redisDatabase = _redis.GetDatabase();
         }
-
+        
         public async Task<PageResponse<UserResponse>> GetAllAsync(string? username, Role? role, PageRequest pageRequest)
         {
             _logger.LogInformation("Buscando todos los usuarios en la base de datos");
@@ -86,6 +91,13 @@ namespace Banco_VivesBank.User.Service
             };
 
             return pageResponse;
+        }
+        
+        public async Task<IEnumerable<Models.User>> GetAllForStorage()
+        {
+            _logger.LogInformation("Buscando todos los usuarios en base de datos");
+            var usersEntities = await _context.Usuarios.ToListAsync();
+            return usersEntities.Select(UserMapper.ToModelFromEntity).ToList();
         }
 
         public async Task<UserResponse?> GetByGuidAsync(string guid)
@@ -155,6 +167,36 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
             return null;
         }
+        
+        public async Task<Models.User?> GetUserModelByGuidAsync(string guid)
+        {
+            _logger.LogInformation($"Buscando usuario con guid: {guid}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con guid: {guid} en base de datos");
+                return userEntity.ToModelFromEntity();
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con guid: {guid}");
+            return null;
+        }
+
+        public async Task<Models.User?> GetUserModelByIdAsync(long id)
+        {
+            _logger.LogInformation($"Buscando usuario con id: {id}");
+
+            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+            if (userEntity != null)
+            {
+                _logger.LogInformation($"Usuario encontrado con id: {id} en base de datos");
+                return userEntity.ToModelFromEntity();
+            }
+
+            _logger.LogInformation($"Usuario no encontrado con id: {id}");
+            return null;
+        }
 
         public async Task<UserResponse> CreateAsync(UserRequest userRequest)
         {
@@ -164,6 +206,13 @@ namespace Banco_VivesBank.User.Service
             {
                 _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequest.Username} (en base de datos)");
                 throw new UserExistException($"Ya existe un Usuario con el nombre: {userRequest.Username}");
+            }
+            
+            _logger.LogInformation($"Verificando que las contraseñas coinciden");
+            if (userRequest.Password != userRequest.PasswordConfirmation)
+            {
+                _logger.LogWarning("Las contraseñas no coinciden");
+                throw new InvalidPasswordException("Las contraseñas no coinciden");
             }
 
             //Crear Usuario
@@ -187,23 +236,22 @@ namespace Banco_VivesBank.User.Service
             return userModel.ToResponseFromModel();
         }
 
-        public async Task<UserResponse> UpdatePasswordAsync(string userGuid, string newPassword)
+        public async Task<UserResponse> UpdatePasswordAsync(Models.User user, UpdatePasswordRequest updatePasswordRequest)
         {
-            if (string.IsNullOrWhiteSpace(newPassword))
+            if (!BCrypt.Net.BCrypt.Verify(updatePasswordRequest.OldPassword, user.Password))
             {
-                _logger.LogWarning("La contraseña no puede estar vacía o contener solo espacios en blanco");
-                throw new UserException("La contraseña no puede estar vacía o contener solo espacios en blanco");
+                _logger.LogWarning("La actual no coincide con el campo antigua contraseña");
+                throw new InvalidPasswordException("La contraseña actual no coincide con el campo antigua contraseña");
             }
-            
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == userGuid);
-            if (userEntity == null)
+
+            if (updatePasswordRequest.NewPassword != updatePasswordRequest.NewPasswordConfirmation)
             {
-                _logger.LogWarning($"Usuario no encontrado con guid: {userGuid}");
-                throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+                _logger.LogWarning("La nueva contraseña no coincide con la confirmación");
+                throw new InvalidPasswordException("La nueva contraseña no coincide con la confirmación");
             }
-            
-            // Generar el hash con bcrypt
-            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(updatePasswordRequest.NewPassword);
+            var userEntity = user.ToEntityFromModel();
             _context.Usuarios.Update(userEntity);
             await _context.SaveChangesAsync();
             
@@ -222,16 +270,6 @@ namespace Banco_VivesBank.User.Service
                 return null;
             }
 
-            if (userEntityExistente.Username != userRequestUpdate.Username)
-            {
-                if (await _context.Usuarios.AnyAsync(u => u.Username.ToLower() == userRequestUpdate.Username.ToLower()))
-                {
-                    _logger.LogWarning($"Ya existe un usuario con el nombre: {userRequestUpdate.Username}");
-                    throw new UserExistException($"Ya existe un usuario con el nombre: {userRequestUpdate.Username}");
-                }
-            }
-
-            userEntityExistente.Username = userRequestUpdate.Username;
             userEntityExistente.Role = Enum.Parse<Role>(userRequestUpdate.Role, true);
             userEntityExistente.UpdatedAt = DateTime.UtcNow;
             userEntityExistente.IsDeleted = userRequestUpdate.IsDeleted;
@@ -280,48 +318,34 @@ namespace Banco_VivesBank.User.Service
             return userExistenteEntity.ToResponseFromEntity();
         }
 
-        public async Task<Models.User?> GetUserModelByGuidAsync(string guid)
+        public string Authenticate(string username, string password)
         {
-            _logger.LogInformation($"Buscando usuario con guid: {guid}");
-
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
-            if (userEntity != null)
+            _logger.LogInformation($"Buscando usuario para realizar login");
+            var user = _context.Usuarios.FirstOrDefault(u => u.Username.ToLower() == username.ToLower());
+            
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
-                _logger.LogInformation($"Usuario encontrado con guid: {guid} en base de datos");
-                return userEntity.ToModelFromEntity();
+                _logger.LogWarning($"Credenciales inválidas para el usuario: {username}");
+                throw new UnauthorizedAccessException($"Credenciales inválidas para el usuario: {username}");
+            }
+            
+            _logger.LogInformation($"Usuario encontrado y verificado, generando Token");
+            return _jwtService.GenerateToken(user.ToModelFromEntity());
+        }
+        
+        public Models.User? GetAuthenticatedUser()
+        {
+            _logger.LogInformation("Buscando usuario autenticado");
+            var username = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name);
+
+            if (string.IsNullOrEmpty(username))
+            {
+                _logger.LogWarning("No se ha encontrado el nombre de usuario en el contexto de seguridad");
+                return null;
             }
 
-            _logger.LogInformation($"Usuario no encontrado con guid: {guid}");
-            return null;
-        }
-
-        public async Task<Models.User?> GetUserModelByIdAsync(long id)
-        {
-            _logger.LogInformation($"Buscando usuario con id: {id}");
-
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
-            if (userEntity != null)
-            {
-                _logger.LogInformation($"Usuario encontrado con id: {id} en base de datos");
-                return userEntity.ToModelFromEntity();
-            }
-
-            _logger.LogInformation($"Usuario no encontrado con id: {id}");
-            return null;
-        }
-
-        public async Task<IEnumerable<Models.User>> GetAllForStorage()
-        {
-            _logger.LogInformation("Buscando todos los usuarios en base de datos");
-            var usersEntities = await _context.Usuarios.ToListAsync();
-            return usersEntities.Select(UserMapper.ToModelFromEntity).ToList();
-        }
-
-        public async Task<Models.User?> GetUserModelByUsernameAsync(string username)
-        {
             _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
-
-            var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+            var userEntity = _context.Usuarios.AsNoTracking().FirstOrDefault(u => u.Username.ToLower() == username.ToLower());
             if (userEntity != null)
             {
                 _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
@@ -330,38 +354,6 @@ namespace Banco_VivesBank.User.Service
 
             _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
             return null;
-        }
-        
-        public void RegisterUser(UserRequest userRequest)
-        {
-            // Hashear la contraseña usando BCrypt
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userRequest.Password);
-
-            if (!Enum.TryParse<Models.Role>(userRequest.Role, true, out var parsedRole))
-            {
-                throw new ArgumentException("El rol proporcionado no es válido.");
-            }
-
-            var user = new Models.User
-            {
-                Username = userRequest.Username,
-                Password = hashedPassword,
-                Role = parsedRole
-            };
-
-            _context.Usuarios.Add(user.ToEntityFromModel());
-            _context.SaveChanges();
-        }
-
-        public string Authenticate(string username, string password)
-        {
-            var user = _context.Usuarios.SingleOrDefault(u => u.Username == username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
-            {
-                throw new UnauthorizedAccessException("Credenciales inválidas");
-            }
-
-            return _jwtService.GenerateToken(user.ToModelFromEntity());
         }
     }
 }

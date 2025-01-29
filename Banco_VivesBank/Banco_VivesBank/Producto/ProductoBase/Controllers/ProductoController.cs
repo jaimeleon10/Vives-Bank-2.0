@@ -3,6 +3,7 @@ using Banco_VivesBank.Producto.ProductoBase.Dto;
 using Banco_VivesBank.Producto.ProductoBase.Exceptions;
 using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Producto.ProductoBase.Controllers;
@@ -25,6 +26,7 @@ public class ProductoController : ControllerBase
     }
     
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<PageResponse<ProductoResponse>>>> GetAll(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
@@ -50,6 +52,7 @@ public class ProductoController : ControllerBase
     }
 
     [HttpGet("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> GetByGuid(string guid)
     {
         try
@@ -67,6 +70,7 @@ public class ProductoController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> Create([FromBody] ProductoRequest request)
     {
         if (!ModelState.IsValid)
@@ -85,6 +89,7 @@ public class ProductoController : ControllerBase
     }
 
     [HttpPut("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> Update(string guid, [FromBody] ProductoRequestUpdate request)
     {
         if (!ModelState.IsValid)
@@ -105,6 +110,7 @@ public class ProductoController : ControllerBase
     }
 
     [HttpDelete("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> DeleteByGuid(string guid)
     {
         var baseByGuid = await _productoService.DeleteByGuidAsync(guid);
@@ -113,6 +119,7 @@ public class ProductoController : ControllerBase
     }
     
     [HttpPost("import")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<ProductoResponse>>> ImportFromCsv(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -166,6 +173,7 @@ public class ProductoController : ControllerBase
     }
 
     [HttpGet("export")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportToCsv()
     {
         try

@@ -101,6 +101,7 @@ public static class ClienteMapper
             {
               Guid =   cliente.User.Guid,
               Username = cliente.User.Username,
+              Password = cliente.User.Password,
               Role = cliente.User.Role.ToString(),
               CreatedAt  = cliente.User.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
               UpdatedAt = cliente.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), IsDeleted = cliente.User.IsDeleted
@@ -128,6 +129,7 @@ public static class ClienteMapper
             {
                 Guid =   clienteEntity.User.Guid,
                 Username = clienteEntity.User.Username,
+                Password = clienteEntity.User.Password,
                 Role = clienteEntity.User.Role.ToString(),
                 CreatedAt  = clienteEntity.User.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
                 UpdatedAt = clienteEntity.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), 
@@ -137,59 +139,5 @@ public static class ClienteMapper
             UpdatedAt = clienteEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
             IsDeleted = clienteEntity.IsDeleted
         };
-    }
-    
-    public static ClienteEntity ToModelFromRequestUpdate(this ClienteEntity oldCliente, ClienteRequestUpdate updateDto)
-    {
-        if (!string.IsNullOrWhiteSpace(updateDto.Dni))
-        {
-            oldCliente.Dni = updateDto.Dni;
-        }
-        if (!string.IsNullOrWhiteSpace(updateDto.Nombre))
-        {
-            oldCliente.Nombre = updateDto.Nombre.Trim();
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Apellidos))
-        {
-            oldCliente.Apellidos = updateDto.Apellidos.Trim();
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Calle))
-        {
-            oldCliente.Direccion.Calle = updateDto.Calle.Trim();
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Numero))
-        {
-            oldCliente.Direccion.Numero = updateDto.Numero;
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.CodigoPostal))
-        {
-            oldCliente.Direccion.CodigoPostal = updateDto.CodigoPostal;
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Piso))
-        {
-            oldCliente.Direccion.Piso = updateDto.Piso;
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Letra))
-        {
-            oldCliente.Direccion.Letra = updateDto.Letra;
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Email))
-        {
-            oldCliente.Email = updateDto.Email;
-        }
-
-        if (!string.IsNullOrWhiteSpace(updateDto.Telefono))
-        {
-            oldCliente.Telefono = updateDto.Telefono;
-        }
-        oldCliente.UpdatedAt = DateTime.UtcNow;
-        return oldCliente;
     }
 }

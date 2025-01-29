@@ -30,7 +30,7 @@ public class GeneralDbContext : DbContext
                 Id = 1,
                 Guid = "vz2AWLK8YPS",
                 Username = "pedrito",
-                Password = "$2a$11$/ClI0T9j8cr/Q1mLtJpCh.aZGfAQjGEiOGMz5uROGUEQnAfM.B.Ki",
+                Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
                 Role = Role.User,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -42,7 +42,19 @@ public class GeneralDbContext : DbContext
                 Id = 2,
                 Guid = "6t8gVeTQt2w",
                 Username = "anita",
-                Password = "$2a$11$/VdPYjEtE7WSEnmI8O/nKuMrZ54vlG5vraWze4dxxjevp8eBhCwoS",
+                Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
+                Role = Role.User,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsDeleted = false
+            });
+            
+            entity.HasData(new UserEntity
+            {
+                Id = 3,
+                Guid = "u6b6NDClz5o",
+                Username = "admin",
+                Password = "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe",
                 Role = Role.Admin,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,

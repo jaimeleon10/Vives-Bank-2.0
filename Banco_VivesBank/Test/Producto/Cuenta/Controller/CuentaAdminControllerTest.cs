@@ -244,7 +244,7 @@ public class CuentaAdminControllerTests
             IsDeleted = false
         };
 
-        _cuentaService.Setup(service => service.DeleteAdminAsync(guid))
+        _cuentaService.Setup(service => service.DeleteByGuidAsync(guid))
             .ReturnsAsync(expectedResponse);
 
         var result = await _cuentaController.Delete(guid);
@@ -261,7 +261,7 @@ public class CuentaAdminControllerTests
     [Test]
     public async Task DeleteNotFound()
     {
-        _cuentaService.Setup(service => service.DeleteAdminAsync("guid"))
+        _cuentaService.Setup(service => service.DeleteByGuidAsync("guid"))
             .ReturnsAsync((CuentaResponse)null);
 
         var result = await _cuentaController.Delete("guid");
