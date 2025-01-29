@@ -31,8 +31,8 @@ public class CuentaAdminControllerTests
     {
         var expectedCuentas = new List<CuentaResponse>
         {
-            new CuentaResponse { Guid = "guid1", Iban = "Producto1", Saldo = "3000" },
-            new CuentaResponse { Guid = "guid2", Iban = "Producto2", Saldo = "3000" }
+            new CuentaResponse { Guid = "guid1", Iban = "Producto1", Saldo = 3000 },
+            new CuentaResponse { Guid = "guid2", Iban = "Producto2", Saldo = 3000 }
         };
 
         var page = 0;
@@ -97,7 +97,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -152,7 +152,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -193,7 +193,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -235,7 +235,7 @@ public class CuentaAdminControllerTests
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
