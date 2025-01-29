@@ -12,7 +12,7 @@ public class UserMapperTest
         {
             Username = "test",
             Password = "test",
-            Role = "USER",
+            
         };
         var result = UserMapper.ToModelFromRequest(userRequest);
 
@@ -20,7 +20,6 @@ public class UserMapperTest
         {
             Assert.That(userRequest.Username, Is.EqualTo(result.Username));
             Assert.That(userRequest.Password, Is.EqualTo(result.Password));
-            Assert.That(userRequest.Role, Is.EqualTo(result.Role.ToString()));
         });
     }
     
