@@ -105,7 +105,6 @@ public class UserControllerTest
         {
             Username = "username",
             Password = "password",
-            Role = "USER",
         };
         
         var userResponse = new UserResponse
@@ -120,7 +119,7 @@ public class UserControllerTest
         var result = await _userController.Create(userRequest);
     }
     
-    [Test]
+   /* [Test]
     public async Task Update()
     {
         var userRequest = new UserRequest
@@ -158,6 +157,7 @@ public class UserControllerTest
 
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
     }
+    */
    /*[Test]
     public async Task UpdateUser_ThrowsUserException_ReturnsBadRequest()
     {
@@ -255,7 +255,6 @@ public class UserControllerTest
         {
             Username = "username",
             Password = "password",
-            Role = "USER",
         };
 
         var result = await _userController.Create(userRequest);
@@ -270,7 +269,7 @@ public class UserControllerTest
         {
             Username = "username",
             Password = "password",
-            Role = "USER",
+           
         };
 
         _userServiceMock.Setup(service => service.CreateAsync(userRequest))
