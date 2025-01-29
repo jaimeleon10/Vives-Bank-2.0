@@ -281,12 +281,4 @@ public class ProductoService : IProductoService
         }
         return baseModelList;
     }
-    
-    [Authorize(Roles = "Admin")]
-    [HttpGet("admin-resource")]
-    public string GetAdminResource()
-    {
-        return "This is a protected admin resource.";
-    }
-
 }

@@ -1,9 +1,9 @@
-﻿using Banco_VivesBank.Producto.Cuenta.Exceptions;
-using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.User.Controller;
@@ -21,8 +21,22 @@ public class UserController : ControllerBase
         _paginationLinksUtils = paginationLinksUtils;
     }
     
+    [HttpPost("login")]
+    public ActionResult Login([FromBody] LoginRequest loginRequest)
+    {
+        try
+        {
+            var token = _userService.Authenticate(loginRequest.Username, loginRequest.Password);
+            return Ok(new { Token = token });
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return Unauthorized(e.Message);
+        }
+    }
+    
     [HttpGet]
-    //[Authorize(Policy = "AdminPolicy")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PageResponse<UserResponse>>> Getall(
         [FromQuery] string? username = null,
         [FromQuery] Role? role = null,
@@ -62,6 +76,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserResponse>> GetByGuid(string guid)
     {
         var user = await _userService.GetByGuidAsync(guid);
@@ -72,6 +87,7 @@ public class UserController : ControllerBase
     }
     
     [HttpGet("username/{username}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserResponse>> GetByUsername(string username)
     {
         var user = await _userService.GetByUsernameAsync(username);
@@ -99,6 +115,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPut("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserResponse>> Update(string guid, [FromBody] UserRequestUpdate userRequest)
     {
         if (!ModelState.IsValid)
@@ -111,12 +128,14 @@ public class UserController : ControllerBase
         return Ok(userResponse);
     }
     
-    [HttpPut("password/{guid}")]
-    public async Task<IActionResult> UpdatePassword(string guid, string newPassword)
+    [HttpPut("password")]
+    public async Task<ActionResult> UpdatePassword([FromBody] UpdatePasswordRequest updatePasswordRequest)
     {
         try
         {
-            var updatedUser = await _userService.UpdatePasswordAsync(guid, newPassword);
+            var user = _userService.GetAuthenticatedUser();
+            if (user is null) return NotFound("No se ha podido identificar al usuario logeado");
+            var updatedUser = await _userService.UpdatePasswordAsync(user, updatePasswordRequest);
             return Ok(updatedUser);
         }
         catch (UserException ex)
@@ -126,6 +145,7 @@ public class UserController : ControllerBase
     }
     
     [HttpDelete("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserResponse>> DeleteByGuid(string guid)
     {
         var userResponse = await _userService.DeleteByGuidAsync(guid);

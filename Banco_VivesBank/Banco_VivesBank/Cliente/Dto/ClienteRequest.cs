@@ -45,8 +45,5 @@ public class ClienteRequest
     [RegularExpression(@"^[679]\d{8}$", ErrorMessage = "Debe ingresar un teléfono válido.")]
     public string Telefono { get; set; }
     
-    [Required(ErrorMessage = "El guid del usuario es obligatorio")]
-    public string UserGuid { get; set; }
-    
     public bool IsDeleted { get; set; } = false;
 }
