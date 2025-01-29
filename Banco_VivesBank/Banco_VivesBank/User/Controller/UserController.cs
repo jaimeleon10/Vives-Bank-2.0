@@ -144,7 +144,7 @@ public class UserController : ControllerBase
     
     [HttpPut("password")]
     [Authorize(Policy = "ClienteOrUserPolicy")]
-    public async Task<ActionResult> UpdatePassword([FromBody] UpdatePasswordRequest updatePasswordRequest)
+    public async Task<ActionResult> UpdateMyPassword([FromBody] UpdatePasswordRequest updatePasswordRequest)
     {
         try
         {
