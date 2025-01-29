@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Banco_VivesBank.Producto.Cuenta.Controllers;
 
 [ApiController]
-[Route("api/me/cuentas")]
+[Route("api/cuentas/me")]
 public class CuentaControllerMe: ControllerBase
 {
     private readonly ICuentaService _cuentaService;
@@ -37,7 +37,7 @@ public class CuentaControllerMe: ControllerBase
         
     }
     
-    [HttpGet("/iban/{iban:length(34)}")]
+    [HttpGet("/iban/{iban}")]
     public async Task<ActionResult<List<CuentaResponse>>> GetMeByIban(
         //[FromServices] ClaimsPrincipal user,
         string iban
@@ -97,7 +97,7 @@ public class CuentaControllerMe: ControllerBase
         //[FromServices] ClaimsPrincipal user,
         string guid)
     {
-        var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
+        var cuentaDelete = await _cuentaService.DeleteByGuidAsync(guid);
         if (cuentaDelete is null) return NotFound($"Cuenta no encontrada con guid {guid}");
         return Ok(cuentaDelete);
     }

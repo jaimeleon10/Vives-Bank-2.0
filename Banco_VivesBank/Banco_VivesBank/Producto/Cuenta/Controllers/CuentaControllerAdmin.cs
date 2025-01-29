@@ -4,6 +4,7 @@ using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Producto.Cuenta.Controllers;
@@ -25,7 +26,7 @@ public class CuentaControllerAdmin : ControllerBase
 
 
     [HttpGet]
-    //[Authorize(Policy = "AdminPolicy")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PageResponse<CuentaResponse>>> Getall(
         [FromQuery] double? saldoMax = null,
         [FromQuery] double? saldoMin = null,
@@ -55,7 +56,8 @@ public class CuentaControllerAdmin : ControllerBase
         
     }
 
-    [HttpGet("allAccounts/{guid}")]
+    [HttpGet("cliente/{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllByClientGuid(string guid)
     {
         try
@@ -70,6 +72,7 @@ public class CuentaControllerAdmin : ControllerBase
     }
 
     [HttpGet("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<CuentaResponse>>> GetByGuid(string guid)
     {
         var cuentaByGuid = await _cuentaService.GetByGuidAsync(guid);
@@ -78,6 +81,7 @@ public class CuentaControllerAdmin : ControllerBase
     }
     
     [HttpGet("iban/{iban}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<CuentaResponse>>> GetByIban(string iban)
     {
         var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
@@ -86,10 +90,11 @@ public class CuentaControllerAdmin : ControllerBase
     }
     
     [HttpDelete("{guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CuentaResponse>> Delete(string guid)
     {
-        var cuentaDelete = await _cuentaService.DeleteAdminAsync(guid);
-        if (cuentaDelete is null) return NotFound(new {message =$"Cuenta no encontrada con guid {guid}"});
+        var cuentaDelete = await _cuentaService.DeleteByGuidAsync(guid);
+        if (cuentaDelete is null) return NotFound(new {message = $"Cuenta no encontrada con guid {guid}"});
         return Ok(cuentaDelete);
     }
 }
