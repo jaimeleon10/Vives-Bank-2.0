@@ -242,7 +242,7 @@ WebApplicationBuilder InitServices()
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    message = "Acceso denegado. No tiene permisos suficientes para acceder al recurso solicitado.",
+                    message = "Acceso denegado. No tiene los permisos requeridos para acceder al recurso solicitado.",
                     path = context.Request.Path
                 }));
             }

@@ -84,6 +84,20 @@ public class ClienteController : ControllerBase
         
         return Ok(cliente);
     }
+    
+    [HttpGet("me")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> GetMyCliente()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        
+        var cliente = await _clienteService.GetMyClienteAsync(userAuth);
+     
+        if (cliente is null) return NotFound($"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        
+        return Ok(cliente);
+    }
 
     [HttpPost]
     [Authorize(Policy = "UserPolicy")]
@@ -98,7 +112,6 @@ public class ClienteController : ControllerBase
         {
             var userAuth = _userService.GetAuthenticatedUser();
             if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
-            if (userAuth.Role == Role.Admin) return BadRequest("El usuario es administrador. Un administrador no puede ser cliente");
             
             return Ok(await _clienteService.CreateAsync(userAuth, clienteRequest));
         }

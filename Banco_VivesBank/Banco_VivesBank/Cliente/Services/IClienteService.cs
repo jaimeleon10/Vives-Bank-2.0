@@ -8,6 +8,8 @@ public interface IClienteService
 {
     public Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellido, string? dni, PageRequest pageRequest);
     public Task<ClienteResponse?> GetByGuidAsync(string guid);
+    public Task<ClienteResponse?> GetMyClienteAsync(User.Models.User userAuth);
+    
     public Task<ClienteResponse> CreateAsync(User.Models.User userAuth, ClienteRequest request);
     public Task<ClienteResponse?> UpdateAsync(string guid, ClienteRequestUpdate requestUpdate);
     public Task<ClienteResponse?> DeleteByGuidAsync(string guid);

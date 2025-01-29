@@ -36,6 +36,7 @@ public class UserController : ControllerBase
     }
     
     [HttpGet]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<PageResponse<UserResponse>>> Getall(
         [FromQuery] string? username = null,
         [FromQuery] Role? role = null,

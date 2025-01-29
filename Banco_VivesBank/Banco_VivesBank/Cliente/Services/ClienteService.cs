@@ -159,6 +159,20 @@ public class ClienteService : IClienteService
         return null;
     }
 
+    public async Task<ClienteResponse?> GetMyClienteAsync(User.Models.User userAuth)
+    {
+        _logger.LogInformation($"Buscando cliente correspondiente al usuario con guid {userAuth.Guid}");
+        var clienteExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Id == userAuth.Id);
+        if (clienteExistente == null)
+        {
+            _logger.LogWarning($"No se ha encontrado el cliente correspondiente al usuario con guid {userAuth.Guid}");
+            return null;
+        }
+
+        _logger.LogInformation($"Se ha encontrado el cliente con guid {clienteExistente.Guid} correspondiente al usuario con guid {userAuth.Guid}");
+        return clienteExistente.ToResponseFromEntity();
+    }
+
     public async Task<ClienteResponse> CreateAsync(User.Models.User userAuth, ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
