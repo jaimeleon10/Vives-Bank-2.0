@@ -120,6 +120,7 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
     myBuilder.Services.AddScoped<DomiciliacionScheduler>();
     myBuilder.Services.AddScoped<DomiciliacionJob>();
+    myBuilder.Services.AddHttpContextAccessor();
     
     // Quartz (domiciliaciones)
     myBuilder.Services.AddQuartz(q =>
@@ -134,7 +135,7 @@ WebApplicationBuilder InitServices()
             .ForJob(jobKey)
             .WithIdentity("DomiciliacionJob-Trigger")
             .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(30)
+                .WithIntervalInSeconds(3000) // TODO -> Cambiar cuando acabe el proyecto
                 .RepeatForever()));
     });
     

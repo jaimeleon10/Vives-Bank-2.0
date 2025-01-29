@@ -1,9 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
-using Banco_VivesBank.Utils.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -135,10 +133,8 @@ public class UserController : ControllerBase
     {
         try
         {
-            var usernameAuthenticated = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var user = await _userService.GetUserModelByUsernameAsync(usernameAuthenticated!);
+            var user = _userService.GetAuthenticatedUser();
             if (user is null) return NotFound("No se ha podido identificar al usuario logeado");
-            
             var updatedUser = await _userService.UpdatePasswordAsync(user, updatePasswordRequest);
             return Ok(updatedUser);
         }

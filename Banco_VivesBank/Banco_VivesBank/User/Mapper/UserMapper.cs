@@ -11,9 +11,7 @@ namespace Banco_VivesBank.User.Mapper
             return new Models.User
             {
                 Username = userRequest.Username,
-                Password = userRequest.Password,
-                Role = (Role)Enum.Parse(typeof(Role), userRequest.Role),
-                IsDeleted = userRequest.IsDeleted
+                Password = userRequest.Password
             };
         }
 

@@ -12,12 +12,7 @@ public class UserRequest
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{5,50}$", ErrorMessage = "La contraseña debe tener un número, una mayúscula, una minúscula y entre 5 y 50 caracteres")]
     public string Password { get; set; }
     
-    /* TODO -> PASSWORD CONFIRMATION
     [Required(ErrorMessage = "El campo de contraseña es obligatorio")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\S]{5,50}$", ErrorMessage = "La contraseña debe tener un número, una mayúscula, una minúscula y entre 5 y 50 caracteres")]
-    public string PasswordConfirmation { get; set; }*/
-
-    public string Role { get; set; } = Models.Role.User.GetType().ToString();
-
-    public bool IsDeleted { get; set; } = false;
+    public string PasswordConfirmation { get; set; }
 }
