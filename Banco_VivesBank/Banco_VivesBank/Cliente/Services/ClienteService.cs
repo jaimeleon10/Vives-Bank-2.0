@@ -210,13 +210,13 @@ public class ClienteService : IClienteService
         return clienteModel.ToResponseFromModel();
     }
 
-    public async Task<ClienteResponse?> UpdateAsync(string guid, ClienteRequestUpdate clienteRequest){
-        _logger.LogInformation($"Actualizando cliente con guid: {guid}");
+    public async Task<ClienteResponse?> UpdateAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
+        _logger.LogInformation($"Actualizando cliente correspondiente al usuario con guid {userAuth.Guid}");
         
-        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
+        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+            _logger.LogInformation($"Cliente cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
             return null;
         }
 
@@ -262,7 +262,7 @@ public class ClienteService : IClienteService
         var redisValue = JsonSerializer.Serialize(clienteModel);
         await _redisDatabase.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
-        _logger.LogInformation($"Cliente actualizado con guid: {guid}");
+        _logger.LogInformation($"Cliente actualizado con guid: {clienteEntityExistente.Guid}");
         return clienteEntityExistente.ToResponseFromEntity();
     }
 

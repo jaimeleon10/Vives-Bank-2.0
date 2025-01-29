@@ -256,6 +256,7 @@ WebApplicationBuilder InitServices()
         options.AddPolicy("ClientePolicy", policy => policy.RequireRole("Cliente"));
         options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
         options.AddPolicy("ClienteOrUserPolicy", policy => policy.RequireRole("Cliente", "User"));
+        options.AddPolicy("ClienteOrAdminPolicy", policy => policy.RequireRole("Cliente", "Admin"));
     });
     
     myBuilder.Services.AddScoped<IJwtService, JwtService>();

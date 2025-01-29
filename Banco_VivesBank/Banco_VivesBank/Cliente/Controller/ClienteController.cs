@@ -125,9 +125,9 @@ public class ClienteController : ControllerBase
         }
     }
     
-    [HttpPut("{guid}")]
-    [Authorize(Policy = "AdminPolicy")]
-    public async Task<ActionResult<ClienteResponse>> UpdateCliente(string guid, [FromBody] ClienteRequestUpdate clienteRequestUpdate)
+    [HttpPut]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> UpdateCliente([FromBody] ClienteRequestUpdate clienteRequestUpdate)
     {
         if (!ModelState.IsValid)
         {
@@ -136,8 +136,11 @@ public class ClienteController : ControllerBase
         
         try
         {
-            var clienteResponse = await _clienteService.UpdateAsync(guid, clienteRequestUpdate);
-            if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente con guid: {guid}"); 
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            
+            var clienteResponse = await _clienteService.UpdateAsync(userAuth, clienteRequestUpdate);
+            if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente correspondiente al usuario con guid {userAuth.Guid}"); 
             return Ok(clienteResponse);
         }
         catch (ClienteException e)
