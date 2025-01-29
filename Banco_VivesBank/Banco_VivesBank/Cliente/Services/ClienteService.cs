@@ -326,11 +326,13 @@ public class ClienteService : IClienteService
         foreach (var cuenta in cuentas)
         {
             cuenta.IsDeleted = true;
+            cuenta.UpdatedAt = DateTime.UtcNow;
             _context.Cuentas.Update(cuenta);
 
             if (cuenta.TarjetaId == null) continue;
             var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
             tarjetaExistente!.IsDeleted = true;
+            tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
             
             _context.Tarjetas.Update(tarjetaExistente);
         }

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
@@ -300,8 +301,36 @@ namespace Banco_VivesBank.User.Service
 
             userExistenteEntity.IsDeleted = true;
             userExistenteEntity.UpdatedAt = DateTime.UtcNow;
-
             _context.Usuarios.Update(userExistenteEntity);
+        
+            _logger.LogInformation($"Desactivando cliente, cuentas y tarjetas pertenecientes al usuario con guid {userExistenteEntity.Guid}");
+            var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == guid);
+            if (clienteExistenteEntity == null)
+            {
+                _logger.LogWarning($"Cliente no encontrado para el usuario con guid: {guid}");
+                throw new ClienteNotFound($"Cliente no encontrado para el usuario con guid: {guid}");
+            }
+
+            clienteExistenteEntity.IsDeleted = true;
+            clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
+            _context.Clientes.Update(clienteExistenteEntity);
+            
+            var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+            foreach (var cuenta in cuentas)
+            {
+                cuenta.IsDeleted = true;
+                cuenta.UpdatedAt = DateTime.UtcNow;
+                _context.Cuentas.Update(cuenta);
+
+                if (cuenta.TarjetaId == null) continue;
+                var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+                tarjetaExistente!.IsDeleted = true;
+                tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
+            
+                _context.Tarjetas.Update(tarjetaExistente);
+            }
+        
+            _logger.LogInformation("Guardando todos los cambios en la base de datos");
             await _context.SaveChangesAsync();
 
             var cacheKey = CacheKeyPrefix + userExistenteEntity.Guid;
