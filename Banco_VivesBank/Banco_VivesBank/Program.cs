@@ -11,6 +11,7 @@ using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Services;
+using Banco_VivesBank.Producto.ProductoBase.Storage;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Pdf.Services;
