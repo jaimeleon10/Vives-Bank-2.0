@@ -39,7 +39,7 @@ public class ClienteController : ControllerBase
     
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
         [FromQuery] string? nombre = null,
         [FromQuery] string? apellido = null,
@@ -75,7 +75,7 @@ public class ClienteController : ControllerBase
     }
     
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {
         var cliente = await _clienteService.GetByGuidAsync(guid);
@@ -86,6 +86,7 @@ public class ClienteController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "UserPolicy")]
     public async Task<ActionResult<ClienteResponse>> Create([FromBody] ClienteRequest clienteRequest)
     {
         if (!ModelState.IsValid)
@@ -112,7 +113,7 @@ public class ClienteController : ControllerBase
     }
     
     [HttpPut("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<ClienteResponse>> UpdateCliente(string guid, [FromBody] ClienteRequestUpdate clienteRequestUpdate)
     {
         if (!ModelState.IsValid)
@@ -133,7 +134,7 @@ public class ClienteController : ControllerBase
     }
 
     [HttpDelete("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<ClienteResponse>> DeleteByGuid(string guid)
     {
         var clienteResponse = await _clienteService.DeleteByGuidAsync(guid);

@@ -10,6 +10,7 @@ using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using IDatabase = StackExchange.Redis.IDatabase;
+using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Banco_VivesBank.Cliente.Services;
 
@@ -172,6 +174,11 @@ public class ClienteService : IClienteService
             _logger.LogWarning($"El usuario con guid {userAuth.Guid} ya es un cliente");
             throw new ClienteExistsException($"El usuario con guid {userAuth.Guid} ya es un cliente");
         }
+        
+        _logger.LogInformation($"Actualizando rol a cliente del usuario con guid {userAuth.Guid}");
+        userAuth.Role = Role.Cliente;
+        _context.Usuarios.Update(userAuth.ToEntityFromModel());
+        await _context.SaveChangesAsync();
         
         _logger.LogInformation("Guardando cliente en base de datos");
         var clienteModel = clienteRequest.ToModelFromRequest(userAuth);
