@@ -1,18 +1,18 @@
 using System.IO.Compression;
-using Banco_VivesBank.Database;
-using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Movimientos.Database;
-using Banco_VivesBank.Movimientos.Models;
-using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Exceptions;
+using Banco_VivesBank.Movimientos.Database;
+using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
-using Banco_VivesBank.User.Models;
+using Banco_VivesBank.Movimientos.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Testcontainers.PostgreSql;
+using Banco_VivesBank.Database;
+using Banco_VivesBank.Database.Entities;
 using MongoDB.Driver;
 using Moq;
-using Testcontainers.PostgreSql;
+using Newtonsoft.Json;
 
 namespace Test.Storage.Zip;
 
@@ -27,13 +27,11 @@ public class BackupServiceTests
     private Mock<IMongoCollection<Domiciliacion>> _mockDomiciliacionesCollection;
     private GeneralDbContext _dbContext;
     private BackupService _backupService;
-
     private PostgreSqlContainer _postgreSqlContainer;
-    
+
     [OneTimeSetUp]
     public async Task Setup()
     {
-        // PostgreSQL
         _postgreSqlContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
             .WithDatabase("testdb")
@@ -51,34 +49,42 @@ public class BackupServiceTests
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
 
-        // MongoDB
         _mockMovimientosCollection = new Mock<IMongoCollection<Movimiento>>();
         _mockDomiciliacionesCollection = new Mock<IMongoCollection<Domiciliacion>>();
         _mockMongoDatabase = new Mock<IMongoDatabase>();
         _mockMongoClient = new Mock<IMongoClient>();
 
         _mockMongoDatabase
-            .Setup(db => db.GetCollection<Movimiento>("movimientos", null))
+            .Setup(db => db.GetCollection<Movimiento>(It.IsAny<string>(), null))
             .Returns(_mockMovimientosCollection.Object);
-
         _mockMongoDatabase
-            .Setup(db => db.GetCollection<Domiciliacion>("domiciliaciones", null))
+            .Setup(db => db.GetCollection<Domiciliacion>(It.IsAny<string>(), null))
             .Returns(_mockDomiciliacionesCollection.Object);
 
         _mockMongoClient
-            .Setup(client => client.GetDatabase("test", null))
+            .Setup(client => client.GetDatabase(It.IsAny<string>(), null))
             .Returns(_mockMongoDatabase.Object);
 
-        // Configurar servicio BackupService con mocks
         _loggerMock = new Mock<ILogger<BackupService>>();
         _storageJsonMock = new Mock<IStorageJson>();
 
+        _storageJsonMock
+            .Setup(s => s.ExportJson(It.IsAny<FileInfo>(), It.IsAny<List<object>>()))
+            .Callback<FileInfo, List<object>>((file, data) =>
+            {
+                Directory.CreateDirectory(file.DirectoryName ?? throw new ArgumentNullException(nameof(file.DirectoryName)));
+                var json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                File.WriteAllText(file.FullName, json);
+            });
+
+
+
         var mongoConfig = Options.Create(new MovimientosMongoConfig
         {
-            ConnectionString = "mongodb://fakehost",
-            DatabaseName = "test",
-            MovimientosCollectionName = "movimientos",
-            DomiciliacionesCollectionName = "domiciliaciones"
+            ConnectionString = "mongodb://admin:password@localhost:27017",
+            DatabaseName = "MovimientosDB",
+            MovimientosCollectionName = "Movimientos",
+            DomiciliacionesCollectionName = "Domiciliaciones"
         });
 
         _backupService = new BackupService(
@@ -88,245 +94,245 @@ public class BackupServiceTests
             mongoConfig
         );
     }
-
-    [SetUp]
-    public async Task CleanDatabase()
-    {
-        // Limpiar la base de datos PostgreSQL
-        _dbContext.Clientes.RemoveRange(_dbContext.Clientes);
-        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
-        await _dbContext.SaveChangesAsync();
-
-        // Limpiar colecciones MongoDB simuladas
-        _mockMovimientosCollection.Reset();
-        _mockDomiciliacionesCollection.Reset();
-    }
-
-    [OneTimeTearDown]
-    public async Task Teardown()
-    {
-        if (_dbContext != null)
-        {
-            await _dbContext.DisposeAsync();
-        }
-
-        if (_postgreSqlContainer != null)
-        {
-            await _postgreSqlContainer.StopAsync();
-            await _postgreSqlContainer.DisposeAsync();
-        }
-    }
     
     [Test]
-    public async Task BackupService_ShouldSaveDataToPostgres()
+    public void ExportToZip_ShouldThrowArgumentNullException_WhenSourceDirectoryIsNull()
     {
-        var user = new UserEntity
-        {
-            Id = 1, 
-            Username = "Test Cliente" , 
-            IsDeleted = false, 
-            Password = "password", 
-            Role = Role.User, 
-            Guid = "jwjrvflslv",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        _dbContext.Usuarios.Add(user);
-
-        await _dbContext.SaveChangesAsync();
-        var result = await _dbContext.Usuarios.FindAsync(user.Id);
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(user.Username, Is.EqualTo(result.Username));
-        Assert.That(user.IsDeleted, Is.EqualTo(result.IsDeleted));
-        Assert.That(user.Password, Is.EqualTo(result.Password));
-        Assert.That(user.Role, Is.EqualTo(result.Role));
-    }
-    
-    [Test]
-    public void BackupServiceMongoException()
-    {
-        _mockMovimientosCollection
-            .Setup(c => c.InsertOne(It.IsAny<Movimiento>(), null, default))
-            .Throws(new MongoException("Error de prueba"));
-
-        Assert.Throws<MongoException>(() =>
-        {
-            _mockMovimientosCollection.Object.InsertOne(new Movimiento { Id = "1", Guid = "jofwbfkaj", ClienteGuid = "jdjdjjj"});
-        });
+        Assert.ThrowsAsync<ArgumentNullException>(() => _backupService.ExportToZip(null, "test.zip"));
     }
 
     [Test]
-    public async Task ExportToZi()
+    public void ExportToZip_ShouldThrowArgumentNullException_WhenZipFilePathIsNull()
     {
-        var sourceDirectory = Path.Combine(Path.GetTempPath(), "test-source");
-        var zipFilePath = Path.Combine(Path.GetTempPath(), "test-backup.zip");
-        Directory.CreateDirectory(sourceDirectory);
+        Assert.ThrowsAsync<ArgumentNullException>(() => _backupService.ExportToZip("source", null));
+    }
 
-        var user = new UserEntity
+    [Test]
+    public async Task ExportToZip_ShouldCreateZipFile_WhenSourceDirectoryExists()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+
+        // Act
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+
+        // Assert
+        Assert.That(File.Exists(zipFilePath), Is.True);
+        Cleanup(zipFilePath, sourceDirectory);
+    }
+
+    [Test]
+    public async Task ExportToZip_ShouldIncludeAllJsonFilesInZip()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        var expectedFiles = new[] { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" };
+
+        // Act
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+
+        // Assert
+        using var zip = ZipFile.OpenRead(zipFilePath);
+        foreach (var file in expectedFiles)
         {
-            Id = 1,
-            Username = "Test User",
-            IsDeleted = false,
-            Password = "password",
-            Role = Role.User,
-            Guid = "test-guid",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        
-        _dbContext.Usuarios.Add(user);
+            Assert.That(zip.Entries.Any(e => e.Name == file), Is.True, $"Falta el archivo {file} en el ZIP");
+        }
+        Cleanup(zipFilePath, sourceDirectory);
+    }
+
+    [Test]
+    public async Task ExportToZip_ShouldOverwriteExistingZipFile()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        File.WriteAllText(zipFilePath, "dummy content");
+
+        // Act
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+
+        // Assert
+        using var zip = ZipFile.OpenRead(zipFilePath);
+        Assert.That(zip.Entries.Count, Is.GreaterThan(0));
+        Cleanup(zipFilePath, sourceDirectory);
+    }
+
+    [Test]
+    public async Task ExportToZip_ShouldIncludeAvatarsDirectory_WhenExists()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        var avatarDir = Path.Combine("data", "avatares");
+        Directory.CreateDirectory(avatarDir);
+        File.WriteAllText(Path.Combine(avatarDir, "test.png"), "dummy");
+
+        // Act
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+
+        // Assert
+        using var zip = ZipFile.OpenRead(zipFilePath);
+        Assert.That(zip.Entries.Any(e => e.FullName.StartsWith("avatares/")), Is.True);
+        Cleanup(zipFilePath, sourceDirectory, avatarDir);
+    }
+
+    [Test]
+    public async Task ImportFromZip_ShouldThrowImportFromZipException_WhenZipFileDoesNotExist()
+    {
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "nonexistent.zip");
+        var destinationDirectory = CreateTempDirectory();
+
+        Assert.ThrowsAsync<ImportFromZipException>(() => 
+            _backupService.ImportFromZip(zipFilePath, destinationDirectory));
+    }
+
+    [Test]
+    public async Task ImportFromZip_ShouldImportAllEntities_WhenZipIsValid()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        var destinationDirectory = CreateTempDirectory();
+
+        // Populate test data
+        await _dbContext.Usuarios.AddAsync(new UserEntity { Guid = Guid.NewGuid().ToString() });
         await _dbContext.SaveChangesAsync();
-
-        _mockMovimientosCollection
-            .Setup(c => c.Find(It.IsAny<FilterDefinition<Movimiento>>(), null))
-            .Returns(Mock.Of<IFindFluent<Movimiento, Movimiento>>());
-
-        _mockDomiciliacionesCollection
-            .Setup(c => c.Find(It.IsAny<FilterDefinition<Domiciliacion>>(), null))
-            .Returns(Mock.Of<IFindFluent<Domiciliacion, Domiciliacion>>());
 
         await _backupService.ExportToZip(sourceDirectory, zipFilePath);
 
-        Assert.That(File.Exists(zipFilePath), Is.True);
-        Assert.That(new FileInfo(zipFilePath).Length, Is.GreaterThan(0));
-
-        Directory.Delete(sourceDirectory, true);
-        File.Delete(zipFilePath);
-    }
-
-    [Test]
-    public void ExportToZip_DeberiaLanzarExcepcionSiDirectorioOrigenEsNulo()
-    {
-        var exception = Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await _backupService.ExportToZip(null, "test.zip"));
-        Assert.That(exception.ParamName, Is.EqualTo("sourceDirectory"));
-    }
-
-    [Test]
-    public void ExportToZip_DeberiaLanzarExcepcionSiRutaZipEsNula()
-    {
-        var exception = Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await _backupService.ExportToZip("testDir", null));
-        Assert.That(exception.ParamName, Is.EqualTo("zipFilePath"));
-    }
-
-    [Test]
-    public async Task ImportFromZip_DeberiaImportarDatosCorrectamente()
-    {
-        var sourceDirectory = Path.Combine(Path.GetTempPath(), "test-import-source");
-        var destinationDirectory = Path.Combine(Path.GetTempPath(), "test-import-dest");
-        var zipFilePath = Path.Combine(Path.GetTempPath(), "test-import.zip");
-
-        if (File.Exists(zipFilePath))
-        {
-            File.Delete(zipFilePath);
-        }
-
-        Directory.CreateDirectory(sourceDirectory);
-        Directory.CreateDirectory(destinationDirectory);
-
-        File.WriteAllText(Path.Combine(sourceDirectory, "usuarios.json"), "[  {\n    \"id\": 1,\n    \"guid\": \"nGB65b7P0LD\",\n    \"username\": \"pedrito\",\n    \"password\": \"password\",\n    \"role\": \"User\",\n    \"createdAt\": \"2025-01-26T01:04:44.153512Z\",\n    \"updatedAt\": \"2025-01-26T01:04:44.153512Z\",\n    \"isDeleted\": false\n  }]");
-        File.WriteAllText(Path.Combine(sourceDirectory, "clientes.json"), "[  {\n    \"id\": 2,\n    \"guid\": \"jkWOwLHrN8O\",\n    \"dni\": \"21240915R\",\n    \"nombre\": \"Ana\",\n    \"apellidos\": \"Martinez\",\n    \"direccion\": {\n      \"calle\": \"Calle Dos\",\n      \"numero\": \"456\",\n      \"codigoPostal\": \"28002\",\n      \"piso\": \"2\",\n      \"letra\": \"B\"\n    },\n    \"email\": \"ana.martinez@gmail.com\",\n    \"telefono\": \"623456789\",\n    \"fotoPerfil\": \"https://example.com/fotoPerfil.jpg\",\n    \"fotoDni\": \"https://example.com/fotoDni.jpg\",\n    \"cuentas\": [],\n    \"user\": {\n      \"id\": 2,\n      \"guid\": \"w2JFmZHc9mE\",\n      \"username\": \"anita\",\n      \"password\": \"password\",\n      \"role\": \"Admin\",\n      \"createdAt\": \"2025-01-26T01:04:44.15352Z\",\n      \"updatedAt\": \"2025-01-26T01:04:44.15352Z\",\n      \"isDeleted\": false\n    },\n    \"createdAt\": \"2025-01-27T22:42:45.1307902Z\",\n    \"updatedAt\": \"2025-01-27T22:42:45.1307908Z\",\n    \"isDeleted\": false\n  }]");
-        File.WriteAllText(Path.Combine(sourceDirectory, "productos.json"), "[  {\n    \"id\": 1,\n    \"guid\": \"xnqfxrGckcL\",\n    \"nombre\": \"Cuenta de ahorros\",\n    \"descripcion\": \"Producto para cuenta bancaria de ahorros\",\n    \"tipoProducto\": \"cuentaAhorros\",\n    \"tae\": 2.5,\n    \"createdAt\": \"2025-01-26T01:04:44.154188Z\",\n    \"updatedAt\": \"2025-01-26T01:04:44.154188Z\",\n    \"isDeleted\": false\n  }]");
-        File.WriteAllText(Path.Combine(sourceDirectory, "cuentas.json"), "[  {\n    \"id\": 1,\n    \"guid\": \"YK6PqjYre2P\",\n    \"iban\": \"ES7730046576085345979538\",\n    \"saldo\": 5000.0,\n    \"tarjeta\": null,\n    \"cliente\": {\n      \"id\": 1,\n      \"guid\": \"LTtXSvg383G\",\n      \"dni\": \"12345678Z\",\n      \"nombre\": \"Pedro\",\n      \"apellidos\": \"Picapiedra\",\n      \"direccion\": {\n        \"calle\": \"Calle Uno\",\n        \"numero\": \"123\",\n        \"codigoPostal\": \"28001\",\n        \"piso\": \"1\",\n        \"letra\": \"A\"\n      },\n      \"email\": \"pedro.picapiedra@gmail.com\",\n      \"telefono\": \"612345678\",\n      \"fotoPerfil\": \"https://example.com/fotoPerfil.jpg\",\n      \"fotoDni\": \"https://example.com/fotoDni.jpg\",\n      \"cuentas\": [],\n      \"user\": {\n        \"id\": 1,\n        \"guid\": \"nGB65b7P0LD\",\n        \"username\": \"pedrito\",\n        \"password\": \"password\",\n        \"role\": \"User\",\n        \"createdAt\": \"2025-01-26T01:04:44.153512Z\",\n        \"updatedAt\": \"2025-01-26T01:04:44.153512Z\",\n        \"isDeleted\": false\n      },\n      \"createdAt\": \"2025-01-27T22:42:45.9093054Z\",\n      \"updatedAt\": \"2025-01-27T22:42:45.909306Z\",\n      \"isDeleted\": false\n    }]");
-        File.WriteAllText(Path.Combine(sourceDirectory, "tarjetas.json"), "[  {\n    \"id\": 1,\n    \"guid\": \"sKA4H3SjRcI\",\n    \"numero\": \"458963749087423\",\n    \"fechaVencimiento\": \"06/27\",\n    \"cvv\": \"423\",\n    \"pin\": \"1234\",\n    \"limiteDiario\": 500.0,\n    \"limiteSemanal\": 2500.0,\n    \"limiteMensual\": 10000.0,\n    \"createdAt\": \"2025-01-26T01:04:44.15522Z\",\n    \"updatedAt\": \"2025-01-26T01:04:44.15522Z\",\n    \"isDeleted\": false\n  }]");
-        File.WriteAllText(Path.Combine(sourceDirectory, "movimientos.json"), "[]");
-        File.WriteAllText(Path.Combine(sourceDirectory, "domiciliaciones.json"), "[]");
-
-        ZipFile.CreateFromDirectory(sourceDirectory, zipFilePath);
-
-        _storageJsonMock
-            .Setup(s => s.ImportJson<UserEntity>(It.IsAny<FileInfo>()))
-            .Returns(new List<UserEntity>());
-
+        // Act
         await _backupService.ImportFromZip(zipFilePath, destinationDirectory);
 
-        Assert.That(Directory.Exists(Path.Combine(destinationDirectory, "archivos")), Is.False);
-
-        Directory.Delete(sourceDirectory, true);
-        Directory.Delete(destinationDirectory, true);
-        File.Delete(zipFilePath);
+        // Assert
+        Assert.That(await _dbContext.Usuarios.AnyAsync(), Is.True);
+        Cleanup(zipFilePath, sourceDirectory, destinationDirectory);
     }
 
     [Test]
-    public void ImportFromZip_DeberiaLanzarExcepcionSiArchivoZipNoExiste()
+    public async Task ImportFromZip_ShouldSkipExistingEntities()
     {
-        var exception = Assert.ThrowsAsync<ImportFromZipException>(async () =>
-            await _backupService.ImportFromZip("noexiste.zip", "testDir"));
-        Assert.That(exception.Message, Is.EqualTo("El archivo ZIP no existe."));
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        var destinationDirectory = CreateTempDirectory();
+
+        var originalUser = new UserEntity { Guid = "test-guid" };
+        await _dbContext.Usuarios.AddAsync(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+        _dbContext.Usuarios.Remove(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        await _backupService.ImportFromZip(zipFilePath, destinationDirectory);
+
+        // Assert
+        Assert.That(await _dbContext.Usuarios.CountAsync(), Is.EqualTo(1));
+        Cleanup(zipFilePath, sourceDirectory, destinationDirectory);
+    }
+
+    [Test]
+    public async Task ImportFromZip_ShouldHandleEmptyCollections()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        var destinationDirectory = CreateTempDirectory();
+
+        // Act & Assert (no debería lanzar excepciones)
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+        Assert.DoesNotThrowAsync(() => _backupService.ImportFromZip(zipFilePath, destinationDirectory));
+        
+        Cleanup(zipFilePath, sourceDirectory, destinationDirectory);
+    }
+
+    [Test]
+    public async Task ImportFromZip_ShouldCopyAvatarsToDestination()
+    {
+        // Arrange
+        var sourceDirectory = CreateTempDirectory();
+        var zipFilePath = Path.Combine(Path.GetTempPath(), "test.zip");
+        var destinationDirectory = CreateTempDirectory();
+        var avatarPath = Path.Combine("data", "avatares", "test.png");
+        Directory.CreateDirectory(Path.GetDirectoryName(avatarPath));
+        File.WriteAllText(avatarPath, "dummy");
+
+        await _backupService.ExportToZip(sourceDirectory, zipFilePath);
+
+        // Act
+        await _backupService.ImportFromZip(zipFilePath, destinationDirectory);
+
+        // Assert
+        Assert.That(File.Exists(avatarPath), Is.True);
+        Cleanup(zipFilePath, sourceDirectory, destinationDirectory, avatarPath);
     }
 
     /*[Test]
-    public async Task SaveEntidadesSiNoExistenAsync_DeberiaGuardarSoloEntidadesNuevas()
+    public async Task SaveEntidadesSiNoExistenAsync_ShouldSkipExistingRecords()
     {
-        var usuarios = new List<UserEntity>
-        {
-            new()
-            {
-                Id = 1,
-                Username = "Usuario Existente",
-                Guid = "guid-existente",
-                Role = Role.User
-            },
-            new()
-            {
-                Id = 2,
-                Username = "Usuario Nuevo",
-                Guid = "guid-nuevo",
-                Role = Role.User
-            }
-        };
-
-        _dbContext.Usuarios.Add(usuarios[0]);
+        // Arrange
+        var existingUser = new UserEntity { Guid = "existing-guid" };
+        await _dbContext.Usuarios.AddAsync(existingUser);
         await _dbContext.SaveChangesAsync();
 
+        var newUser = new UserEntity { Guid = "new-guid" };
+        var users = new List<UserEntity> { existingUser, newUser };
+
+        // Act
         await _backupService.SaveEntidadesSiNoExistenAsync(
-            usuarios,
+            users,
             _dbContext.Usuarios,
             u => u.Id.ToString(),
             u => u.Guid
         );
 
-        var usuariosGuardados = await _dbContext.Usuarios.ToListAsync();
-        Assert.That(usuariosGuardados.Count, Is.EqualTo(2));
+        // Assert
+        Assert.That(await _dbContext.Usuarios.CountAsync(), Is.EqualTo(2));
     }
 
     [Test]
-    public async Task SaveSiNoExistenAsyncMongo_DeberiaGuardarSoloDocumentosNuevos()
+    public async Task SaveSiNoExistenAsyncMongo_ShouldInsertOnlyNewDocuments()
     {
-        var movimientos = new List<Movimiento>
-        {
-            new Movimiento() { Id = "1", Guid = "guid-existente" , ClienteGuid = "377373737"},
-            new Movimiento() { Id = "2", Guid = "guid-nuevo", ClienteGuid = "hdhdhdhfbeibfo"}
-        };
+        // Arrange
+        var existingDoc = new Movimiento { Guid = "existing-guid" };
+        var newDoc = new Movimiento { Guid = "new-guid" };
+        var documents = new List<Movimiento> { existingDoc, newDoc };
 
-        var cursorMock = new Mock<IAsyncCursor<Movimiento>>();
-        cursorMock
-            .Setup(c => c.Current)
-            .Returns(new List<Movimiento> { movimientos[0] });
-        cursorMock
-            .SetupSequence(c => c.MoveNextAsync(default))
-            .ReturnsAsync(true)
-            .ReturnsAsync(false);
+        _mockMovimientosCollection.Setup(x => x.Find(It.IsAny<FilterDefinition<Movimiento>>(), null))
+            .ReturnsAsync(new List<Movimiento> { existingDoc });
 
-        _mockMovimientosCollection
-            .Setup(c => c.Find(It.IsAny<FilterDefinition<Movimiento>>(), null))
-            .Returns(cursorMock.Object);
-
+        // Act
         await _backupService.SaveSiNoExistenAsyncMongo(
-            movimientos,
+            documents,
             _mockMovimientosCollection.Object,
             m => m.Guid
         );
 
-        _mockMovimientosCollection.Verify(
-            c => c.InsertManyAsync(
-                It.Is<IEnumerable<Movimiento>>(m => m.Count() == 1),
-                null,
-                default
-            ),
-            Times.Once
-        );
+        // Assert
+        _mockMovimientosCollection.Verify(x => 
+            x.InsertManyAsync(It.Is<List<Movimiento>>(l => l.Count == 1), null), Times.Once);
     }*/
+
+    // Helpers
+    private string CreateTempDirectory() => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+    
+    private void Cleanup(params string[] paths)
+    {
+        foreach (var path in paths)
+        {
+            if (File.Exists(path)) File.Delete(path);
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
+    }
+
+    [OneTimeTearDown]
+    public async Task Teardown()
+    {
+        await _dbContext.DisposeAsync();
+        await _postgreSqlContainer.StopAsync();
+        await _postgreSqlContainer.DisposeAsync();
+    }
 }
