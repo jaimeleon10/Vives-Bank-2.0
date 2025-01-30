@@ -13,6 +13,7 @@ public interface ICuentaService
         PageRequest pageRequest);
     
     public Task<IEnumerable<CuentaResponse>> GetByClientGuidAsync(string guid);
+    public Task<IEnumerable<CuentaResponse>> GetAllMeAsync(string guid);
 
     public Task<CuentaResponse?> GetByGuidAsync(string guid);
     
