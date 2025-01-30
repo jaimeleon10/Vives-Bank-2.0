@@ -128,7 +128,7 @@ public class MovimientoService : IMovimientoService
 
     public async Task<IEnumerable<MovimientoResponse>> GetMyMovimientos(User.Models.User userAuth)
     {
-        _logger.LogInformation($"Buscando todos los movimientos del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        _logger.LogInformation($"Buscando todos los movimientos del cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
         var movimientos = await _movimientoCollection.Find(mov => mov.ClienteGuid == cliente!.Guid).ToListAsync();
         return movimientos.Select(mov => mov.ToResponseFromModel(
@@ -175,7 +175,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {ingresoNominaRequest.IbanCliente}");
         }
         
-        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        _logger.LogInformation($"Buscando cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
         
         _logger.LogInformation($"Validando pertenencia de la cuenta con guid {cuenta.Guid} al cliente con guid {cliente!.Guid}");
@@ -255,7 +255,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta asociada a la tarjeta con guid: {tarjeta.Guid}");
         }
         
-        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        _logger.LogInformation("Buscando cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
         
         _logger.LogInformation($"Validando pertenencia de la cuenta con guid {cuenta.Guid} al cliente con guid {cliente!.Guid}");
@@ -339,7 +339,7 @@ public class MovimientoService : IMovimientoService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {transferenciaRequest.IbanOrigen}");
         }
         
-        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        _logger.LogInformation($"Buscando cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
         
         _logger.LogInformation($"Validando pertenencia de la cuenta de origen con guid {cuentaOrigen.Guid} al cliente con guid {cliente!.Guid}");
@@ -472,7 +472,7 @@ public class MovimientoService : IMovimientoService
             throw new MovimientoNotFoundException($"No existe el movimiento con guid: {movimientoGuid} o no es un movimiento de transferencia");
         }
         
-        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        _logger.LogInformation($"Buscando cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
         
         _logger.LogInformation($"Validando que el movimiento de la transferencia a revocar pertenezca al usuario que lo solicita");

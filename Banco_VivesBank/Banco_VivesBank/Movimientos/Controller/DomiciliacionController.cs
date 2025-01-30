@@ -52,7 +52,7 @@ public class DomiciliacionController : ControllerBase
         return Ok(await _domiciliacionService.GetByClienteGuidAsync(clienteGuid));
     }
     
-    [HttpGet("cliente")]
+    [HttpGet("me")]
     [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetMyDomiciliaciones()
     {
@@ -105,6 +105,29 @@ public class DomiciliacionController : ControllerBase
             var domiciliacion = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid);
             if (domiciliacion != null) return Ok(domiciliacion);
             return BadRequest(new { message = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"});
+        }
+        catch (MovimientoException e)
+        {
+            return BadRequest(new { message = e.Message});
+        }
+    }
+    
+    [HttpDelete("me/{domiciliacionGuid}")]
+    [Authorize(Policy = "AdminPolicy")]    
+    public async Task<ActionResult<DomiciliacionResponse?>> DesactivateMyDomiciliacion(string domiciliacionGuid)
+    {
+        try
+        {
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            var domiciliacion = await _domiciliacionService.DesactivateMyDomiciliacionAsync(userAuth, domiciliacionGuid);
+            if (domiciliacion != null) return Ok(domiciliacion);
+            return BadRequest(new { message = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"});
+        }
+        catch (MovimientoNoPertenecienteAlUsuarioAutenticadoException e)
+        {
+            return BadRequest(new { message = e.Message});
         }
         catch (MovimientoException e)
         {
