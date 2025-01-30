@@ -63,6 +63,7 @@ public class DomiciliacionController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<DomiciliacionResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)
     {
         if (!ModelState.IsValid)
@@ -72,7 +73,10 @@ public class DomiciliacionController : ControllerBase
 
         try
         {
-            return Ok(await _domiciliacionService.CreateAsync(domiciliacionRequest));
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            return Ok(await _domiciliacionService.CreateAsync(userAuth, domiciliacionRequest));
         }
         catch (ClienteException e)
         {
