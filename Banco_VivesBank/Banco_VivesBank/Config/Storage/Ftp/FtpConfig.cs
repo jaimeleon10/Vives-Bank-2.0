@@ -1,4 +1,4 @@
-﻿namespace Banco_VivesBank.Config.Storage;
+﻿namespace Banco_VivesBank.Config.Storage.Ftp;
 
 public class FtpConfig
 {

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Banco_VivesBank.Config.Storage;
+using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

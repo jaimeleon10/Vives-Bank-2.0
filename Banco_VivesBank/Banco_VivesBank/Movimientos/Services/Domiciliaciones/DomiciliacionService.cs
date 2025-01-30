@@ -98,19 +98,27 @@ public class DomiciliacionService : IDomiciliacionService
         var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
-    
-    public async Task<DomiciliacionResponse> CreateAsync(DomiciliacionRequest domiciliacionRequest)
+
+    public async Task<IEnumerable<DomiciliacionResponse>> GetMyDomiciliaciones(User.Models.User userAuth)
+    {
+        _logger.LogInformation($"Buscando todas las domiciliaciones del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
+        return domiciliaciones.Select(mov => mov.ToResponseFromModel());
+    }
+
+    public async Task<DomiciliacionResponse> CreateAsync(User.Models.User userAuth, DomiciliacionRequest domiciliacionRequest)
     {
         _logger.LogInformation("Creando domiciliación");
         
-        _logger.LogInformation($"Buscando si existe el cliente con guid: {domiciliacionRequest.ClienteGuid}");
-        var cliente = await _clienteService.GetClienteModelByGuid(domiciliacionRequest.ClienteGuid);
-        if (cliente == null)
+        _logger.LogInformation($"Buscando si existe el cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        var me = await _clienteService.GetMeAsync(userAuth);
+        if (me == null)
         {
-            _logger.LogWarning($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}");
-            throw new ClienteNotFoundException($"No se ha encontrado ningún cliente con guid: {domiciliacionRequest.ClienteGuid}");
+            _logger.LogWarning($"No se ha encontrado ningún cliente correspondiente al usuario con guid: {userAuth.Guid}");
+            throw new ClienteNotFoundException($"No se ha encontrado ningún cliente correspondiente al usuario con guid: {userAuth.Guid}");
         }
-        _logger.LogInformation($"{cliente.Guid}");
+        var cliente = await _clienteService.GetClienteModelByGuid(me.Guid);
         
         _logger.LogInformation($"Validando existencia de la cuenta con iban: {domiciliacionRequest.IbanCliente}");
         var cuenta = await _cuentaService.GetByIbanAsync(domiciliacionRequest.IbanCliente);
@@ -120,11 +128,11 @@ public class DomiciliacionService : IDomiciliacionService
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {domiciliacionRequest.IbanCliente}");
         }
         
-        _logger.LogInformation($"Comprobando que el iban con guid: {domiciliacionRequest.IbanCliente} pertenezca a alguna de las cuentas del cliente con guid: {domiciliacionRequest.ClienteGuid}");
+        _logger.LogInformation($"Comprobando que el iban con guid: {domiciliacionRequest.IbanCliente} pertenezca a alguna de las cuentas del cliente con guid: {cliente!.Guid}");
         if (cuenta.ClienteGuid != cliente.Guid)
         {
-            _logger.LogWarning($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
-            throw new CuentaIbanException($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {domiciliacionRequest.ClienteGuid}");
+            _logger.LogWarning($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {cliente.Guid}");
+            throw new CuentaIbanException($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {cliente.Guid}");
         }
         
         _logger.LogInformation($"Validando saldo suficiente respecto al importe de: {domiciliacionRequest.Importe} €");
