@@ -68,9 +68,9 @@ public class ClienteController : ControllerBase
             return Ok(pageResult);
 
         }
-        catch (ClienteNotFound e)
+        catch (InvalidOperationException e)
         {
-            return StatusCode(404, new { message = "No se han encontrado los clientes.", details = e.Message });
+            return BadRequest(new { message = "No se han encontrado clientes.", details = e.Message });
         }
     }
     
@@ -78,11 +78,19 @@ public class ClienteController : ControllerBase
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {
-        var cliente = await _clienteService.GetByGuidAsync(guid);
+        try
+        {
+            var cliente = await _clienteService.GetByGuidAsync(guid);
      
-        if (cliente is null) return NotFound($"No se ha encontrado cliente con guid: {guid}");
+            if (cliente is null) return NotFound(new { message = $"No se ha encontrado cliente con guid: {guid}"});
         
-        return Ok(cliente);
+            return Ok(cliente);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = $"Ha ocurrido un error durante la busqueda del cliente con guid {guid}", details = e.Message });
+        }
+        
     }
     
     [HttpGet("me")]
@@ -90,11 +98,11 @@ public class ClienteController : ControllerBase
     public async Task<ActionResult<ClienteResponse>> GetMe()
     {
         var userAuth = _userService.GetAuthenticatedUser();
-        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
         
         var cliente = await _clienteService.GetMeAsync(userAuth);
      
-        if (cliente is null) return NotFound($"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        if (cliente is null) return NotFound(new { message = $"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}"});
         
         return Ok(cliente);
     }
@@ -111,17 +119,17 @@ public class ClienteController : ControllerBase
         try
         {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
             
             return Ok(await _clienteService.CreateAsync(userAuth, clienteRequest));
         }
         catch (ClienteException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
         catch (UserException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
     }
     
@@ -140,12 +148,12 @@ public class ClienteController : ControllerBase
             if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
             
             var clienteResponse = await _clienteService.UpdateMeAsync(userAuth, clienteRequestUpdate);
-            if (clienteResponse is null) return NotFound($"No se ha podido actualizar el cliente correspondiente al usuario con guid {userAuth.Guid}"); 
+            if (clienteResponse is null) return NotFound(new { message = $"No se ha podido actualizar el cliente correspondiente al usuario con guid {userAuth.Guid}"}); 
             return Ok(clienteResponse);
         }
         catch (ClienteException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
     }
 
@@ -154,7 +162,7 @@ public class ClienteController : ControllerBase
     public async Task<ActionResult<ClienteResponse>> DeleteByGuid(string guid)
     {
         var clienteResponse = await _clienteService.DeleteByGuidAsync(guid);
-        if (clienteResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
+        if (clienteResponse is null) return NotFound(new { message = $"No se ha podido borrar el usuario con guid: {guid}"}); 
         return Ok(clienteResponse);
     }
     
@@ -163,22 +171,26 @@ public class ClienteController : ControllerBase
     public async Task<ActionResult<ClienteResponse>> DeleteMe()
     {
         var userAuth = _userService.GetAuthenticatedUser();
-        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
         
         var clienteResponse = await _clienteService.DeleteMeAsync(userAuth);
-        if (clienteResponse is null) return NotFound($"No se ha podido borrar el cliente correspondiente al usuario con guid: {userAuth.Guid}"); 
+        if (clienteResponse is null) return NotFound(new { message = $"No se ha podido borrar el cliente correspondiente al usuario con guid: {userAuth.Guid}"}); 
         return Ok(clienteResponse);
     }
 
-    [HttpPatch("{guid}/foto_perfil")]
-    public async Task<ActionResult<ClienteResponse>> PatchFotoPerfil(string guid, IFormFile foto)
+    [HttpPatch("fotoPerfil")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> UpdateMyProfilePicture(IFormFile foto)
     {
         try
         {
-            var clienteResponse = await _clienteService.UpdateFotoPerfil(guid, foto);
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            var clienteResponse = await _clienteService.UpdateFotoPerfil(userAuth, foto);
 
             if (clienteResponse is null)
-                return NotFound($"No se ha podido actualizar la foto de perfil del cliente con GUID: {guid}");
+                return NotFound(new { message = $"No se ha podido actualizar la foto de perfil del cliente correspondiente al usuario con guid {userAuth.Guid}"});
 
             return Ok(clienteResponse);
         }
@@ -188,8 +200,9 @@ public class ClienteController : ControllerBase
         }
     }
     
-    [HttpPost("{guid}/foto_dni")]
-    public async Task<ActionResult<ClienteResponse>> PostFotoDni(string guid, IFormFile foto)
+    [HttpPost("fotoDni")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> UpdateMyDniPicture(IFormFile foto)
     {
         if (foto == null || foto.Length == 0)
         {
@@ -198,16 +211,20 @@ public class ClienteController : ControllerBase
         
         try
         {
-            var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            var clienteResponse = await _clienteService.UpdateFotoDni(userAuth, foto);
             return Ok(clienteResponse);
         }
         catch (Exception ex)
         {
-            return StatusCode(400, $"Ocurrió un error al actualizar la foto del DNI: {ex.Message}");
+            return BadRequest(new { message = "Ocurrió un error al actualizar la foto del DNI", details = ex.Message});
         }
     }
 
-    [HttpGet("{guid}/foto_dni")]
+    [HttpGet("fotoDni/{guid}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> GetFotoDni(string guid)
     {
         try
@@ -215,27 +232,30 @@ public class ClienteController : ControllerBase
             var fotoStream = await _clienteService.GetFotoDniAsync(guid);
         
             if (fotoStream == null)
-                return NotFound("No se encontró la foto del DNI para este cliente.");
+                return NotFound(new { message = "No se encontró la foto del DNI para este cliente."});
 
             return File(fotoStream, "image/jpeg");
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Error interno al recuperar la foto del DNI.");
+            return NotFound(new { message = "Error al recuperar la foto del DNI.", details = ex.Message });
         }
     }
     
-    [HttpGet("{guid}/movimientos_pdf")]
-    public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos(string guid)
+    [HttpGet("movimientosPDF")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos()
     {
-        var clienteResponse = await _clienteService.GetByGuidAsync(guid);
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+        
+        var clienteResponse = await _clienteService.GetMeAsync(userAuth);
         if (clienteResponse is null)
-            return NotFound($"No se ha encontrado cliente con guid: {guid}");
+            return NotFound(new { message = $"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}"});
 
-        var movimientos = await _movimientoService.GetByClienteGuidAsync(guid);
+        var movimientos = await _movimientoService.GetByClienteGuidAsync(clienteResponse.Guid);
 
-        if (movimientos is null || !movimientos.Any())
-            return NotFound($"No se han encontrado movimientos del cliente con guid: {guid}");
+        if (movimientos == null || !movimientos.Any()) return NotFound(new { message = $"No se han encontrado movimientos del cliente con guid: {clienteResponse.Guid}"});
 
         var movimientosList = movimientos.ToList();
 

@@ -7,9 +7,6 @@ namespace Banco_VivesBank.Movimientos.Dto;
 
 public class DomiciliacionRequest
 {
-    [Required(ErrorMessage = "El guid del cliente es un campo obligatorio")]
-    public string ClienteGuid { get; set; }
-    
     [Required(ErrorMessage = "El acreedor es un campo obligatorio")]
     public string Acreedor { get; set; }
     

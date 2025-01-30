@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Config.Storage;
+using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;

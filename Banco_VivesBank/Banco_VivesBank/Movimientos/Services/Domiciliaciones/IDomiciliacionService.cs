@@ -7,7 +7,10 @@ public interface IDomiciliacionService
     public Task<IEnumerable<DomiciliacionResponse>> GetAllAsync();
     public Task<DomiciliacionResponse?> GetByGuidAsync(string domiciliacionGuid);
     public Task<IEnumerable<DomiciliacionResponse>> GetByClienteGuidAsync(string clienteGuid);
-    public Task<DomiciliacionResponse> CreateAsync(DomiciliacionRequest domiciliacionRequest);
+    public Task<IEnumerable<DomiciliacionResponse>> GetMyDomiciliaciones(User.Models.User userAuth);
+
+    public Task<DomiciliacionResponse> CreateAsync(User.Models.User userAuth, DomiciliacionRequest domiciliacionRequest);
+    
     public Task<DomiciliacionResponse?> DesactivateDomiciliacionAsync(string domiciliacionGuid);
 
 }
