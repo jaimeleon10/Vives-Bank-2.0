@@ -12,5 +12,5 @@ public interface IDomiciliacionService
     public Task<DomiciliacionResponse> CreateAsync(User.Models.User userAuth, DomiciliacionRequest domiciliacionRequest);
     
     public Task<DomiciliacionResponse?> DesactivateDomiciliacionAsync(string domiciliacionGuid);
-
+    public Task<DomiciliacionResponse?> DesactivateMyDomiciliacionAsync(User.Models.User userAuth, string domiciliacionGuid);
 }

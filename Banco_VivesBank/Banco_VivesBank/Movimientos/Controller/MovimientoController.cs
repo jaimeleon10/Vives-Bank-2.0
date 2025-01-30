@@ -48,7 +48,7 @@ public class MovimientoController : ControllerBase
         return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
     }
     
-    [HttpGet("cliente")]
+    [HttpGet("me")]
     [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetMyMovimientos()
     {
