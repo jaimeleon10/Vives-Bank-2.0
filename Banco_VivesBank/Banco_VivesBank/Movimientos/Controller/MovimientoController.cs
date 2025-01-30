@@ -5,6 +5,7 @@ using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
+using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,34 +16,47 @@ namespace Banco_VivesBank.Movimientos.Controller;
 public class MovimientoController : ControllerBase
 {
     private readonly IMovimientoService _movimientoService;
+    private readonly IUserService _userService;
     
-    public MovimientoController(IMovimientoService movimientoService)
+    public MovimientoController(IMovimientoService movimientoService, IUserService userService)
     {
         _movimientoService = movimientoService;
+        _userService = userService;
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]    
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetAll()
     {
         return Ok(await _movimientoService.GetAllAsync());
     }
 
     [HttpGet("{guid}")]
-    public async Task<ActionResult<MovimientoResponse>> GetById(string guid)
+    [Authorize(Policy = "AdminPolicy")]    
+    public async Task<ActionResult<MovimientoResponse>> GetByGuid(string guid)
     {
         var movimiento = await _movimientoService.GetByGuidAsync(guid);
         
-        if (movimiento == null) return NotFound($"No se ha encontrado el movimiento con guid: {guid}");
+        if (movimiento == null) return NotFound(new { message = $"No se ha encontrado el movimiento con guid: {guid}"});
         
         return Ok(movimiento);
     }
     
     [HttpGet("cliente/{clienteGuid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]    
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetByClienteGuid(string clienteGuid)
     {
         return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
+    }
+    
+    [HttpGet("cliente")]
+    [Authorize(Policy = "ClientePolicy")]    
+    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetMyMovimientos()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+        
+        return Ok(await _movimientoService.GetMyMovimientos(userAuth));
     }
     
     [HttpPost("ingresoNomina")]
@@ -59,11 +73,11 @@ public class MovimientoController : ControllerBase
         }
         catch (CuentaException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
         catch (MovimientoException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
     }
     
@@ -81,19 +95,19 @@ public class MovimientoController : ControllerBase
         }
         catch (TarjetaException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
         catch (SaldoCuentaInsuficientException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
         catch (CuentaException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
         catch (MovimientoException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
     }
     
@@ -111,15 +125,15 @@ public class MovimientoController : ControllerBase
         }
         catch (SaldoCuentaInsuficientException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
         catch (CuentaException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
         catch (MovimientoException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
     }
     
@@ -132,19 +146,19 @@ public class MovimientoController : ControllerBase
         }
         catch (MovimientoNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
         catch (MovimientoException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
         catch (SaldoCuentaInsuficientException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
         catch (CuentaException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new { message = e.Message});
         }
     }
 }

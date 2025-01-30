@@ -31,7 +31,7 @@ public class UserController : ControllerBase
         }
         catch (UnauthorizedAccessException e)
         {
-            return Unauthorized(e.Message);
+            return Unauthorized(new { message = e.Message});
         }
     }
     
@@ -66,12 +66,12 @@ public class UserController : ControllerBase
         }
         catch (UserNotFoundException e)
         {
-            return StatusCode(404, new { message = "No se han encontrado los usuarios.", details = e.Message });
+            return NotFound(new { message = "No se han encontrado los usuarios.", details = e.Message });
 
         }
         catch (Exception e)
         {
-            return StatusCode(500, new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
+            return NotFound(new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
         }
     }
 
@@ -81,7 +81,7 @@ public class UserController : ControllerBase
     {
         var user = await _userService.GetByGuidAsync(guid);
 
-        if (user is null) return NotFound($"No se ha encontrado usuario con guid: {guid}");
+        if (user is null) return NotFound(new { message = $"No se ha encontrado usuario con guid: {guid}"});
 
         return Ok(user); 
     }
@@ -91,11 +91,11 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> GetMe()
     {
         var userAuth = _userService.GetAuthenticatedUser();
-        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
         
         var user = await _userService.GetMeAsync(userAuth);
 
-        if (user is null) return NotFound($"No se ha encontrado usuario con guid: {userAuth.Guid}");
+        if (user is null) return NotFound(new { message = $"No se ha encontrado usuario con guid: {userAuth.Guid}"});
 
         return Ok(user); 
     }
@@ -106,7 +106,7 @@ public class UserController : ControllerBase
     {
         var user = await _userService.GetByUsernameAsync(username);
 
-        if (user is null) return NotFound($"No se ha encontrado usuario con nombre de usuario: {username}"); 
+        if (user is null) return NotFound(new { message = $"No se ha encontrado usuario con nombre de usuario: {username}"}); 
         return Ok(user); 
     }
     
@@ -124,7 +124,7 @@ public class UserController : ControllerBase
         }
         catch (UserException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message});
         }
     }
     
@@ -138,7 +138,7 @@ public class UserController : ControllerBase
         }
         
         var userResponse = await _userService.UpdateAsync(guid, userRequest);
-        if (userResponse is null) return NotFound($"No se ha podido actualizar el usuario con guid: {guid}"); 
+        if (userResponse is null) return NotFound(new { message = $"No se ha podido actualizar el usuario con guid: {guid}"}); 
         return Ok(userResponse);
     }
     
@@ -149,7 +149,7 @@ public class UserController : ControllerBase
         try
         {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
             var updatedUser = await _userService.UpdatePasswordAsync(userAuth, updatePasswordRequest);
             return Ok(updatedUser);
         }
@@ -164,7 +164,7 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> DeleteByGuid(string guid)
     {
         var userResponse = await _userService.DeleteByGuidAsync(guid);
-        if (userResponse is null) return NotFound($"No se ha podido borrar el usuario con guid: {guid}"); 
+        if (userResponse is null) return NotFound(new { message = $"No se ha podido borrar el usuario con guid: {guid}"}); 
         return Ok(userResponse);
     }
 }

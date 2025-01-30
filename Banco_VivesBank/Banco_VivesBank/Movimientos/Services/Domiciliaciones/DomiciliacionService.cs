@@ -98,7 +98,15 @@ public class DomiciliacionService : IDomiciliacionService
         var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
-    
+
+    public async Task<IEnumerable<DomiciliacionResponse>> GetMyDomiciliaciones(User.Models.User userAuth)
+    {
+        _logger.LogInformation($"Buscando todas las domiciliaciones del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
+        return domiciliaciones.Select(mov => mov.ToResponseFromModel());
+    }
+
     public async Task<DomiciliacionResponse> CreateAsync(DomiciliacionRequest domiciliacionRequest)
     {
         _logger.LogInformation("Creando domiciliación");
