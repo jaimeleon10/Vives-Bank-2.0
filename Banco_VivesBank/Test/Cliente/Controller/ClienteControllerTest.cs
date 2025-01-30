@@ -345,7 +345,7 @@ public class ClienteControllerTest
 
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult.Value, Is.EqualTo("Usuario no encontrado"));
+        Assert.That(notFoundResult.Value, Is.EqualTo("No se ha podido identificar al usuario logeado"));
     }
 
     [Test]
@@ -423,6 +423,7 @@ public class ClienteControllerTest
         var guid = "nonexistent-guid";
         var clienteRequestUpdate = new ClienteRequestUpdate
         {
+            
             Nombre = "NuevoNombre",
             Apellidos = "NuevoApellido"
         };
@@ -444,7 +445,7 @@ public class ClienteControllerTest
 
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha podido actualizar el cliente con guid: {guid}"));
+        Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha podido actualizar el cliente correspondiente al usuario con guid {user.Guid}"));
     }
 
     [Test]
@@ -457,7 +458,7 @@ public class ClienteControllerTest
             Apellidos = "NuevoApellido"
         };
         
-
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(new User());
         _clienteServiceMock.Setup(service => service.UpdateMeAsync(It.IsAny<User>(),clienteRequestUpdate))
             .ThrowsAsync(new ClienteException("Error al actualizar el cliente"));
 
