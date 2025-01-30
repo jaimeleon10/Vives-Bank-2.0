@@ -6,6 +6,10 @@ namespace Banco_VivesBank.Movimientos.Models;
 
 public class Transferencia
 {
+    [BsonElement("clienteOrigen")]
+    [JsonPropertyName("clienteOrigen")]
+    public required string ClienteOrigen { get; set; }
+    
     [BsonElement("ibanOrigen")]
     [JsonPropertyName("ibanOrigen")]
     public required string IbanOrigen { get; set; }

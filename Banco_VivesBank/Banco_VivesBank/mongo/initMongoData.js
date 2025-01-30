@@ -110,9 +110,23 @@ const dbName = "MovimientosDB";
                 createdAt: new Date(),
             },
             {
-                guid: "2hikrQeQQEj",
+                guid: "4yTkeQeZZiV",
                 clienteGuid: "GbJtJkggUOM",
                 transferencia: {
+                    clienteOrigen: "Pedro Picapiedra",
+                    ibanOrigen: "ES7730046576085345979538",
+                    nombreBeneficiario: "Ana Martinez",
+                    ibanDestino: "ES2114656261103572788444",
+                    importe: -1000.00,
+                    revocada: false
+                },
+                createdAt: new Date(),
+            },
+            {
+                guid: "2hikrQeQQEj",
+                clienteGuid: "JdHsgzoHlrb",
+                transferencia: {
+                    clienteOrigen: "Pedro Picapiedra",
                     ibanOrigen: "ES7730046576085345979538",
                     nombreBeneficiario: "Ana Martinez",
                     ibanDestino: "ES2114656261103572788444",
@@ -122,17 +136,31 @@ const dbName = "MovimientosDB";
                 createdAt: new Date(),
             },
             {
-                guid: "bzWVG68dcsP",
+                guid: "v3dSF4c87Ff",
                 clienteGuid: "JdHsgzoHlrb",
                 transferencia: {
+                    clienteOrigen: "Ana Martinez",
                     ibanOrigen: "ES2114656261103572788444",
                     nombreBeneficiario: "Pedro Picapiedra",
                     ibanDestino: "ES7730046576085345979538",
-                    importe: 2000.50,
+                    importe: -2000.00,
                     revocada: false
                 },
                 createdAt: new Date(),
             },
+            {
+                guid: "bzWVG68dcsP",
+                clienteGuid: "GbJtJkggUOM",
+                transferencia: {
+                    clienteOrigen: "Ana Martinez",
+                    ibanOrigen: "ES2114656261103572788444",
+                    nombreBeneficiario: "Pedro Picapiedra",
+                    ibanDestino: "ES7730046576085345979538",
+                    importe: 2000.00,
+                    revocada: false
+                },
+                createdAt: new Date(),
+            }
         ];
 
         await movimientosCollection.insertMany(movimientos);
