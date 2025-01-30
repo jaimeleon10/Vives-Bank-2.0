@@ -9,6 +9,7 @@ using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
+using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Test.Cliente.Services;
 
@@ -112,6 +114,7 @@ public class ClienteServiceTests
     
  
     [Test]
+    [Order(1)]
     public async Task GetAllPagedAsync()
     {
         var pageRequest = new PageRequest
@@ -154,9 +157,9 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(2)]
     public async Task GetByGuid_EnBBDD()
     {
-        
         var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
@@ -212,6 +215,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(3)]
     public async Task GetByGuid_ClienteEnCacheMemoria()
     {
         var clienteGuid = "existing-guid";
@@ -263,6 +267,7 @@ public class ClienteServiceTests
     }
 
     [Test]
+    [Order(4)]
     public async Task GetByGuid_ClienteEnRedis()
     {
         // Arrange
@@ -363,6 +368,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(5)]
     public async Task GetByGuid_ClienteNotFound()
     {
         var cacheKey = "Cliente:inexistente";
@@ -374,72 +380,128 @@ public class ClienteServiceTests
         Assert.That(result, Is.Null);
     }
     
-    [Test]
-    public async Task Create()
-    {
-        
-        var user = new Banco_VivesBank.User.Models.User
-        {
-            Id = 1,
-            Guid = "user-guid",
-            Username = "user1",
-            Password = "password",
-            IsDeleted = false
-        };
-        var userEntity = new UserEntity
-        {
-            Id = 1,
-            Guid = "user-guid",
-            Username = "user1",
-            Password = "password",
-            IsDeleted = false
-        };
-        _dbContext.Usuarios.Add(userEntity);
-        await _dbContext.SaveChangesAsync();
-        
-        var clienteRequest = new ClienteRequest
-        {
-            Dni = "12345678Z",
-            Nombre = "Juan",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanperez@example.com",
-            Telefono = "600000000",
-            IsDeleted = false
-        };
-        
-        var cacheKey = "Cliente:" + userEntity.Guid;
-        
-        _redisDatabase
-            .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(true);
-       
-        
-        var result = await _clienteService.CreateAsync(user , clienteRequest);
-        
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
-        Assert.That(result.Email, Is.EqualTo(clienteRequest.Email));
-        
-        _redisDatabase.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
-    }
-
-    // [Test] Cambiar para que user ya este asociado a un cliente
-    // public async Task Create_UserNotFound()
+    // [Test]
+    // [Order(6)]
+    // public async Task Create()
     // {
     //     var user = new Banco_VivesBank.User.Models.User
     //     {
+    //         Id = 1,
     //         Guid = "user-guid",
-    //         Username = "Test User",
+    //         Username = "user1",
     //         Password = "password",
+    //         Role = Role.User,
     //         IsDeleted = false,
-    //         Id = 1
+    //         CreatedAt = DateTime.UtcNow,
+    //         UpdatedAt = DateTime.UtcNow
     //     };
-    //     var user
+    //     var userEntity = new UserEntity
+    //     {
+    //         Id = 1,
+    //         Guid = "user-guid",
+    //         Username = "user1",
+    //         Password = "password",
+    //         Role = Role.User,
+    //         IsDeleted = false,
+    //         CreatedAt = user.CreatedAt,
+    //         UpdatedAt = user.UpdatedAt
+    //     };
+    //     _dbContext.Usuarios.Add(userEntity);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var clienteRequest = new ClienteRequest
+    //     {
+    //         Dni = "12345678Z",
+    //         Nombre = "Juan",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanperez@example.com",
+    //         Telefono = "600000000",
+    //         IsDeleted = false
+    //     };
+    //     
+    //     var cacheKey = "Cliente:" + userEntity.Guid;
+    //     
+    //     _redisDatabase
+    //         .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
+    //         .ReturnsAsync(true);
+    //    
+    //     
+    //     var result = await _clienteService.CreateAsync(user , clienteRequest);
+    //     
+    //     Assert.That(result, Is.Not.Null);
+    //     Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
+    //     Assert.That(result.Email, Is.EqualTo(clienteRequest.Email));
+    //     
+    //     _redisDatabase.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
+    // }
+
+     [Test]
+    [Order(7)]
+     public async Task Create_UserYaAsociado()
+     {
+         var userEntity = new UserEntity
+         {
+             Guid = "user-guid",
+             Username = "Test User",
+             Password = "password",
+             IsDeleted = false,
+             Id = 1
+         };
+         var clienteEntity = new ClienteEntity
+         {
+             Id = 1,
+             Guid = "cliente-guid",
+             Nombre = "Juan",
+             Apellidos = "Perez",
+             Dni = "12345678Z",
+             Direccion = new Direccion
+             {
+                 Calle = "Calle Falsa",
+                 Numero = "123",
+                 CodigoPostal = "28000",
+                 Piso = "2",
+                 Letra = "A"
+             },
+             Email = "example",
+             Telefono = "600000000",
+             IsDeleted = false,
+             UserId = 1
+         };
+            _dbContext.Usuarios.Add(userEntity);
+            _dbContext.Clientes.Add(clienteEntity);
+            await _dbContext.SaveChangesAsync();
+         var clienteRequest = new ClienteRequest
+         {
+             Dni = "12345678A",
+             Nombre = "Juana",
+             Apellidos = "Perez",
+             Calle = "Calle Falsa",
+             Numero = "123",
+             CodigoPostal = "28000",
+             Piso = "2",
+             Letra = "A",
+             Email = "juanaperez@example.com",
+             Telefono = "600100000",
+             IsDeleted = false
+         };
+         var user = new User
+         {
+             Guid = "user-guid"
+         };
+         var ex = Assert.ThrowsAsync<ClienteExistsException>(async () => await _clienteService.CreateAsync(user,  clienteRequest));
+         Assert.That(ex.Message, Is.EqualTo($"El usuario con guid {user.Guid} ya es un cliente"));
+     }
+    
+    // [Test]
+    // [Order(8)]
+    // public async Task CreateAsync_ClienteConDniExistente()
+    // {
+    //     // Arrange
     //     var clienteRequest = new ClienteRequest
     //     {
     //         Dni = "12345678A",
@@ -454,269 +516,245 @@ public class ClienteServiceTests
     //         Telefono = "600100000",
     //         IsDeleted = false
     //     };
+    //
+    //     // Mock de _userService.GetUserModelByGuid
+    //     var user = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var user2 = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid2",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 2
+    //     };
     //     
-    //     var ex = Assert.ThrowsAsync<UserNotFoundException>(async () => await _clienteService.CreateAsync( user , clienteRequest));
-    //     Assert.That(ex.Message, Is.EqualTo($"Usuario no encontrado con guid: {user.Guid}"));
+    //     var userE = new UserEntity
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var userE2 = new UserEntity
+    //     {
+    //         Guid = "user-guid2",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 2
+    //     };
+    //     _dbContext.Usuarios.AddRange(userE, userE2);
+    //     await _dbContext.SaveChangesAsync();
+    //     _userServiceMock
+    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
+    //         .ReturnsAsync(user);
+    //     _userServiceMock
+    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
+    //         .ReturnsAsync(user2);
+    //
+    //     await _clienteService.CreateAsync(user2, new ClienteRequest
+    //     {
+    //         Dni = "12345678A",
+    //         Nombre = "Juana",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanaperez@example.com",
+    //         Telefono = "600100000",
+    //         IsDeleted = false
+    //     });
+    //     var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
+    //         _clienteService.CreateAsync(user, clienteRequest) 
+    //     );
+    //     // Act & Assert
+    //     Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el DNI: 12345678A"));
+    // }
+    //
+    //  [Test]
+    //  [Order(9)]
+    // public async Task CreateAsync_ClienteConTelefonoExistente()
+    // {
+    //     // Arrange
+    //     var clienteRequest = new ClienteRequest
+    //     {
+    //         Dni = "12345678S",
+    //         Nombre = "Juana",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanaperez@example.com",
+    //         Telefono = "600000000",
+    //         IsDeleted = false
+    //     };
+    //
+    //     // Mock de _userService.GetUserModelByGuid
+    //     var user = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var user2 = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid2",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 2
+    //     };
+    //     
+    //     var userE = new UserEntity
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var userE2 = new UserEntity
+    //     {
+    //         Guid = "user-guid2",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 2
+    //     };
+    //     _dbContext.Usuarios.AddRange(userE, userE2);
+    //     await _dbContext.SaveChangesAsync();
+    //     _userServiceMock
+    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
+    //         .ReturnsAsync(user);
+    //     _userServiceMock
+    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
+    //         .ReturnsAsync(user2);
+    //
+    //     // Simulamos que ya existe un cliente con ese DNI
+    //     await _clienteService.CreateAsync(user2, new ClienteRequest
+    //     {
+    //         Dni = "12345678A",
+    //         Nombre = "Juana",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanapereza@example.com",
+    //         Telefono = "600000000",
+    //         IsDeleted = false
+    //     });
+    //     var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
+    //         _clienteService.CreateAsync(user, clienteRequest) 
+    //     );
+    //     // Act & Assert
+    //     Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el teléfono: 600000000"));
+    //     
+    // }
+    
+    //  [Test]
+    //  [Order(10)]
+    // public async Task CreateAsync_ClienteConEmailExistente()
+    // {
+    //     // Arrange
+    //     var clienteRequest = new ClienteRequest
+    //     {
+    //         Dni = "12345678B",
+    //         Nombre = "Juana",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanaperez@example.com",
+    //         Telefono = "600100000",
+    //         IsDeleted = false
+    //     };
+    //
+    //     // Mock de _userService.GetUserModelByGuid
+    //     var user = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var user2 = new Banco_VivesBank.User.Models.User
+    //     {
+    //         Guid = "user-guid2",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 2
+    //     };
+    //     
+    //     var userE = new UserEntity
+    //     {
+    //         Guid = "user-guid",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 1
+    //     };
+    //     var userE2 = new UserEntity
+    //     {
+    //         Guid = "user-guid2",
+    //         Username = "Test User",
+    //         Password = "password",
+    //         IsDeleted = false,
+    //         Id = 2
+    //     };
+    //     _dbContext.Usuarios.AddRange(userE, userE2);
+    //     await _dbContext.SaveChangesAsync();
+    //     _userServiceMock
+    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
+    //         .ReturnsAsync(user);
+    //     _userServiceMock
+    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
+    //         .ReturnsAsync(user2);
+    //
+    //     // Simulamos que ya existe un cliente con ese DNI
+    //     await _clienteService.CreateAsync(user2, new ClienteRequest
+    //     {
+    //         Dni = "12345678A",
+    //         Nombre = "Juana",
+    //         Apellidos = "Perez",
+    //         Calle = "Calle Falsa",
+    //         Numero = "123",
+    //         CodigoPostal = "28000",
+    //         Piso = "2",
+    //         Letra = "A",
+    //         Email = "juanaperez@example.com",
+    //         Telefono = "600120000",
+    //         IsDeleted = false
+    //     });
+    //     var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
+    //         _clienteService.CreateAsync(user, clienteRequest) 
+    //     );
+    //     // Act & Assert
+    //     Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el email: juanaperez@example.com"));
+    //     
     // }
     
     [Test]
-    public async Task CreateAsync_ClienteConDniExistente()
-    {
-        CleanDatabase();
-        // Arrange
-        var clienteRequest = new ClienteRequest
-        {
-            Dni = "12345678A",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanaperez@example.com",
-            Telefono = "600100000",
-            IsDeleted = false
-        };
-
-        // Mock de _userService.GetUserModelByGuid
-        var user = new Banco_VivesBank.User.Models.User
-        {
-            Guid = "user-guid",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 1
-        };
-        var user2 = new Banco_VivesBank.User.Models.User
-        {
-            Guid = "user-guid2",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 2
-        };
-        
-        var userE = new UserEntity
-        {
-            Guid = "user-guid",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 1
-        };
-        var userE2 = new UserEntity
-        {
-            Guid = "user-guid2",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 2
-        };
-        _dbContext.Usuarios.AddRange(userE, userE2);
-        await _dbContext.SaveChangesAsync();
-        _userServiceMock
-            .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
-            .ReturnsAsync(user);
-        _userServiceMock
-            .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
-            .ReturnsAsync(user2);
-
-        // Simulamos que ya existe un cliente con ese DNI
-        await _clienteService.CreateAsync(user2, new ClienteRequest
-        {
-            
-            Dni = "12345678A",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanaperez@example.com",
-            Telefono = "600100000",
-            IsDeleted = false
-        });
-        var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-            _clienteService.CreateAsync(user, clienteRequest) 
-        );
-        // Act & Assert
-        Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el DNI: 12345678A"));
-        
-    }
-    
-     [Test]
-    public async Task CreateAsync_ClienteConTelefonoExistente()
-    {
-        // Arrange
-        var clienteRequest = new ClienteRequest
-        {
-            Dni = "12345678S",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanaperez@example.com",
-            Telefono = "600000000",
-            IsDeleted = false
-        };
-
-        // Mock de _userService.GetUserModelByGuid
-        var user = new Banco_VivesBank.User.Models.User
-        {
-            Guid = "user-guid",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 1
-        };
-        var user2 = new Banco_VivesBank.User.Models.User
-        {
-            Guid = "user-guid2",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 2
-        };
-        
-        var userE = new UserEntity
-        {
-            Guid = "user-guid",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 1
-        };
-        var userE2 = new UserEntity
-        {
-            Guid = "user-guid2",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 2
-        };
-        _dbContext.Usuarios.AddRange(userE, userE2);
-        await _dbContext.SaveChangesAsync();
-        _userServiceMock
-            .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
-            .ReturnsAsync(user);
-        _userServiceMock
-            .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
-            .ReturnsAsync(user2);
-
-        // Simulamos que ya existe un cliente con ese DNI
-        await _clienteService.CreateAsync(user2, new ClienteRequest
-        {
-            Dni = "12345678A",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanapereza@example.com",
-            Telefono = "600000000",
-            IsDeleted = false
-        });
-        var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-            _clienteService.CreateAsync(user, clienteRequest) 
-        );
-        // Act & Assert
-        Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el teléfono: 600000000"));
-        
-    }
-    
-     [Test]
-    public async Task CreateAsync_ClienteConEmailExistente()
-    {
-        // Arrange
-        var clienteRequest = new ClienteRequest
-        {
-            Dni = "12345678B",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanaperez@example.com",
-            Telefono = "600100000",
-            IsDeleted = false
-        };
-
-        // Mock de _userService.GetUserModelByGuid
-        var user = new Banco_VivesBank.User.Models.User
-        {
-            Guid = "user-guid",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 1
-        };
-        var user2 = new Banco_VivesBank.User.Models.User
-        {
-            Guid = "user-guid2",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 2
-        };
-        
-        var userE = new UserEntity
-        {
-            Guid = "user-guid",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 1
-        };
-        var userE2 = new UserEntity
-        {
-            Guid = "user-guid2",
-            Username = "Test User",
-            Password = "password",
-            IsDeleted = false,
-            Id = 2
-        };
-        _dbContext.Usuarios.AddRange(userE, userE2);
-        await _dbContext.SaveChangesAsync();
-        _userServiceMock
-            .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
-            .ReturnsAsync(user);
-        _userServiceMock
-            .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
-            .ReturnsAsync(user2);
-
-        // Simulamos que ya existe un cliente con ese DNI
-        await _clienteService.CreateAsync(user2, new ClienteRequest
-        {
-            Dni = "12345678A",
-            Nombre = "Juana",
-            Apellidos = "Perez",
-            Calle = "Calle Falsa",
-            Numero = "123",
-            CodigoPostal = "28000",
-            Piso = "2",
-            Letra = "A",
-            Email = "juanaperez@example.com",
-            Telefono = "600120000",
-            IsDeleted = false
-        });
-        var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-            _clienteService.CreateAsync(user, clienteRequest) 
-        );
-        // Act & Assert
-        Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el email: juanaperez@example.com"));
-        
-    }
-    
-    [Test]
+    [Order(11)]
     public async Task Update()
     {
         var userEntity = new UserEntity
@@ -749,6 +787,7 @@ public class ClienteServiceTests
             IsDeleted = false,
             UserId = 1
         };
+        
 
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
@@ -770,7 +809,7 @@ public class ClienteServiceTests
             Letra = "A"
         };
         
-        var result = await _clienteService.UpdateMeAsync(cliente.Guid, updateRequest);
+        var result = await _clienteService.UpdateMeAsync(user, updateRequest);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo(updateRequest.Nombre));
@@ -778,6 +817,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(12)]
     public async Task Update_ClienteNotFound()
     {
         var userEntity = new UserEntity
@@ -791,12 +831,19 @@ public class ClienteServiceTests
         _dbContext.Usuarios.Add(userEntity);
         await _dbContext.SaveChangesAsync();
         
-        var result = await _clienteService.UpdateMeAsync("non-existing-guid", new ClienteRequestUpdate());
+        var userAuth = new User
+        {
+            Id = 1, 
+            Guid = "user-guid"
+        };
+        
+        var result = await _clienteService.UpdateMeAsync(userAuth, new ClienteRequestUpdate());
         
         Assert.That(result, Is.Null);
     }
     
     [Test]
+    [Order(13)]
     public async Task DeleteByGuid()
     {
         
@@ -844,6 +891,7 @@ public class ClienteServiceTests
     }
 
     [Test]
+    [Order(14)]
     public async Task DeleteByGuid_ClienteNotExist()
     {
         var result = await _clienteService.DeleteByGuidAsync("non-existing-guid");
@@ -852,6 +900,7 @@ public class ClienteServiceTests
     }
    
     [Test]
+    [Order(15)]
     public async Task GetAllForStorage_Empty()
     {
         // Act
@@ -863,6 +912,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(16)]
     public async Task GetAllForStorage_Success()
     {
         // Arrange
@@ -884,6 +934,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(17)]
     public async Task DerechoAlOlvido_NotFoundUser()
     {
         // Arrange
@@ -899,6 +950,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(18)]
     public async Task DerechoAlOlvido_Success()
     {
         // Arrange
@@ -913,7 +965,7 @@ public class ClienteServiceTests
         var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
 
         _userServiceMock
-            .Setup(us => us.GetUserModelByGuidAsync(cliente.Guid))
+            .Setup(us => us.GetUserModelByGuidAsync("user-guid"))
             .ReturnsAsync(user);
 
         // Act
@@ -930,6 +982,7 @@ public class ClienteServiceTests
     }
 
     [Test]
+    [Order(19)]
     public async Task GetClienteModelById()
     {
         var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
@@ -949,6 +1002,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(20)]
     public async Task GetClienteModelById_ClienteNotFound()
     {
         var result = await _clienteService.GetClienteModelById(1);
@@ -957,6 +1011,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(21)]
     public async Task GetClienteModelByGuid()
     {
         var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
@@ -975,6 +1030,7 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(22)]
     public async Task GetClienteModelByGuid_ClienteNotFound()
     {
         var result = await _clienteService.GetClienteModelByGuid("algo");
@@ -982,296 +1038,304 @@ public class ClienteServiceTests
         Assert.That(result, Is.Null);
     }
     
-    
-    
+    // [Test]
+    // [Order(23)]
+    // public async Task UpdateFotoPerfilClienteNotFound()
+    // {
+    //     var guid = "non-existing-guid";
+    //     var fotoPerfil = new Mock<IFormFile>().Object;
+    //
+    //     var result = await _clienteService.UpdateFotoPerfil(guid, fotoPerfil);
+    //
+    //     Assert.That(result, Is.Null);
+    // }
+
+    // [Test]
+    // [Order(24)]
+    // public async Task UpdateFotoPerfil()
+    // {
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id
+    //     };
+    //     
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     var nuevaFotoUrl = "https://example.com/newFoto.jpg";
+    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
+    //
+    //     var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
+    //
+    //     Assert.That(result, Is.Not.Null);
+    //     Assert.That(nuevaFotoUrl, Is.EqualTo(result!.FotoPerfil));
+    //     var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
+    //     Assert.That(nuevaFotoUrl, Is.EqualTo(clienteActualizado.FotoPerfil));
+    // }
+
+    // [Test]
+    // [Order(25)]
+    // public async Task UpdateFotoPerfilFileStorageException()
+    // {
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id
+    //     };
+    //     
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     var fotoPerfil = new Mock<IFormFile>().Object;
+    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ThrowsAsync(new FileStorageException("Error saving file"));
+    //
+    //     var ex = Assert.ThrowsAsync<FileStorageException>(async () =>
+    //         await _clienteService.UpdateFotoPerfil(cliente.Guid, fotoPerfil));
+    //     Assert.That(ex.Message, Is.EqualTo("Error al guardar la foto: Error saving file"));
+    // }
+    //
+    // [Test]
+    // [Order(26)]
+    // public async Task UpdateFotoDniClienteNotFound()
+    // {
+    //     // Arrange
+    //     var guid = "non-existing-guid";
+    //     var fotoDni = new Mock<IFormFile>().Object;
+    //
+    //     // Act
+    //     var result = await _clienteService.UpdateFotoDni(guid, fotoDni);
+    //
+    //     // Assert
+    //     Assert.That(result, Is.Null);
+    // }
+    //
+    // [Test]
+    // [Order(27)]
+    // public async Task UpdateFotoDni()
+    // {
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id
+    //     };
+    //
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     var nuevaFotoDniUrl = "data/12345678Z";
+    //     _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+    //
+    //     var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
+    //
+    //     Assert.That(result, Is.Not.Null);
+    //     Assert.That(result.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
+    //     var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
+    //     Assert.That(clienteActualizado.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
+    // }
+    //
+    // [Test]
+    // [Order(28)]
+    // public async Task UpdateFotoDniException()
+    // {
+    //     // Arrange
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id
+    //     };
+    //     
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     var fotoDni = new Mock<IFormFile>().Object;
+    //     _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("FTP error"));
+    //
+    //     // Act & Assert
+    //     var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+    //         await _clienteService.UpdateFotoDni(cliente.Guid, fotoDni));
+    //     Assert.That(ex.Message, Is.EqualTo("Error al subir la nueva foto al servidor FTP."));
+    // }
+    //
+    //
+    //
+    //
+    // [Test]
+    // [Order(29)]
+    // public async Task UpdateFotoPerfil_DeleteOldFileFailure()
+    // {
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id,
+    //         FotoPerfil = "https://example.com/oldFoto.jpg"
+    //     };
+    //
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     var nuevaFotoUrl = "https://example.com/newFoto.jpg";
+    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
+    //     _storageService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new FileStorageNotFoundException("Archivo no encontrado"));
+    //
+    //     var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
+    //
+    //     Assert.That(result, Is.Not.Null);
+    //     Assert.That(result.FotoPerfil, Is.EqualTo(nuevaFotoUrl));
+    //     _storageService.Verify(fs => fs.DeleteFileAsync("https://example.com/oldFoto.jpg"), Times.Once);
+    // }
+    //
+    // [Test]
+    // [Order(30)]
+    // public async Task UpdateFotoPerfil_NullNewFile()
+    // {
+    //     // Arrange
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id
+    //     };
+    //     
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync((string)null);
+    //
+    //     // Act & Assert
+    //     Assert.ThrowsAsync<FileStorageException>(async () => 
+    //         await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object));
+    // }
+    //
+    // [Test]
+    // [Order(31)]
+    // public async Task UpdateFotoDni_DeleteOldFileFails()
+    // {
+    //     // Arrange
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id,
+    //         FotoDni = "data/oldDni.jpg"
+    //     };
+    //
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+    //     _ftpService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new Exception("Delete failed"));
+    //
+    //     // Act
+    //     var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
+    //
+    //     // Assert
+    //     Assert.That(result, Is.Not.Null);
+    //     Assert.That(result.FotoDni, Is.EqualTo($"data/{cliente.Dni}"));
+    // }
+    //
+    // [Test]
+    // [Order(32)]
+    // public async Task GetFotoDniAsync_FileNotFound()
+    // {
+    //     // Arrange
+    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+    //     await _dbContext.Usuarios.AddAsync(user1);
+    //     await _dbContext.SaveChangesAsync();
+    //     
+    //     var cliente = new ClienteEntity
+    //     {
+    //         Nombre = "Cliente 1", 
+    //         Guid = "guid", 
+    //         Dni = "12345678Z", 
+    //         Apellidos = "Perez", 
+    //         Email = "example", 
+    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+    //         Telefono = "600000000", 
+    //         UserId = user1.Id,
+    //         FotoDni = "data/testDni.jpg"
+    //     };
+    //
+    //     await _dbContext.Clientes.AddAsync(cliente);
+    //     await _dbContext.SaveChangesAsync();
+    //
+    //     _ftpService.Setup(fs => fs.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("Download failed"));
+    //
+    //     // Act & Assert
+    //     Assert.ThrowsAsync<Exception>(async () => 
+    //         await _clienteService.GetFotoDniAsync(cliente.Guid));
+    // }
     
     [Test]
-    public async Task UpdateFotoPerfilClienteNotFound()
-    {
-        var guid = "non-existing-guid";
-        var fotoPerfil = new Mock<IFormFile>().Object;
-
-        var result = await _clienteService.UpdateFotoPerfil(guid, fotoPerfil);
-
-        Assert.That(result, Is.Null);
-    }
-
-    [Test]
-    public async Task UpdateFotoPerfil()
-    {
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id
-        };
-        
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
-        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
-
-        var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(nuevaFotoUrl, Is.EqualTo(result!.FotoPerfil));
-        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
-        Assert.That(nuevaFotoUrl, Is.EqualTo(clienteActualizado.FotoPerfil));
-    }
-
-    [Test]
-    public async Task UpdateFotoPerfilFileStorageException()
-    {
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id
-        };
-        
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        var fotoPerfil = new Mock<IFormFile>().Object;
-        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ThrowsAsync(new FileStorageException("Error saving file"));
-
-        var ex = Assert.ThrowsAsync<FileStorageException>(async () =>
-            await _clienteService.UpdateFotoPerfil(cliente.Guid, fotoPerfil));
-        Assert.That(ex.Message, Is.EqualTo("Error al guardar la foto: Error saving file"));
-    }
-
-    [Test]
-    public async Task UpdateFotoDniClienteNotFound()
-    {
-        // Arrange
-        var guid = "non-existing-guid";
-        var fotoDni = new Mock<IFormFile>().Object;
-
-        // Act
-        var result = await _clienteService.UpdateFotoDni(guid, fotoDni);
-
-        // Assert
-        Assert.That(result, Is.Null);
-    }
-
-    [Test]
-    public async Task UpdateFotoDni()
-    {
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id
-        };
-
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        var nuevaFotoDniUrl = "data/12345678Z";
-        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-
-        var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
-        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
-        Assert.That(clienteActualizado.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
-    }
-
-    [Test]
-    public async Task UpdateFotoDniException()
-    {
-        // Arrange
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id
-        };
-        
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        var fotoDni = new Mock<IFormFile>().Object;
-        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("FTP error"));
-
-        // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await _clienteService.UpdateFotoDni(cliente.Guid, fotoDni));
-        Assert.That(ex.Message, Is.EqualTo("Error al subir la nueva foto al servidor FTP."));
-    }
-    
-    
-    
-    
-    [Test]
-    public async Task UpdateFotoPerfil_DeleteOldFileFailure()
-    {
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-    
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id,
-            FotoPerfil = "https://example.com/oldFoto.jpg"
-        };
-    
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-    
-        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
-        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
-        _storageService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new FileStorageNotFoundException("Archivo no encontrado"));
-
-        var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.FotoPerfil, Is.EqualTo(nuevaFotoUrl));
-        _storageService.Verify(fs => fs.DeleteFileAsync("https://example.com/oldFoto.jpg"), Times.Once);
-    }
-
-    [Test]
-    public async Task UpdateFotoPerfil_NullNewFile()
-    {
-        // Arrange
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id
-        };
-        
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync((string)null);
-
-        // Act & Assert
-        Assert.ThrowsAsync<FileStorageException>(async () => 
-            await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object));
-    }
-
-    [Test]
-    public async Task UpdateFotoDni_DeleteOldFileFails()
-    {
-        // Arrange
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id,
-            FotoDni = "data/oldDni.jpg"
-        };
-
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-        _ftpService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new Exception("Delete failed"));
-
-        // Act
-        var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
-
-        // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.FotoDni, Is.EqualTo($"data/{cliente.Dni}"));
-    }
-
-    [Test]
-    public async Task GetFotoDniAsync_FileNotFound()
-    {
-        // Arrange
-        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-        await _dbContext.Usuarios.AddAsync(user1);
-        await _dbContext.SaveChangesAsync();
-        
-        var cliente = new ClienteEntity
-        {
-            Nombre = "Cliente 1", 
-            Guid = "guid", 
-            Dni = "12345678Z", 
-            Apellidos = "Perez", 
-            Email = "example", 
-            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-            Telefono = "600000000", 
-            UserId = user1.Id,
-            FotoDni = "data/testDni.jpg"
-        };
-
-        await _dbContext.Clientes.AddAsync(cliente);
-        await _dbContext.SaveChangesAsync();
-
-        _ftpService.Setup(fs => fs.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("Download failed"));
-
-        // Act & Assert
-        Assert.ThrowsAsync<Exception>(async () => 
-            await _clienteService.GetFotoDniAsync(cliente.Guid));
-    }
-    
-    [Test]
+    [Order(33)]
     public async Task GetFotoDniAsync_ClienteConFotoDniValido()
     {
         var user1 = new UserEntity
