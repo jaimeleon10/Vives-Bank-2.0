@@ -112,6 +112,7 @@ public class CuentaService : ICuentaService
 
     public async Task<IEnumerable<CuentaResponse>> GetByClientGuidAsync(string guid)
     {
+
         _logger.LogInformation($"Buscando todas las Cuentas del cliente con guid: {guid}");
         
         var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
@@ -120,6 +121,8 @@ public class CuentaService : ICuentaService
             _logger.LogInformation($"Cliente con guid: {guid} no encontrado");
             throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
         }
+        
+        
         
         var query = _context.Cuentas
             .Include(c => c.Tarjeta)
@@ -206,6 +209,39 @@ public class CuentaService : ICuentaService
         _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
         return null;
     }
+    
+    public async Task<CuentaResponse?> GetMeByIbanAsync(string guid,string iban)
+    {
+        _logger.LogInformation($"Buscando Cuenta por IBAN: {iban} en la base de datos");
+        
+        var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.User.Guid == guid);
+        if (clienteExiste == null)
+        {
+            _logger.LogInformation($"Cliente con guid: {guid} no encontrado");
+            throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
+        }
+        
+        var cuentaEntity = await _context.Cuentas
+            .Include(c => c.Tarjeta)
+            .Include(c => c.Cliente)
+            .Include(c => c.Producto)
+            .FirstOrDefaultAsync(c => c.Iban == iban);
+
+        if (cuentaEntity != null)
+        {
+            if (cuentaEntity.Cliente.Guid != clienteExiste.Guid)
+            {
+                _logger.LogInformation($"El iban {iban} no te pertenece");
+                throw new CuentaNoPertenecienteAlUsuarioException($"El iban {iban} no te pertenece");
+            }
+            
+            _logger.LogInformation($"Cuenta encontrada con iban: {iban}");
+            return cuentaEntity.ToResponseFromEntity();
+        }
+
+        _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
+        return null;
+    }
 
     public async Task<CuentaResponse?> GetByTarjetaGuidAsync(string tarjetaGuid)
     {
@@ -225,65 +261,18 @@ public class CuentaService : ICuentaService
         _logger.LogInformation($"Cuenta no encontrada con guid de tarjeta: {tarjetaGuid}");
         return null;
     }
-    
-    /*
-    public async Task<CuentaResponse?> GetMeByIbanAsync(string guid, string iban)
-    {
-        _logger.LogInformation($"Buscando Cuenta por IBAN: {iban}");
-        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Iban == iban);
 
-        if (cuentaEntity != null)
-        {
-            if (cuentaEntity.Cliente.Guid != guid)
-            {
-                _logger.LogInformation($"La cuenta con el iban {iban} no pertenece al cliente que la solicita");
-                throw new ClienteException($"La cuenta con el iban {iban} no pertenece al cliente que la solicita");
-            }
-            _logger.LogInformation($"Cuenta encontrada con guid: {guid}");
-            return cuentaEntity.ToResponseFromEntity();
-        }
-
-        _logger.LogInformation($"Cuenta no encontrada con IBAN: {iban}");
-        return null;
-    }
-    */
-/*
-    public async Task<CuentaResponse> CreateAsync(string guid, CuentaRequest cuentaRequest)
+    public async Task<CuentaResponse> CreateAsync(string guid,CuentaRequest cuentaRequest)
     {
         _logger.LogInformation($"Creando cuenta nueva");
-        var tipoCuenta = await _baseService.GetByTipoAsync(cuentaRequest.TipoCuenta);
-        
-        if (tipoCuenta == null)
+
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.User.Guid == guid);
+
+        if (cliente == null)
         {
-            _logger.LogError($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
-            throw new BaseNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta}  no existe en nuestro catalogo");
-            
+            _logger.LogInformation($"Cliente con guid: {guid} no encontrado");
+            throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
         }
-
-        var tipoCuentaModel = await _baseService.GetBaseModelByGuid(tipoCuenta.Guid);
-        var clienteModel = await _clienteService.GetClienteModelByGuid(cuentaRequest.ClienteGuid);
-        
-        var cuenta = new Models.Cuenta
-        {
-            Producto = tipoCuentaModel,
-            Cliente = clienteModel
-        };
-
-        var cuentaEntity = CuentaMapper.ToEntityFromModel(cuenta);
-
-        await _context.Cuentas.AddAsync(cuentaEntity);
-        await _context.SaveChangesAsync();
-
-        var cuentaResponse = CuentaMapper.ToResponseFromModel(cuenta, cuenta.Tarjeta.Guid, cuenta.Cliente.Guid, cuenta.Producto.Guid);
-        
-        return cuentaResponse;
-        return null;
-    }
-*/
-    
-    public async Task<CuentaResponse> CreateAsync(CuentaRequest cuentaRequest)
-    {
-        _logger.LogInformation($"Creando cuenta nueva");
         
         var tipoCuenta = await _productoService.GetByTipoAsync(cuentaRequest.TipoCuenta);
         if (tipoCuenta == null)
@@ -293,12 +282,12 @@ public class CuentaService : ICuentaService
         }
 
         var tipoCuentaModel = await _productoService.GetBaseModelByGuid(tipoCuenta.Guid);
-        var clienteModel = await _clienteService.GetClienteModelByGuid(cuentaRequest.ClienteGuid);
+        var clienteModel = await _clienteService.GetClienteModelByGuid(cliente.Guid);
         
         if (clienteModel == null)
         {
-            _logger.LogError($"El cliente {cuentaRequest.ClienteGuid} no existe ");
-            throw new ClienteNotFoundException($"El cliente {cuentaRequest.ClienteGuid} no existe");
+            _logger.LogError($"El cliente {cliente.Guid} no existe ");
+            throw new ClienteNotFoundException($"El cliente {cliente.Guid} no existe");
         }
         
         var cuentaEntity = new CuentaEntity
@@ -312,6 +301,8 @@ public class CuentaService : ICuentaService
             ProductoId = tipoCuentaModel!.Id,
         };
         
+        cliente.Cuentas.Add(cuentaEntity);
+        
         await _context.Cuentas.AddAsync(cuentaEntity);
         await _context.SaveChangesAsync();
         
@@ -323,41 +314,7 @@ public class CuentaService : ICuentaService
         var cuentaResponse = cuentaEntity.ToResponseFromEntity();
         return cuentaResponse;
     }
-
-    /*
-    public async Task<CuentaResponse?> DeleteAsync(string guidClient,string guid)
-    {
-        _logger.LogInformation($"Eliminando cuenta {guid}");
-        
-        var cuentaExistenteEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Guid == guid);  
-        if (cuentaExistenteEntity == null)
-        {
-            _logger.LogError($"La cuenta con el GUID {guid} no existe.");
-            return null;
-        }
-
-        if (cuentaExistenteEntity.Cliente.Guid != guidClient)
-        {
-            _logger.LogError($"Cuenta con IBAN: {cuentaExistenteEntity.Iban}  no le pertenece");
-            throw new CuentaNoPertenecienteAlUsuarioException($"Cuenta con IBAN: {cuentaExistenteEntity.Iban}  no le pertenece");
-        }
-
-        _logger.LogInformation("Actualizando isDeleted a true");
-        cuentaExistenteEntity.IsDeleted = true;
-        cuentaExistenteEntity.UpdatedAt = DateTime.UtcNow;
-
-        _context.Cuentas.Update(cuentaExistenteEntity);
-        await _context.SaveChangesAsync();
-
-        
-        //var cacheKey = CacheKeyPrefix + id;
-       // _memoryCache.Remove(cacheKey);
-       
-        
-        _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        return cuentaExistenteEntity.ToResponseFromEntity();
-    }
-*/
+    
     
     public async Task<CuentaResponse?> DeleteByGuidAsync(string guid)
     {
@@ -378,6 +335,64 @@ public class CuentaService : ICuentaService
         _logger.LogInformation("Actualizando isDeleted a true");
         cuentaExistenteEntity.IsDeleted = true;
         cuentaExistenteEntity.UpdatedAt = DateTime.UtcNow;
+
+        _context.Cuentas.Update(cuentaExistenteEntity);
+        await _context.SaveChangesAsync();
+
+        if (cuentaExistenteEntity.TarjetaId != null)
+        {
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuentaExistenteEntity.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            tarjetaExistente.UpdatedAt = DateTime.UtcNow;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+            await _context.SaveChangesAsync();
+        }
+        
+        var cacheKey = CacheKeyPrefix + guid;
+        _memoryCache.Remove(cacheKey);
+        await _database.KeyDeleteAsync(cacheKey);
+        
+        _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
+        return cuentaExistenteEntity.ToResponseFromEntity();
+    }
+    
+    public async Task<CuentaResponse?> DeleteMeAsync(string guidClient,string guid)
+    {
+        _logger.LogInformation($"Eliminando cuenta {guid}");
+        
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.User.Guid == guidClient);
+
+        if (cliente == null)
+        {
+            _logger.LogInformation($"Cliente con guid: {guidClient} no encontrado");
+            throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guidClient}");
+        }
+        
+        var cuentaExistenteEntity = await _context.Cuentas
+            .Include(c => c.Tarjeta)
+            .Include(c => c.Cliente)
+            .Include(c => c.Producto)
+            .FirstOrDefaultAsync(c => c.Guid == guid);  
+        
+        if (cuentaExistenteEntity == null)
+        {
+            _logger.LogError($"La cuenta con el GUID {guid} no existe.");
+            return null;
+        }
+
+        if (cuentaExistenteEntity.Cliente.Guid != guidClient)
+        {
+            _logger.LogInformation($"La cuenta {guid} no te pertenece");
+            throw new CuentaNoPertenecienteAlUsuarioException($"La cuenta {guid} no te pertenece");
+            
+        }
+
+        _logger.LogInformation("Actualizando isDeleted a true");
+        cuentaExistenteEntity.IsDeleted = true;
+        cuentaExistenteEntity.UpdatedAt = DateTime.UtcNow;
+
+        cliente.Cuentas.Remove(cuentaExistenteEntity);
 
         _context.Cuentas.Update(cuentaExistenteEntity);
         await _context.SaveChangesAsync();

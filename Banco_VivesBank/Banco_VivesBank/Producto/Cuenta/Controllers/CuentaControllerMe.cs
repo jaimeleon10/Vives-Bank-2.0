@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿/*using System.Security.Claims;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
@@ -58,7 +58,7 @@ public class CuentaControllerMe: ControllerBase
             return NotFound( new { message = "Cuenta no encontrada del cliente.", details = e.Message });
 
         }
-        */
+       
         
     }
     
@@ -102,3 +102,4 @@ public class CuentaControllerMe: ControllerBase
         return Ok(cuentaDelete);
     }
 }
+*/
