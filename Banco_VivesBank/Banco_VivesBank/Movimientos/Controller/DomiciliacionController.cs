@@ -113,7 +113,7 @@ public class DomiciliacionController : ControllerBase
     }
     
     [HttpDelete("me/{domiciliacionGuid}")]
-    [Authorize(Policy = "AdminPolicy")]    
+    [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<DomiciliacionResponse?>> DesactivateMyDomiciliacion(string domiciliacionGuid)
     {
         try
