@@ -9,6 +9,66 @@ namespace Test.Cliente.Mapper;
 [TestFixture]
 public class ClienteMapperTest
 {
+     [Test]
+    public void ToModelFromEntity()
+    {
+        var clienteEntity = new ClienteEntity
+        {
+            Guid = "guid",
+            Dni = "12345678Z",
+            Nombre = "test",
+            Apellidos = "testApe",
+            Direccion = new Banco_VivesBank.Cliente.Models.Direccion
+            {
+                Calle = "testCalle",
+                Numero = "1",
+                CodigoPostal = "12345",
+                Piso = "1",
+                Letra = "A",
+            },
+            Email = "algo@test.com",
+            Telefono = "123456789",
+            FotoPerfil = "perfil.jpg",
+            FotoDni = "dni.jpg",
+            UserId = 1,
+            User = new UserEntity
+            {
+                Id = 1,
+                Guid = "user-guid",
+                Username = "test",
+                Password = "test",
+                Role = Role.User
+            },
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+        var result = ClienteMapper.ToModelFromEntity(clienteEntity);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(clienteEntity.Dni, Is.EqualTo(result.Dni));
+            Assert.That(clienteEntity.Apellidos, Is.EqualTo(result.Apellidos));
+            Assert.That(clienteEntity.Nombre, Is.EqualTo(result.Nombre));
+            Assert.That(clienteEntity.Apellidos, Is.EqualTo(result.Apellidos));
+            Assert.That(clienteEntity.Direccion.Calle, Is.EqualTo(result.Direccion.Calle));
+            Assert.That(clienteEntity.Direccion.Numero, Is.EqualTo(result.Direccion.Numero));
+            Assert.That(clienteEntity.Direccion.CodigoPostal, Is.EqualTo(result.Direccion.CodigoPostal));
+            Assert.That(clienteEntity.Direccion.Piso, Is.EqualTo(result.Direccion.Piso));
+            Assert.That(clienteEntity.Direccion.Letra, Is.EqualTo(result.Direccion.Letra));
+            Assert.That(clienteEntity.Email, Is.EqualTo(result.Email));
+            Assert.That(clienteEntity.Telefono, Is.EqualTo(result.Telefono));
+            Assert.That(clienteEntity.User.Id, Is.EqualTo(result.User.Id));
+            Assert.That(clienteEntity.User.Guid, Is.EqualTo(result.User.Guid));
+            Assert.That(clienteEntity.User.Username, Is.EqualTo(result.User.Username));
+            Assert.That(clienteEntity.User.CreatedAt, Is.EqualTo(result.User.CreatedAt));
+            Assert.That(clienteEntity.User.UpdatedAt, Is.EqualTo(result.User.UpdatedAt));
+            Assert.That(clienteEntity.User.IsDeleted, Is.EqualTo(result.User.IsDeleted));
+            
+        });
+    }
+    
     [Test]
     public void ToModelFromRequest()
     {
@@ -204,123 +264,6 @@ public class ClienteMapperTest
             Assert.That(clienteEntity.FotoPerfil, Is.EqualTo(result.FotoPerfil));
             Assert.That(clienteEntity.FotoDni, Is.EqualTo(result.FotoDni));
             Assert.That(clienteEntity.UserId, Is.EqualTo(user.Id));
-        });
-    }
-
-    // [Test]
-    // public void ToModelFromRequestUpdate()
-    // {
-    //     var requestUpdate = new ClienteRequestUpdate
-    //     {
-    //         Dni = "12345678Z",
-    //         Nombre = "test",
-    //         Apellidos = "testApe",
-    //         Calle = "testCalle",
-    //         Numero = "1",
-    //         CodigoPostal = "12345",
-    //         Letra = "A",
-    //         Email = "   "
-    //     };
-    //
-    //     var entidad = new ClienteEntity
-    //     {
-    //         Guid = "guid",
-    //         Dni = "12345678Z",
-    //         Nombre = "test",
-    //         Apellidos = "testApe",
-    //         Direccion = new Banco_VivesBank.Cliente.Models.Direccion
-    //         {
-    //             Calle = "testCalle",
-    //             Numero = "1",
-    //             CodigoPostal = "12345",
-    //             Piso = "1",
-    //             Letra = "A",
-    //         },
-    //         Email = "algo@test.com",
-    //         Telefono = "123456789",
-    //         FotoPerfil = "perfil.jpg",
-    //         FotoDni = "dni.jpg",
-    //         UserId = 1,
-    //         CreatedAt = DateTime.UtcNow,
-    //         UpdatedAt = DateTime.UtcNow,
-    //         IsDeleted = false
-    //     };
-    //     
-    //     var result = ClienteMapper.ToModelFromRequestUpdate(entidad, requestUpdate);
-    //     
-    //     Assert.Multiple(() =>
-    //     {
-    //         Assert.That(requestUpdate.Dni, Is.EqualTo(result.Dni));
-    //         Assert.That(requestUpdate.Apellidos, Is.EqualTo(result.Apellidos));
-    //         Assert.That(requestUpdate.Nombre, Is.EqualTo(result.Nombre));
-    //         Assert.That(requestUpdate.Apellidos, Is.EqualTo(result.Apellidos));
-    //         Assert.That(requestUpdate.Calle, Is.EqualTo(result.Direccion.Calle));
-    //         Assert.That(requestUpdate.Numero, Is.EqualTo(result.Direccion.Numero));
-    //         Assert.That(requestUpdate.CodigoPostal, Is.EqualTo(result.Direccion.CodigoPostal));
-    //         Assert.That(entidad.Direccion.Piso, Is.EqualTo(result.Direccion.Piso));
-    //         Assert.That(requestUpdate.Letra, Is.EqualTo(result.Direccion.Letra));
-    //         Assert.That(entidad.Email, Is.EqualTo(result.Email));
-    //         Assert.That(entidad.Telefono, Is.EqualTo(result.Telefono));
-    //     });
-    // }
-
-    [Test]
-    public void ToModelFromEntity()
-    {
-        var clienteEntity = new ClienteEntity
-        {
-            Guid = "guid",
-            Dni = "12345678Z",
-            Nombre = "test",
-            Apellidos = "testApe",
-            Direccion = new Banco_VivesBank.Cliente.Models.Direccion
-            {
-                Calle = "testCalle",
-                Numero = "1",
-                CodigoPostal = "12345",
-                Piso = "1",
-                Letra = "A",
-            },
-            Email = "algo@test.com",
-            Telefono = "123456789",
-            FotoPerfil = "perfil.jpg",
-            FotoDni = "dni.jpg",
-            UserId = 1,
-            User = new UserEntity
-            {
-                Id = 1,
-                Guid = "user-guid",
-                Username = "test",
-                Password = "test",
-                Role = Role.User
-            },
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        };
-
-        var result = ClienteMapper.ToModelFromEntity(clienteEntity);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(clienteEntity.Dni, Is.EqualTo(result.Dni));
-            Assert.That(clienteEntity.Apellidos, Is.EqualTo(result.Apellidos));
-            Assert.That(clienteEntity.Nombre, Is.EqualTo(result.Nombre));
-            Assert.That(clienteEntity.Apellidos, Is.EqualTo(result.Apellidos));
-            Assert.That(clienteEntity.Direccion.Calle, Is.EqualTo(result.Direccion.Calle));
-            Assert.That(clienteEntity.Direccion.Numero, Is.EqualTo(result.Direccion.Numero));
-            Assert.That(clienteEntity.Direccion.CodigoPostal, Is.EqualTo(result.Direccion.CodigoPostal));
-            Assert.That(clienteEntity.Direccion.Piso, Is.EqualTo(result.Direccion.Piso));
-            Assert.That(clienteEntity.Direccion.Letra, Is.EqualTo(result.Direccion.Letra));
-            Assert.That(clienteEntity.Email, Is.EqualTo(result.Email));
-            Assert.That(clienteEntity.Telefono, Is.EqualTo(result.Telefono));
-            Assert.That(clienteEntity.User.Id, Is.EqualTo(result.User.Id));
-            Assert.That(clienteEntity.User.Guid, Is.EqualTo(result.User.Guid));
-            Assert.That(clienteEntity.User.Username, Is.EqualTo(result.User.Username));
-            Assert.That(clienteEntity.User.CreatedAt, Is.EqualTo(result.User.CreatedAt));
-            Assert.That(clienteEntity.User.UpdatedAt, Is.EqualTo(result.User.UpdatedAt));
-            Assert.That(clienteEntity.User.IsDeleted, Is.EqualTo(result.User.IsDeleted));
-            
         });
     }
 }

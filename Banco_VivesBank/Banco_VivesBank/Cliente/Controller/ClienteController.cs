@@ -1,15 +1,11 @@
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Cliente.Mapper;
-using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
-using Banco_VivesBank.Movimientos.Mapper;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Exceptions;
-using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Authorization;
@@ -68,7 +64,7 @@ public class ClienteController : ControllerBase
             return Ok(pageResult);
 
         }
-        catch (ClienteNotFound e)
+        catch (ClienteNotFoundException e)
         {
             return StatusCode(404, new { message = "No se han encontrado los clientes.", details = e.Message });
         }

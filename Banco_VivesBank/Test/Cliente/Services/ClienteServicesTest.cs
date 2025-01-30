@@ -9,6 +9,7 @@ using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
@@ -749,6 +750,7 @@ public class ClienteServiceTests
             IsDeleted = false,
             UserId = 1
         };
+        
 
         _dbContext.Clientes.Add(cliente);
         await _dbContext.SaveChangesAsync();
@@ -770,7 +772,7 @@ public class ClienteServiceTests
             Letra = "A"
         };
         
-        var result = await _clienteService.UpdateMeAsync(cliente.Guid, updateRequest);
+        var result = await _clienteService.UpdateMeAsync(user, updateRequest);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo(updateRequest.Nombre));
@@ -791,7 +793,13 @@ public class ClienteServiceTests
         _dbContext.Usuarios.Add(userEntity);
         await _dbContext.SaveChangesAsync();
         
-        var result = await _clienteService.UpdateMeAsync("non-existing-guid", new ClienteRequestUpdate());
+        var userAuth = new User
+        {
+            Id = 1, 
+            Guid = "user-guid"
+        };
+        
+        var result = await _clienteService.UpdateMeAsync(userAuth, new ClienteRequestUpdate());
         
         Assert.That(result, Is.Null);
     }

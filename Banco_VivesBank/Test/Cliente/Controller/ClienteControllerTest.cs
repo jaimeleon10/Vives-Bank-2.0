@@ -8,14 +8,16 @@ using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using NSubstitute;
 
 namespace Test.Cliente.Controller;
-/*
+
 [TestFixture]
 public class ClienteControllerTest
 {
@@ -265,7 +267,19 @@ public class ClienteControllerTest
             IsDeleted = false
         };
 
-        _clienteServiceMock.Setup(service => service.CreateAsync(It.IsAny<ClienteRequest>()))
+        var user = new User
+        {
+            Id = 1,
+            Guid = "userGuid",
+            Username = "usernameTest",
+            Role = Role.Cliente,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+         _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.CreateAsync(user, It.IsAny<ClienteRequest>()))
             .ReturnsAsync(clienteResponse);
 
         var result = await _clienteController.Create(clienteRequest);
@@ -294,8 +308,18 @@ public class ClienteControllerTest
             Nombre = "nombreTest",
             Apellidos = "apellidosTest"
         };
-
-        _clienteServiceMock.Setup(service => service.CreateAsync(It.IsAny<ClienteRequest>()))
+        var user = new User
+        {
+            Id = 1,
+            Guid = "userGuid",
+            Username = "usernameTest",
+            Role = Role.Cliente,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.CreateAsync(user,It.IsAny<ClienteRequest>()))
             .ThrowsAsync(new ClienteException("Cliente ya existe"));
 
         var result = await _clienteController.Create(clienteRequest);
@@ -313,7 +337,8 @@ public class ClienteControllerTest
             Apellidos = "apellidosTest"
         };
 
-        _clienteServiceMock.Setup(service => service.CreateAsync(It.IsAny<ClienteRequest>()))
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((User)null);
+        _clienteServiceMock.Setup(service => service.CreateAsync(It.IsAny<User>(), It.IsAny<ClienteRequest>()))
             .ThrowsAsync(new UserException("Usuario no encontrado"));
 
         var result = await _clienteController.Create(clienteRequest);
@@ -359,11 +384,21 @@ public class ClienteControllerTest
             UpdatedAt = "2024-01-10",
             IsDeleted = false
         };
-
-        _clienteServiceMock.Setup(service => service.UpdateAsync(guid, clienteRequestUpdate))
+        var user = new User
+        {
+            Id = 1,
+            Guid = "userGuid",
+            Username = "usernameTest",
+            Role = Role.Cliente,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.UpdateMeAsync(user, clienteRequestUpdate))
             .ReturnsAsync(clienteResponse);
 
-        var result = await _clienteController.UpdateCliente(guid, clienteRequestUpdate);
+        var result = await _clienteController.UpdateMe(clienteRequestUpdate);
 
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
         var okResult = result.Result as OkObjectResult;
@@ -377,7 +412,7 @@ public class ClienteControllerTest
         _clienteController.ModelState.AddModelError("Nombre", "El campo es requerido");
         var clienteRequestUpdate = new ClienteRequestUpdate();
 
-        var result = await _clienteController.UpdateCliente(guid, clienteRequestUpdate);
+        var result = await _clienteController.UpdateMe(clienteRequestUpdate);
 
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
     }
@@ -391,11 +426,21 @@ public class ClienteControllerTest
             Nombre = "NuevoNombre",
             Apellidos = "NuevoApellido"
         };
-
-        _clienteServiceMock.Setup(service => service.UpdateAsync(guid, clienteRequestUpdate))
+        var user = new User
+        {
+            Id = 1,
+            Guid = "userGuid",
+            Username = "usernameTest",
+            Role = Role.Cliente,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.UpdateMeAsync(user, clienteRequestUpdate))
             .ReturnsAsync((ClienteResponse)null);
 
-        var result = await _clienteController.UpdateCliente(guid, clienteRequestUpdate);
+        var result = await _clienteController.UpdateMe(clienteRequestUpdate);
 
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
@@ -411,11 +456,12 @@ public class ClienteControllerTest
             Nombre = "NuevoNombre",
             Apellidos = "NuevoApellido"
         };
+        
 
-        _clienteServiceMock.Setup(service => service.UpdateAsync(guid, clienteRequestUpdate))
+        _clienteServiceMock.Setup(service => service.UpdateMeAsync(It.IsAny<User>(),clienteRequestUpdate))
             .ThrowsAsync(new ClienteException("Error al actualizar el cliente"));
 
-        var result = await _clienteController.UpdateCliente(guid, clienteRequestUpdate);
+        var result = await _clienteController.UpdateMe(clienteRequestUpdate);
 
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
         var badRequestResult = result.Result as BadRequestObjectResult;
@@ -800,7 +846,7 @@ public class ClienteControllerTest
 
         _pdfStorage.Verify(pdf => pdf.ExportPDF(clienteResponse, movimientos), Times.Once);
     }*/
-/*
+
     
     private IFormFile CreateMockFile(string fileName, string contentType)
     {
@@ -816,5 +862,3 @@ public class ClienteControllerTest
         return formFile.Object;
     }
 }
-
-}*/
