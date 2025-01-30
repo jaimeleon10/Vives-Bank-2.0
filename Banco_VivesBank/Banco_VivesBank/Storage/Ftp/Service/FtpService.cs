@@ -110,7 +110,7 @@ public class FtpService : IFtpService
         }
     }
     
-    private async Task ChekDirectorioExiste(string directoryPath)
+    public virtual async Task ChekDirectorioExiste(string directoryPath)
     {
         try
         {
@@ -135,7 +135,7 @@ public class FtpService : IFtpService
         }
     }
     
-    public async Task<bool> CheckFileExiste(string filePath)
+    public virtual async Task<bool> CheckFileExiste(string filePath)
     {
         try
         {
@@ -154,9 +154,7 @@ public class FtpService : IFtpService
                 _logger.LogWarning($"El archivo no existe: {filePath}");
                 return false;
             }
-       
-            _logger.LogError($"Error al verificar existencia de archivo: {ex.Message}");
-            throw;
+            throw new FtpException("Error al verificar existencia de archivo: " + ex.Message);
         }
     }
 }
