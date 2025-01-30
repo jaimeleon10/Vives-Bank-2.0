@@ -20,15 +20,14 @@ public interface ICuentaService
 
     public Task<CuentaResponse?> GetByTarjetaGuidAsync(string tarjetaGuid);
 
-    //public Task<CuentaResponse?> GetMeByIbanAsync(string guid, string iban);
+    public Task<CuentaResponse?> GetMeByIbanAsync(string guid, string iban);
 
     public Task<Models.Cuenta?> GetCuentaModelByGuidAsync(string guid);
      public Task<Models.Cuenta?> GetCuentaModelByIdAsync(long id);
     
-    //public Task<CuentaResponse> CreateAsync(string guid,CuentaRequest cuentaRequest);
-    public Task<CuentaResponse> CreateAsync(CuentaRequest cuentaRequest);
+    public Task<CuentaResponse> CreateAsync(string guid,CuentaRequest cuentaRequest);
 
-    //public Task<CuentaResponse?> DeleteAsync(string guidClient,string guid);
+    public Task<CuentaResponse?> DeleteMeAsync(string guidClient,string guid);
     
     public Task<CuentaResponse?> DeleteByGuidAsync(string guid);
 
