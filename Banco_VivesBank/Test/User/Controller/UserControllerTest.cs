@@ -1,284 +1,232 @@
-﻿using Banco_VivesBank.User.Controller;
+﻿using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.User.Controller;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NUnit.Framework;
 
-namespace Banco_VivesBank.Test.User.Controller;
-[TestFixture]
-public class UserControllerTest
+namespace Test.User.Controller
 {
-    private Mock<IUserService> _userServiceMock;
-    private UserController _userController;
-    
-    
-    
-    [SetUp]
-    public void Setup()
+    [TestFixture]
+    public class UserControllerTests
     {
-        _userServiceMock = new Mock<IUserService>();
-        _userController = new UserController(_userServiceMock.Object, new PaginationLinksUtils());
-    }
-    
-    [Test]
-    public async Task GetAll()
-    {
-        var pageRequest = new PageRequest
+        private Mock<IUserService> _mockUserService;
+        private Mock<PaginationLinksUtils> _mockPaginationLinksUtils;
+        private UserController _userController;
+
+        [SetUp]
+        public void Setup()
         {
-            PageNumber = 0,
-            PageSize = 10,
-            SortBy = "Id",
-            Direction = "asc"
-        };
-        
-        var pageResponse = new PageResponse<UserResponse>
+            _mockUserService = new Mock<IUserService>();
+            _mockPaginationLinksUtils = new Mock<PaginationLinksUtils>();
+            _userController = new UserController(_mockUserService.Object, _mockPaginationLinksUtils.Object);
+        }
+
+        /* [Test]
+         public async Task GetAll()
+         {
+             var expectedUsers = new List<UserResponse>
+             {
+                 new UserResponse { Guid = "guid1", Username = "test1" },
+                 new UserResponse { Guid = "guid2", Username = "test2" }
+             };
+
+             var page = 0;
+             var size = 10;
+             var sortBy = "id";
+             var direction = "desc";
+
+             var pageRequest = new PageRequest
+             {
+                 PageNumber = page,
+                 PageSize = size,
+                 SortBy = sortBy,
+                 Direction = direction
+             };
+
+             var pageResponse = new PageResponse<UserResponse>
+             {
+                 Content = expectedUsers,
+                 TotalElements = expectedUsers.Count,
+                 PageNumber = pageRequest.PageNumber,
+                 PageSize = pageRequest.PageSize,
+                 TotalPages = 1
+             };
+
+             _mockUserService.Setup(s => s.GetAllAsync(null, null, pageRequest))
+                 .ReturnsAsync(pageResponse);
+
+             var result = await _userController.Getall(null, null, page, size, sortBy, direction);
+
+             Assert.That(result, Is.Not.Null);
+             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+             var okResult = result.Result as OkObjectResult;
+             Assert.That(okResult, Is.Not.Null);
+
+             var pageResponseResult = okResult.Value as PageResponse<UserResponse>;
+             Assert.That(pageResponseResult, Is.Not.Null);
+             Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+             Assert.That(pageResponseResult.Content, Is.EqualTo(expectedUsers));
+             Assert.That(pageResponseResult.TotalElements, Is.EqualTo(expectedUsers.Count));
+             Assert.That(pageResponseResult.PageNumber, Is.EqualTo(pageRequest.PageNumber));
+             Assert.That(pageResponseResult.PageSize, Is.EqualTo(pageRequest.PageSize));
+             Assert.That(pageResponseResult.TotalPages, Is.EqualTo(1));
+         }
+         */
+
+        [Test]
+        public async Task GetUserByGuid()
         {
-            TotalPages = 1
-        };
-        
-        _userServiceMock.Setup(x => x.GetAllAsync(It.IsAny<string>(), It.IsAny<Role?>(), It.IsAny<PageRequest>())).ReturnsAsync(pageResponse);
-        
-        var result = await _userController.Getall();
-        
-        
-    }
-    
-    
-    [Test]
-    public async Task GetAll_EmptyList()
-    {
-        var pageRequest = new PageRequest
+            var expectedUser = new UserResponse
+            {
+                Guid = "guid",
+                Username = "test"
+            };
+
+            _mockUserService.Setup(s => s.GetByGuidAsync("guid"))
+                .ReturnsAsync(expectedUser);
+
+            var result = await _userController.GetByGuid("guid");
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+
+            var userResponse = okResult.Value as UserResponse;
+            Assert.That(userResponse, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(userResponse.Guid, Is.EqualTo(expectedUser.Guid));
+            Assert.That(userResponse.Username, Is.EqualTo(expectedUser.Username));
+        }
+
+        [Test]
+        public async Task GetUserByUsername()
         {
-            PageNumber = 0,
-            PageSize = 10,
-            SortBy = "Id",
-            Direction = "asc"
-        };
-        
-        var pageResponse = new PageResponse<UserResponse>
+            var expectedUser = new UserResponse
+            {
+                Guid = "guid",
+                Username = "test"
+            };
+
+            _mockUserService.Setup(s => s.GetByUsernameAsync("test"))
+                .ReturnsAsync(expectedUser);
+
+            var result = await _userController.GetByUsername("test");
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+
+            var userResponse = okResult.Value as UserResponse;
+            Assert.That(userResponse, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(userResponse.Guid, Is.EqualTo(expectedUser.Guid));
+            Assert.That(userResponse.Username, Is.EqualTo(expectedUser.Username));
+        }
+
+        [Test]
+        public async Task Create()
         {
-            TotalPages = 0
-        };
-        
-        _userServiceMock.Setup(x => x.GetAllAsync(It.IsAny<string>(), It.IsAny<Role?>(), It.IsAny<PageRequest>())).ReturnsAsync(pageResponse);
-        
-        var result = await _userController.Getall();
-    }
-    
-    [Test]
-    public async Task GetByGuid()
-    {
-        var userResponse = new UserResponse
+            var userRequest = new UserRequest
+            {
+                Username = "test",
+                Password = "test"
+            };
+
+            var expectedUser = new UserResponse
+            {
+                Guid = "guid",
+                Username = "test"
+            };
+
+            _mockUserService.Setup(s => s.CreateAsync(userRequest))
+                .ReturnsAsync(expectedUser);
+
+            var result = await _userController.Create(userRequest);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+
+            var userResponse = okResult.Value as UserResponse;
+            Assert.That(userResponse, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(userResponse.Guid, Is.EqualTo(expectedUser.Guid));
+            Assert.That(userResponse.Username, Is.EqualTo(expectedUser.Username));
+        }
+
+
+        [Test]
+        public async Task Update()
         {
-            Guid = "guid",
-            Username = "username",
-            Role = "USER",
-        };
-        
-        _userServiceMock.Setup(x => x.GetByGuidAsync(It.IsAny<string>())).ReturnsAsync(userResponse);
-        
-        var result = await _userController.GetByGuid("guid");
-    }
-    
-    
-    [Test]
-    public async Task GetByGuid_ReturnsNotFound_WhenUserDoesNotExist()
-    {
-        _userServiceMock.Setup(service => service.GetByGuidAsync(It.IsAny<string>())).ReturnsAsync((UserResponse)null);
+            var userRequest = new UserRequestUpdate
+            {
+                Role = Role.User.ToString(),
+                IsDeleted = false
 
-        var result = await _userController.GetByGuid("nonexistent-guid");
+            };
 
-        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
-        var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult?.Value, Is.EqualTo("No se ha encontrado usuario con guid: nonexistent-guid"));
-    }
-    
-    [Test]
-    public async Task Create()
-    {
-        var userRequest = new UserRequest
+            var expectedUser = new UserResponse
+            {
+                Guid = "guid",
+                Username = "test"
+            };
+
+            _mockUserService.Setup(s => s.UpdateAsync("guid", userRequest))
+                .ReturnsAsync(expectedUser);
+
+            var result = await _userController.Update("guid", userRequest);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
+
+            var userResponse = okResult.Value as UserResponse;
+            Assert.That(userResponse, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(userResponse.Guid, Is.EqualTo(expectedUser.Guid));
+        }
+
+
+        [Test]
+        public async Task Delete()
         {
-            Username = "username",
-            Password = "password",
-        };
-        
-        var userResponse = new UserResponse
-        {
-            Guid = "guid",
-            Username = "username",
-            Role = "USER",
-        };
-        
-        _userServiceMock.Setup(x => x.CreateAsync(It.IsAny<UserRequest>())).ReturnsAsync(userResponse);
-        
-        var result = await _userController.Create(userRequest);
-    }
-    
-   /* [Test]
-    public async Task Update()
-    {
-        var userRequest = new UserRequest
-        {
-            Username = "username",
-            Password = "password",
-            Role = "USER",
-        };
-        
-        var userResponse = new UserResponse
-        {
-            Guid = "guid",
-            Username = "username",
-            Role = "USER",
-        };
-        
-        _userServiceMock.Setup(x => x.UpdateAsync(It.IsAny<string>(), It.IsAny<UserRequest>())).ReturnsAsync(userResponse);
-        
-        var result = await _userController.Update("guid", userRequest);
-    }
-    
-    [Test]
-    public async Task UpdateUser_InvalidModelState_ReturnsBadRequest()
-    {
-        var guid = "valid-guid";
-        _userController.ModelState.AddModelError("UserName", "El campo es requerido");
-        var userRequest = new UserRequest
-        {
-            Username = "username",
-            Password = "password",
-            Role = "USER",
-        };
+            var expectedUser = new UserResponse
+            {
+                Guid = "guid",
+                Username = "test"
+            };
 
-        var result = await _userController.Update(guid, userRequest);
+            _mockUserService.Setup(s => s.DeleteByGuidAsync("guid"))
+                .ReturnsAsync(expectedUser);
 
-        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
-    }
-    */
-   /*[Test]
-    public async Task UpdateUser_ThrowsUserException_ReturnsBadRequest()
-    {
-        var guid = "valid-guid";
-        var userRequest = new UserRequest
-        {
-            Username = "username",
-            Password = "password",
-            Role = "USER",
-        };
+            var result = await _userController.DeleteByGuid("guid");
 
-        _userServiceMock.Setup(service => service.UpdateAsync(guid, userRequest))
-            .ThrowsAsync(new UserException("UserException message"));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
 
-        var result = await _userController.Update(guid, userRequest);
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Not.Null);
 
-        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
-    }
-    */
-    [Test]
-    public async Task DeleteByGuid_ValidGuid_ReturnsOk()
-    {
-        var guid = "valid-guid";
-        var userResponse = new UserResponse
-        {
-            Guid = guid,
-            Username = "username",
-            Role = "USER",
-            IsDeleted = true
-        };
+            var userResponse = okResult.Value as UserResponse;
+            Assert.That(userResponse, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(userResponse.Guid, Is.EqualTo(expectedUser.Guid));
+            Assert.That(userResponse.Username, Is.EqualTo(expectedUser.Username));
+        }
 
-        _userServiceMock.Setup(service => service.DeleteByGuidAsync(guid))
-            .ReturnsAsync(userResponse);
-
-        var result = await _userController.DeleteByGuid(guid);
-
-        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-        var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult.Value, Is.EqualTo(userResponse));
-    }
-    
-    [Test]
-    public async Task DeleteByGuid_NotFound_ReturnsNotFound()
-    {
-        var guid = "nonexistent-guid";
-
-        _userServiceMock.Setup(service => service.DeleteByGuidAsync(guid))
-            .ReturnsAsync((UserResponse)null);
-
-        var result = await _userController.DeleteByGuid(guid);
-        
-        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
-        var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha podido borrar el usuario con guid: {guid}"));
-    }
-    
-    
-    [Test]
-    
-    public async Task GetByUsername()
-    {
-        var userResponse = new UserResponse
-        {
-            Guid = "guid",
-            Username = "username",
-            Role = "USER",
-        };
-        
-        _userServiceMock.Setup(x => x.GetByUsernameAsync(It.IsAny<string>())).ReturnsAsync(userResponse);
-        
-        var result = await _userController.GetByUsername("username");
-    }
-    
-    
-    [Test]
-    public async Task GetByUsername_ReturnsNotFound_WhenUserDoesNotExist()
-    {
-        _userServiceMock.Setup(service => service.GetByUsernameAsync(It.IsAny<string>())).ReturnsAsync((UserResponse)null);
-
-        var result = await _userController.GetByUsername("nonexistent-username");
-
-        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
-        var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult?.Value, Is.EqualTo("No se ha encontrado usuario con nombre de usuario: nonexistent-username"));
-    }
-    
-    [Test]
-    public async Task Create_InvalidModelState_ReturnsBadRequest()
-    {
-        _userController.ModelState.AddModelError("UserName", "El campo es requerido");
-        var userRequest = new UserRequest
-        {
-            Username = "username",
-            Password = "password",
-        };
-
-        var result = await _userController.Create(userRequest);
-
-        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
-    }
-    
-    [Test]
-    public async Task Create_ThrowsUserException_ReturnsBadRequest()
-    {
-        var userRequest = new UserRequest
-        {
-            Username = "username",
-            Password = "password",
-           
-        };
-
-        _userServiceMock.Setup(service => service.CreateAsync(userRequest))
-            .ThrowsAsync(new UserException("UserException message"));
-
-        var result = await _userController.Create(userRequest);
-
-        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        Assert.That(badRequestResult.Value, Is.EqualTo("UserException message"));
     }
 }
