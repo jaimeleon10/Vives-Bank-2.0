@@ -416,6 +416,7 @@ public class MovimientoService : IMovimientoService
         {
             Transferencia transferenciaDestino = new Transferencia
             {
+                ClienteOrigen = cliente.Nombre + " " + cliente.Apellidos,
                 IbanOrigen = transferenciaRequest.IbanOrigen,
                 NombreBeneficiario = transferenciaRequest.NombreBeneficiario,
                 IbanDestino = transferenciaRequest.IbanDestino,
@@ -437,6 +438,7 @@ public class MovimientoService : IMovimientoService
 
         Transferencia transferenciaOrigen = new Transferencia
         {
+            ClienteOrigen = cliente.Nombre + " " + cliente.Apellidos,
             IbanOrigen = transferenciaRequest.IbanOrigen,
             NombreBeneficiario = transferenciaRequest.NombreBeneficiario,
             IbanDestino = transferenciaRequest.IbanDestino,
@@ -576,8 +578,9 @@ public class MovimientoService : IMovimientoService
         {
             Transferencia transferenciaDestinoNew = new Transferencia
             {
+                ClienteOrigen = cliente.Nombre + " " + cliente.Apellidos,
                 IbanOrigen = movimiento.Transferencia.IbanOrigen,
-                NombreBeneficiario = movimiento.Transferencia.NombreBeneficiario,
+                NombreBeneficiario = movimiento.Transferencia.ClienteOrigen,
                 IbanDestino = movimiento.Transferencia.IbanDestino,
                 Importe = movimiento.Transferencia.Importe
             };
@@ -597,8 +600,9 @@ public class MovimientoService : IMovimientoService
         
         Transferencia transferenciaOrigenNew = new Transferencia
         {
+            ClienteOrigen = cliente.Nombre + " " + cliente.Apellidos,
             IbanOrigen = movimiento.Transferencia.IbanOrigen,
-            NombreBeneficiario = movimiento.Transferencia.NombreBeneficiario,
+            NombreBeneficiario = movimiento.Transferencia.ClienteOrigen,
             IbanDestino = movimiento.Transferencia.IbanDestino,
             Importe = -movimiento.Transferencia.Importe
         };
