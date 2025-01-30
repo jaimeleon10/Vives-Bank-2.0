@@ -101,7 +101,7 @@ public class DomiciliacionService : IDomiciliacionService
 
     public async Task<IEnumerable<DomiciliacionResponse>> GetMyDomiciliaciones(User.Models.User userAuth)
     {
-        _logger.LogInformation($"Buscando todas las domiciliaciones del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        _logger.LogInformation($"Buscando todas las domiciliaciones del cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
         var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
@@ -111,12 +111,12 @@ public class DomiciliacionService : IDomiciliacionService
     {
         _logger.LogInformation("Creando domiciliación");
         
-        _logger.LogInformation($"Buscando si existe el cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        _logger.LogInformation($"Buscando si existe el autenticado");
         var me = await _clienteService.GetMeAsync(userAuth);
         if (me == null)
         {
-            _logger.LogWarning($"No se ha encontrado ningún cliente correspondiente al usuario con guid: {userAuth.Guid}");
-            throw new ClienteNotFoundException($"No se ha encontrado ningún cliente correspondiente al usuario con guid: {userAuth.Guid}");
+            _logger.LogWarning($"No se ha encontrado ningún cliente autenticado");
+            throw new ClienteNotFoundException($"No se ha encontrado ningún cliente autenticado");
         }
         var cliente = await _clienteService.GetClienteModelByGuid(me.Guid);
         
@@ -244,6 +244,68 @@ public class DomiciliacionService : IDomiciliacionService
         {
             _logger.LogInformation($"No se ha encontrado la domiciliacion con guid {domiciliacionGuid}");
             return null;
+        }
+        
+        domiciliacion.Activa = false;
+        await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        
+        // Eliminar de la memoria caché y de redis
+        _memoryCache.Remove(cacheKey);
+        await _redisDatabase.KeyDeleteAsync(cacheKey);
+        
+        // Añadimos con los datos nuevos
+        var serializedDom = JsonSerializer.Serialize(domiciliacion);
+        _memoryCache.Set(cacheKey, domiciliacion, TimeSpan.FromMinutes(30));
+        await _redisDatabase.StringSetAsync(cacheKey, serializedDom, TimeSpan.FromMinutes(30));
+        
+        _logger.LogInformation("Domiciliación desactivada con éxito");
+        return domiciliacion.ToResponseFromModel()!;
+    }
+    
+    public async Task<DomiciliacionResponse?> DesactivateMyDomiciliacionAsync(User.Models.User userAuth, string domiciliacionGuid)
+    {
+        _logger.LogInformation($"Desactivando domiciliación con guid {domiciliacionGuid}");
+        
+        var cacheKey = CacheKeyPrefix + domiciliacionGuid;
+        
+        // Intentar obtener desde la memoria caché
+        if (_memoryCache.TryGetValue(cacheKey, out Domiciliacion? memoryCacheDom))
+        {
+            _logger.LogInformation("Domiciliación obtenida desde la memoria caché");
+            return memoryCacheDom.ToResponseFromModel();
+        }
+
+        // Intentar obtener desde la caché de Redis
+        var redisCacheValue = await _redisDatabase.StringGetAsync(cacheKey);
+        if (!redisCacheValue.IsNullOrEmpty)
+        {
+            _logger.LogInformation("Domiciliación obtenida desde Redis");
+            var domFromRedis = JsonSerializer.Deserialize<Domiciliacion>(redisCacheValue!);
+            if (domFromRedis == null)
+            {
+                _logger.LogWarning("Error al deserializar domiciliación desde Redis");
+                throw new MovimientoDeserialiceException("Error al deserializar domiciliación desde Redis");
+            }
+
+            _memoryCache.Set(cacheKey, domFromRedis, TimeSpan.FromMinutes(30));
+            return domFromRedis.ToResponseFromModel();
+        }
+
+        // Intentar obtener de la base de datos
+        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+
+        if (domiciliacion == null)
+        {
+            _logger.LogInformation($"No se ha encontrado la domiciliacion con guid {domiciliacionGuid}");
+            return null;
+        }
+        
+        _logger.LogInformation($"Validando que la domiciliacion con guid {domiciliacion.Guid} pertenezca al cliente autenticado");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        if (domiciliacion.ClienteGuid != cliente!.Guid)
+        {
+            _logger.LogWarning($"La domiciliación con guid {domiciliacion.Guid} no pertenece al cliente autenticado con guid {cliente.Guid} y no puede ser desactivada");
+            throw new MovimientoNoPertenecienteAlUsuarioAutenticadoException($"La domiciliación con guid {domiciliacion.Guid} no pertenece al cliente autenticado con guid {cliente.Guid} y no puede ser desactivada");
         }
         
         domiciliacion.Activa = false;

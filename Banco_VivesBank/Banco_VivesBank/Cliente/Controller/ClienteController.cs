@@ -98,7 +98,7 @@ public class ClienteController : ControllerBase
         
         var cliente = await _clienteService.GetMeAsync(userAuth);
      
-        if (cliente is null) return NotFound(new { message = $"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}"});
+        if (cliente is null) return NotFound(new { message = $"No se ha encontrado el cliente autenticado"});
         
         return Ok(cliente);
     }
@@ -144,7 +144,7 @@ public class ClienteController : ControllerBase
             if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
             
             var clienteResponse = await _clienteService.UpdateMeAsync(userAuth, clienteRequestUpdate);
-            if (clienteResponse is null) return NotFound(new { message = $"No se ha podido actualizar el cliente correspondiente al usuario con guid {userAuth.Guid}"}); 
+            if (clienteResponse is null) return NotFound(new { message = $"No se ha podido actualizar el cliente autenticado"}); 
             return Ok(clienteResponse);
         }
         catch (ClienteException e)
@@ -170,7 +170,7 @@ public class ClienteController : ControllerBase
         if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
         
         var clienteResponse = await _clienteService.DeleteMeAsync(userAuth);
-        if (clienteResponse is null) return NotFound(new { message = $"No se ha podido borrar el cliente correspondiente al usuario con guid: {userAuth.Guid}"}); 
+        if (clienteResponse is null) return NotFound(new { message = $"No se ha podido borrar el cliente autenticado"}); 
         return Ok(clienteResponse);
     }
 
@@ -186,7 +186,7 @@ public class ClienteController : ControllerBase
             var clienteResponse = await _clienteService.UpdateFotoPerfil(userAuth, foto);
 
             if (clienteResponse is null)
-                return NotFound(new { message = $"No se ha podido actualizar la foto de perfil del cliente correspondiente al usuario con guid {userAuth.Guid}"});
+                return NotFound(new { message = $"No se ha podido actualizar la foto de perfil del cliente autenticado"});
 
             return Ok(clienteResponse);
         }
@@ -247,7 +247,7 @@ public class ClienteController : ControllerBase
         
         var clienteResponse = await _clienteService.GetMeAsync(userAuth);
         if (clienteResponse is null)
-            return NotFound(new { message = $"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}"});
+            return NotFound(new { message = $"No se ha encontrado el cliente autenticado"});
 
         var movimientos = await _movimientoService.GetByClienteGuidAsync(clienteResponse.Guid);
 

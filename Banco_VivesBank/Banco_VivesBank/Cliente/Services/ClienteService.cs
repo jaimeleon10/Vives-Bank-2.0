@@ -160,11 +160,11 @@ public class ClienteService : IClienteService
 
     public async Task<ClienteResponse?> GetMeAsync(User.Models.User userAuth)
     {
-        _logger.LogInformation($"Buscando cliente correspondiente al usuario con guid {userAuth.Guid}");
+        _logger.LogInformation($"Buscando cliente autenticado");
         var clienteExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Id == userAuth.Id);
         if (clienteExistente == null)
         {
-            _logger.LogWarning($"No se ha encontrado el cliente correspondiente al usuario con guid {userAuth.Guid}");
+            _logger.LogWarning($"No se ha encontrado el cliente autenticado");
             return null;
         }
 
@@ -210,12 +210,12 @@ public class ClienteService : IClienteService
     }
 
     public async Task<ClienteResponse?> UpdateMeAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
-        _logger.LogInformation($"Actualizando cliente correspondiente al usuario con guid {userAuth.Guid}");
+        _logger.LogInformation($"Actualizando cliente autenticado");
         
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
+            _logger.LogInformation($"Cliente autenticado no encontrado");
             return null;
         }
 
@@ -307,12 +307,12 @@ public class ClienteService : IClienteService
     
     public async Task<ClienteResponse?> DeleteMeAsync(User.Models.User userAuth) 
     {
-        _logger.LogInformation($"Borrando cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        _logger.LogInformation($"Borrando cliente autenticado");
         
         var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteExistenteEntity == null)
         {
-            _logger.LogInformation($"Cliente no encontrado correspondiente al usuario con guid: {userAuth.Guid}");
+            _logger.LogInformation($"Cliente autenticado no encontrado ");
             return null;
         }
 
@@ -419,12 +419,12 @@ public class ClienteService : IClienteService
     
     public async Task<ClienteResponse?> UpdateFotoPerfil(User.Models.User userAuth, IFormFile fotoPerfil)
     {
-        _logger.LogInformation($"Actualizando foto de perfil del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        _logger.LogInformation($"Actualizando foto de perfil del cliente autenticado");
 
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
+            _logger.LogInformation($"Cliente autenticado no encontrado");
             return null;
         }
 
@@ -467,14 +467,14 @@ public class ClienteService : IClienteService
 
     public async Task<ClienteResponse?> UpdateFotoDni(User.Models.User userAuth, IFormFile fotoDni)
     {
-        _logger.LogInformation($"Actualizando foto del DNI del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        _logger.LogInformation($"Actualizando foto del DNI del cliente autenticado");
 
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User)
             .FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
 
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
+            _logger.LogInformation($"Cliente autenticado no encontrado");
             return null;
         }
         

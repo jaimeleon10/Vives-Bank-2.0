@@ -6,6 +6,7 @@ using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CuentaInvalidaException = Banco_VivesBank.Storage.Pdf.Exception.CuentaInvalidaException;
 
 namespace Banco_VivesBank.Movimientos.Controller;
 
@@ -47,7 +48,7 @@ public class MovimientoController : ControllerBase
         return Ok(await _movimientoService.GetByClienteGuidAsync(clienteGuid));
     }
     
-    [HttpGet("cliente")]
+    [HttpGet("me")]
     [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetMyMovimientos()
     {
@@ -58,6 +59,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("ingresoNomina")]
+    [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<IngresoNominaResponse>> CreateIngresoNomina([FromBody] IngresoNominaRequest ingresoNominaRequest)
     {
         if (!ModelState.IsValid)
@@ -67,7 +69,14 @@ public class MovimientoController : ControllerBase
 
         try
         {
-            return Ok(await _movimientoService.CreateIngresoNominaAsync(ingresoNominaRequest));
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            return Ok(await _movimientoService.CreateIngresoNominaAsync(userAuth, ingresoNominaRequest));
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
+        {
+            return BadRequest(new { message = e.Message});
         }
         catch (CuentaException e)
         {
@@ -80,6 +89,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("pagoConTarjeta")]
+    [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<PagoConTarjetaResponse>> CreatePagoConTarjeta([FromBody] PagoConTarjetaRequest pagoConTarjetaRequest)
     {
         if (!ModelState.IsValid)
@@ -89,13 +99,20 @@ public class MovimientoController : ControllerBase
 
         try
         {
-            return Ok(await _movimientoService.CreatePagoConTarjetaAsync(pagoConTarjetaRequest));
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            return Ok(await _movimientoService.CreatePagoConTarjetaAsync(userAuth, pagoConTarjetaRequest));
         }
         catch (TarjetaException e)
         {
             return NotFound(new { message = e.Message});
         }
         catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(new { message = e.Message});
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
         {
             return BadRequest(new { message = e.Message});
         }
@@ -110,6 +127,7 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("transferencia")]
+    [Authorize(Policy = "ClientePolicy")]    
     public async Task<ActionResult<TransferenciaResponse>> CreateTransferencia([FromBody] TransferenciaRequest transferenciaRequest)
     {
         if (!ModelState.IsValid)
@@ -119,9 +137,20 @@ public class MovimientoController : ControllerBase
 
         try
         {
-            return Ok(await _movimientoService.CreateTransferenciaAsync(transferenciaRequest));
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            return Ok(await _movimientoService.CreateTransferenciaAsync(userAuth, transferenciaRequest));
         }
         catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(new { message = e.Message});
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
+        {
+            return BadRequest(new { message = e.Message});
+        }
+        catch (CuentaInvalidaException e)
         {
             return BadRequest(new { message = e.Message});
         }
@@ -136,13 +165,25 @@ public class MovimientoController : ControllerBase
     }
     
     [HttpPost("transferencia/revocar/{movimientoGuid}")]
+    [Authorize(Policy = "ClientePolicy")]
     public async Task<ActionResult<TransferenciaResponse>> RevocarTransferencia(string movimientoGuid)
     {
         try
         {
-            return Ok(await _movimientoService.RevocarTransferenciaAsync(movimientoGuid));
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+            
+            return Ok(await _movimientoService.RevocarTransferenciaAsync(userAuth, movimientoGuid));
         }
         catch (MovimientoNotFoundException e)
+        {
+            return NotFound(new { message = e.Message});
+        }
+        catch (MovimientoNoPertenecienteAlUsuarioAutenticadoException e)
+        {
+            return NotFound(new { message = e.Message});
+        }
+        catch (TransferenciaEmitidaException e)
         {
             return NotFound(new { message = e.Message});
         }
@@ -151,6 +192,10 @@ public class MovimientoController : ControllerBase
             return BadRequest(new { message = e.Message});
         }
         catch (SaldoCuentaInsuficientException e)
+        {
+            return BadRequest(new { message = e.Message});
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
         {
             return BadRequest(new { message = e.Message});
         }
