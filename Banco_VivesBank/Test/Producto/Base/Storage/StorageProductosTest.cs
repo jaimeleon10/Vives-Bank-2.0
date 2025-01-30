@@ -47,6 +47,45 @@ public class StorageProductosTests
     }
 
     [Test]
+    public void ImportProductosConLineasVacias()
+    {
+        var csvContent = "nombre,descripcion,tipoProducto,tae\n\nCuenta,Cuenta Corriente,Cuenta,1.5\n";
+        var filePath = Path.Combine(_tempPath, "empty_lines.csv");
+        File.WriteAllText(filePath, csvContent, Encoding.UTF8);
+        var fileInfo = new FileInfo(filePath);
+
+        var result = _storage.ImportProductosFromCsv(fileInfo);
+
+        Assert.That(result, Has.Exactly(1).Items);
+    }
+
+    [Test]
+    public void ImportProductosFormatoIncorrecto()
+    {
+        var csvContent = "nombre,descripcion,tipoProducto,tae\nProducto,Descripcion";
+        var filePath = Path.Combine(_tempPath, "wrong_format.csv");
+        File.WriteAllText(filePath, csvContent, Encoding.UTF8);
+        var fileInfo = new FileInfo(filePath);
+
+        var result = _storage.ImportProductosFromCsv(fileInfo);
+
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void ImportProductosConValoresInvalidos()
+    {
+        var csvContent = "nombre,descripcion,tipoProducto,tae\nProducto,Descripcion,Tipo,invalid_tae";
+        var filePath = Path.Combine(_tempPath, "invalid_tae.csv");
+        File.WriteAllText(filePath, csvContent, Encoding.UTF8);
+        var fileInfo = new FileInfo(filePath);
+
+        var result = _storage.ImportProductosFromCsv(fileInfo);
+
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
     public void ExportarProductos()
     {
         var productos = new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>
@@ -58,9 +97,23 @@ public class StorageProductosTests
 
         _storage.ExportProductosFromCsv(fileInfo, productos);
 
-        Assert.That(File.Exists(filePath) , Is.True);
+        Assert.That(File.Exists(filePath), Is.True);
         var lines = File.ReadAllLines(filePath);
         Assert.That(lines.Length, Is.EqualTo(2));
         Assert.That(lines[1], Does.Contain("Test"));
+    }
+
+    [Test]
+    public void ExportarProductosListaVacia()
+    {
+        var productos = new List<Banco_VivesBank.Producto.ProductoBase.Models.Producto>();
+        var filePath = Path.Combine(_tempPath, "export_empty.csv");
+        var fileInfo = new FileInfo(filePath);
+
+        _storage.ExportProductosFromCsv(fileInfo, productos);
+
+        Assert.That(File.Exists(filePath), Is.True);
+        var lines = File.ReadAllLines(filePath);
+        Assert.That(lines.Length, Is.EqualTo(1)); // Solo el encabezado
     }
 }
