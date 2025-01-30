@@ -3,5 +3,6 @@
 public enum Role
 {
     User,
+    Cliente,
     Admin
 }

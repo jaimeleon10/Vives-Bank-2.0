@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using Banco_VivesBank.Config.Storage;
+using Banco_VivesBank.Config.Storage.Ftp;
+using Banco_VivesBank.Config.Storage.Images;
 using Banco_VivesBank.Storage.Ftp.Exceptions;
 using Microsoft.Extensions.Options;
 
@@ -73,9 +75,11 @@ public class FtpService : IFtpService
     {
         try
         {
+            _logger.LogInformation($"Descargando archivo desde el servidor FTP: {remoteFilePath} a {localFilePath}");
             var request = ConfigureFtpConsulta(remoteFilePath, WebRequestMethods.Ftp.DownloadFile);
-
-            using (var response = (FtpWebResponse)await request.GetResponseAsync())
+            
+            _logger.LogInformation("Recuperando archivo");
+            using (var response = (FtpWebResponse) await request.GetResponseAsync())
             using (var responseStream = response.GetResponseStream())
             using (var fileStream = new FileStream(localFilePath, FileMode.Create))
             {

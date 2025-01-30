@@ -253,6 +253,7 @@ public class TarjetaService : ITarjetaService
         var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta!.Guid == guid);
         cuentaEntity!.TarjetaId = null;
         cuentaEntity.Tarjeta = null;
+        cuentaEntity.UpdatedAt = DateTime.UtcNow;
         _context.Cuentas.Update(cuentaEntity);
         await _context.SaveChangesAsync();
         

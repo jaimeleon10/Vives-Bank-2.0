@@ -770,7 +770,7 @@ public class ClienteServiceTests
             Letra = "A"
         };
         
-        var result = await _clienteService.UpdateAsync(cliente.Guid, updateRequest);
+        var result = await _clienteService.UpdateMeAsync(cliente.Guid, updateRequest);
         
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo(updateRequest.Nombre));
@@ -791,7 +791,7 @@ public class ClienteServiceTests
         _dbContext.Usuarios.Add(userEntity);
         await _dbContext.SaveChangesAsync();
         
-        var result = await _clienteService.UpdateAsync("non-existing-guid", new ClienteRequestUpdate());
+        var result = await _clienteService.UpdateMeAsync("non-existing-guid", new ClienteRequestUpdate());
         
         Assert.That(result, Is.Null);
     }

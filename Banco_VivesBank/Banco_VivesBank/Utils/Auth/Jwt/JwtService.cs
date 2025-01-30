@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Banco_VivesBank.Utils.Jwt;
+namespace Banco_VivesBank.Utils.Auth.Jwt;
 
 public class JwtService : IJwtService
 {

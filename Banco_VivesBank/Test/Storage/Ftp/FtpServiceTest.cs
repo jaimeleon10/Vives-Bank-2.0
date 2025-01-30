@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Storage.Ftp.Exceptions;

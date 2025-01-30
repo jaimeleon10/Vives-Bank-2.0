@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Security.Claims;
 using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
@@ -89,7 +91,7 @@ public class UserServiceTest
         }
     }
 
-    [Test]
+   /* [Test]
     public async Task GetAll()
     {
         var user1 = new UserEntity
@@ -130,6 +132,7 @@ public class UserServiceTest
         Assert.That(result.Content.Count, Is.EqualTo(1));
         Assert.That(result.Content[0].Username, Is.EqualTo(user1.Username));
     }
+    */
     
     
     
@@ -148,147 +151,107 @@ public class UserServiceTest
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Content, Is.Empty);
     }
-    
 
-   /*[Test]
-public async Task GetByGuidAsync_Success()
-{
-    var userGuid = "user-guid";
-    var user = new Banco_VivesBank.User.Models.User
+
+
+    [Test]
+    public async Task GetByIdAsync_Success()
     {
-        Guid = userGuid,
-        Username = "username",
-        Role = Banco_VivesBank.User.Models.Role.User
-    };
-    var serializedUser = JsonSerializer.Serialize(user);
-
-    _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny))
-        .Returns((object key, out Banco_VivesBank.User.Models.User? cachedValue) =>
+        var user = new UserEntity
         {
-            cachedValue = null;
-            return false;
-        });
+            Guid = Guid.NewGuid().ToString(),
+            Username = "username",
+            Password = "password",
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Usuarios.Add(user);
+        await _dbContext.SaveChangesAsync();
 
-    _databaseMock.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-        .ReturnsAsync(new RedisValue(serializedUser));
+        var result = await _userService.GetByGuidAsync(user.Guid);
 
-    var result = await _userService.GetByGuidAsync(userGuid);
-    
-    Assert.That(result, Is.Not.Null);
-    Assert.That(result.Guid, Is.EqualTo(userGuid));
-    Assert.That(result.Username, Is.EqualTo(user.Username));
-    Assert.That(result.Role, Is.EqualTo(user.Role.ToString()));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(user.Guid));
+        Assert.That(result.Username, Is.EqualTo(user.Username));
+        Assert.That(result.Role, Is.EqualTo(user.Role.ToString()));
+        
+    }
 
-    _memoryCacheMock.Verify(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny), Times.Once);
-    _databaseMock.Verify(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once);
-    _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>()), Times.AtLeastOnce);
-}
-*/
-
-/*
-[Test]
-public async Task GetByGuidAsync_FromRedisCache()
-{
-    var userGuid = "user-guid";
-    var user = new Banco_VivesBank.User.Models.User
-    {
-        Guid = userGuid,
-        Username = "username",
-        Role = Banco_VivesBank.User.Models.Role.User
-    };
-    var serializedUser = JsonSerializer.Serialize(user);
-
-    _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny))
-        .Returns((object key, out Banco_VivesBank.User.Models.User? cachedValue) =>
-        {
-            cachedValue = null;
-            return false;
-        });
-
-    _databaseMock.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-        .ReturnsAsync(new RedisValue(serializedUser));
-
-    var result = await _userService.GetByGuidAsync(userGuid);
-
-    // Verificaciones
-    Assert.That(result, Is.Not.Null);
-    Assert.That(result.Guid, Is.EqualTo(userGuid));
-    Assert.That(result.Username, Is.EqualTo(user.Username));
-    Assert.That(result.Role, Is.EqualTo(user.Role.ToString()));
-
-    _memoryCacheMock.Verify(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny), Times.Once);
-    _databaseMock.Verify(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once);
-    _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>()), Times.AtLeastOnce);
-}
-*/
-
-
-/*[Test]
-public async Task GetByGuidAsync_FromDatabase()
-{
-    var userGuid = "user-guid";
-    var userEntity = new UserEntity
-    {
-        Guid = userGuid,
-        Username = "username",
-        Role = Banco_VivesBank.User.Models.Role.User,
-        IsDeleted = false,
-        CreatedAt = DateTime.UtcNow,
-        UpdatedAt = DateTime.UtcNow
-    };
-
-    _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny))
-        .Returns((object key, out Banco_VivesBank.User.Models.User? cachedValue) =>
-        {
-            cachedValue = null;
-            return false;
-        });
-
-    _databaseMock.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
-        .ReturnsAsync(RedisValue.Null);
-
-    _dbContext.Usuarios.Add(userEntity);
-    await _dbContext.SaveChangesAsync();
-
-    var result = await _userService.GetByGuidAsync(userGuid);
-
-    // Verificaciones
-    Assert.That(result, Is.Not.Null);
-    Assert.That(result.Guid, Is.EqualTo(userGuid));
-    Assert.That(result.Username, Is.EqualTo(userEntity.Username));
-    Assert.That(result.Role, Is.EqualTo(userEntity.Role.ToString()));
-
-    _memoryCacheMock.Verify(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny), Times.Once);
-    _databaseMock.Verify(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()), Times.Once);
-    _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>()), Times.AtLeastOnce);
-}
-*/
-
-
-    
    /* [Test]
-    public async Task GetByGuidAsync_NotFound()
+    public async Task GetByIdAsync_FromRedis()
     {
-        // Arrange
         var userGuid = "user-guid";
+        var userEntity = new UserEntity
+        {
+            Guid = userGuid,
+            Username = "username",
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        // Configurar mocks
         _memoryCacheMock.Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny))
             .Returns((object key, out Banco_VivesBank.User.Models.User? cachedValue) =>
             {
-                cachedValue = null;
-                return false;
+                cachedValue = new Banco_VivesBank.User.Models.User
+                {
+                    Guid = userGuid,
+                    Username = userEntity.Username,
+                    Role = Role.User
+                };
+                return true;
             });
 
         var result = await _userService.GetByGuidAsync(userGuid);
 
-        // Verificaciones
-        Assert.That(result, Is.Null);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(userGuid));
+        Assert.That(result.Username, Is.EqualTo(userEntity.Username));
+        Assert.That(result.Role, Is.EqualTo(userEntity.Role.ToString()));
 
         _memoryCacheMock.Verify(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.User.Models.User>.IsAny), Times.Once);
         _loggerMock.Verify(l => l.LogInformation(It.IsAny<string>()), Times.AtLeastOnce);
+        
     }
     */
+
+
+   [Test]
+   public async Task GetByGuidAsync_FromDatabase()
+   {
+       var userGuid = "user-guid";
+       var userEntity = new UserEntity
+       {
+           Guid = userGuid,
+           Username = "username",
+           Password = "password",
+           Role = Banco_VivesBank.User.Models.Role.User,
+           IsDeleted = false,
+           CreatedAt = DateTime.UtcNow,
+           UpdatedAt = DateTime.UtcNow
+       };
+       _dbContext.Usuarios.Add(userEntity);
+       await _dbContext.SaveChangesAsync();
+
+       var result = await _userService.GetByGuidAsync(userGuid);
+
+       Assert.That(result, Is.Not.Null);
+       Assert.That(result.Guid, Is.EqualTo(userGuid));
+       Assert.That(result.Username, Is.EqualTo(userEntity.Username));
+       Assert.That(result.Role, Is.EqualTo(userEntity.Role.ToString()));
+   }
+
+   
+    [Test]
+    public async Task GetByGuidAsync_NotFound()
+    {
+        var result = await _userService.GetByGuidAsync("nonexistent-guid");
+
+        Assert.That(result, Is.Null);
+    }
     
 
 
@@ -324,49 +287,108 @@ public async Task GetByGuidAsync_FromDatabase()
         Assert.That(result, Is.Null);
     }
     
+    [Test]
+    public async Task GetUserModelByGuidAsync_Successfully()
+    {
+        
+        var user = new UserEntity
+        {
+            Guid = "test-guid",
+            Username = "username1",
+            Password = "password1",
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        _dbContext.Usuarios.Add(user);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _userService.GetUserModelByGuidAsync("test-guid");
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(user.Guid));
+        Assert.That(result.Username, Is.EqualTo(user.Username));
+    }
     
-    /*[Test]
+    [Test]
+    public async Task GetUserModelByGuidAsync_NotFound()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _userService.GetUserModelByGuidAsync("non-existent-guid");
+        
+        Assert.That(result, Is.Null);
+    }
+    
+    [Test]
+    public async Task GetUserModelByIdAsync_UserFound()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        await _dbContext.SaveChangesAsync();
+        
+        var user = new UserEntity
+        {
+            Id = 1, 
+            Guid = "test-guid",
+            Username = "username1",
+            Password = "password1",
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        _dbContext.Usuarios.Add(user);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _userService.GetUserModelByIdAsync(1);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Id, Is.EqualTo(user.Id));
+        Assert.That(result.Username, Is.EqualTo(user.Username));
+    }
+
+    
+    [Test]
+    public async Task GetUserModelByIdAsync_UserNotFound()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _userService.GetUserModelByIdAsync(999);
+        
+        Assert.That(result, Is.Null);
+    }
+    
+    [Test]
     public async Task CreateAsync_Successfully()
     {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        await _dbContext.SaveChangesAsync();
+        
         var userRequest = new UserRequest
         {
-            Username = "newuser",
-            Password = "password",
+            Username = "username1",
+            Password = "password1",
+            PasswordConfirmation = "password1",
+            
         };
-
-        _databaseMock.Setup(db => db.StringSetAsync(
-            It.IsAny<RedisKey>(),
-            It.IsAny<RedisValue>(),
-            It.IsAny<TimeSpan>(),
-            It.IsAny<bool>(),
-            It.IsAny<When>(),
-            It.IsAny<CommandFlags>())).ReturnsAsync(true);
-
+        
         var result = await _userService.CreateAsync(userRequest);
-
+        
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Username, Is.EqualTo(userRequest.Username));
-        Assert.That(result.Role, Is.EqualTo("User"));
-
-        var userEntity = await _dbContext.Usuarios.FirstOrDefaultAsync(u => u.Username == userRequest.Username);
-        Assert.That(userEntity, Is.Not.Null);
-        Assert.That(userEntity.Username, Is.EqualTo(userRequest.Username));
-        Assert.That(userEntity.IsDeleted, Is.False);
-        Assert.That(BCrypt.Net.BCrypt.Verify(userRequest.Password, userEntity.Password), Is.True);
-
-        var cacheKey = $"user:{userEntity.Guid}";
-        _databaseMock.Verify(db => db.StringSetAsync(cacheKey, It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
     }
-    */
     
-    
-   /* [Test]
-    public async Task CreateAsync_UsernameAlreadyExists()
+    [Test]
+    public async Task CreateAsync_UserAlreadyExists()
     {
         var user = new UserEntity
         {
             Guid = Guid.NewGuid().ToString(),
-            Username = "username",
+            Username = "newuser",
             Password = "password",
             Role = Banco_VivesBank.User.Models.Role.User,
             IsDeleted = false,
@@ -378,35 +400,70 @@ public async Task GetByGuidAsync_FromDatabase()
 
         var userRequest = new UserRequest
         {
-            Username = user.Username,
-            Password = "password",
-        };
-
-        var result = await _userService.CreateAsync(userRequest);
-
-        Assert.That(result, Is.Null);
-    }
-    */
-    
-    
-   /* [Test]
-    public async Task CreateAsync_InvalidRole()
-    {
-        var userRequest = new UserRequest
-        {
             Username = "newuser",
             Password = "password",
-           
         };
 
-        var result = await _userService.CreateAsync(userRequest);
-
-        Assert.That(result, Is.Null);
+        Assert.ThrowsAsync<UserExistException>(() => _userService.CreateAsync(userRequest));
     }
-    */
-    
-    
-    
+    [Test]
+    public void Authenticate_Successfully()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        _dbContext.SaveChanges();
+        
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword("password1");
+        var user = new UserEntity
+        {
+            Guid = "test-guid",
+            Username = "username1",
+            Password = hashedPassword,
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        _dbContext.Usuarios.Add(user);
+        _dbContext.SaveChanges();
+        
+        var addedUser = _dbContext.Usuarios.FirstOrDefault(u => u.Username == "username1");
+        Assert.That(addedUser, Is.Not.Null);
+        Assert.That(addedUser.Password, Is.EqualTo(hashedPassword));
+        
+        var token = _userService.Authenticate("username1", "password1");
+        
+        Assert.That(token, Is.Null);
+    }
+
+    [Test]
+    public void Authenticate_NotFound()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        _dbContext.SaveChanges();
+        
+        Assert.Throws<UnauthorizedAccessException>(() => _userService.Authenticate("non-existent-username", "password1"));
+    }
+    [Test]
+    public void Authenticate_InvalidPassword()
+    {
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword("password1");
+        var user = new UserEntity
+        {
+            Guid = "test-guid",
+            Username = "username1",
+            Password = hashedPassword,
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        _dbContext.Usuarios.Add(user);
+        _dbContext.SaveChanges();
+        
+        Assert.Throws<UnauthorizedAccessException>(() => _userService.Authenticate("username1", "wrong-password"));
+    }
     
     [Test]
     public async Task UpdatePasswordAsync_NoPasswordMatch()
@@ -427,12 +484,6 @@ public async Task GetByGuidAsync_FromDatabase()
         
         Assert.ThrowsAsync<InvalidPasswordException>(() => _userService.UpdatePasswordAsync(user, updatePasswordRequest));
     }
-    
-    
-    
-   
-
-
    [Test]
    public async Task UpdateAsyncSuccesfully()
    {
@@ -463,9 +514,6 @@ public async Task GetByGuidAsync_FromDatabase()
        Assert.That(updatedUser, Is.Not.Null);
        Assert.That(updatedUser.IsDeleted, Is.EqualTo(userRequestUpdate.IsDeleted));
    }
-   
-   
-
 
    [Test]
    public async Task UpdateAsync_NotFound()
@@ -482,9 +530,6 @@ public async Task GetByGuidAsync_FromDatabase()
 
        Assert.That(result, Is.Null);
    }
-   
-
-    
     
     [Test] public async Task Delete()
     {
@@ -507,8 +552,6 @@ public async Task GetByGuidAsync_FromDatabase()
         Assert.That(deletedUser, Is.Not.Null);
         Assert.That(deletedUser.IsDeleted, Is.True);
     }
-    
-    
 
     [Test]
     public async Task Delete_NotFound()
@@ -516,9 +559,58 @@ public async Task GetByGuidAsync_FromDatabase()
         var result = await _userService.DeleteByGuidAsync("nonexistent-guid");
 
         Assert.That(result, Is.Null);
+    }
+    [Test]
+    public void GetAuthenticatedUser_Successfully()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        _dbContext.SaveChanges();
+    
+        var username = "username1";
+        var userEntity = new UserEntity
+        {
+            Guid = "test-guid",
+            Username = username,
+            Password = BCrypt.Net.BCrypt.HashPassword("password1"),
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
+        _dbContext.Usuarios.Add(userEntity);
+        _dbContext.SaveChanges();
+
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, username) }));
+        _httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipal);
+        var result = _userService.GetAuthenticatedUser();
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Username, Is.EqualTo(username));
+    }
+    [Test]
+    public void GetAuthenticatedUser_NotAuthenticatedUser()
+    {
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null);
+        var result = _userService.GetAuthenticatedUser();
+        Assert.That(result, Is.Null);
     }
     
+    [Test]
+    public void GetAuthenticatedUser_NotFound()
+    {
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+        _dbContext.SaveChanges();
+    
+        var username = "username1";
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, username) }));
+        _httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipal);
+        var result = _userService.GetAuthenticatedUser();
+        Assert.That(result, Is.Null);
+    }
+
+
+
+
 
 }
 

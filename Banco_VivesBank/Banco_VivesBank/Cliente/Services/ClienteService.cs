@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Text.Json;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
@@ -10,6 +11,7 @@ using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using IDatabase = StackExchange.Redis.IDatabase;
+using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Banco_VivesBank.Cliente.Services;
 
@@ -157,6 +160,20 @@ public class ClienteService : IClienteService
         return null;
     }
 
+    public async Task<ClienteResponse?> GetMeAsync(User.Models.User userAuth)
+    {
+        _logger.LogInformation($"Buscando cliente correspondiente al usuario con guid {userAuth.Guid}");
+        var clienteExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Id == userAuth.Id);
+        if (clienteExistente == null)
+        {
+            _logger.LogWarning($"No se ha encontrado el cliente correspondiente al usuario con guid {userAuth.Guid}");
+            return null;
+        }
+
+        _logger.LogInformation($"Se ha encontrado el cliente con guid {clienteExistente.Guid} correspondiente al usuario con guid {userAuth.Guid}");
+        return clienteExistente.ToResponseFromEntity();
+    }
+
     public async Task<ClienteResponse> CreateAsync(User.Models.User userAuth, ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
@@ -172,6 +189,11 @@ public class ClienteService : IClienteService
             _logger.LogWarning($"El usuario con guid {userAuth.Guid} ya es un cliente");
             throw new ClienteExistsException($"El usuario con guid {userAuth.Guid} ya es un cliente");
         }
+        
+        _logger.LogInformation($"Actualizando rol a cliente del usuario con guid {userAuth.Guid}");
+        userAuth.Role = Role.Cliente;
+        _context.Usuarios.Update(userAuth.ToEntityFromModel());
+        await _context.SaveChangesAsync();
         
         _logger.LogInformation("Guardando cliente en base de datos");
         var clienteModel = clienteRequest.ToModelFromRequest(userAuth);
@@ -189,13 +211,13 @@ public class ClienteService : IClienteService
         return clienteModel.ToResponseFromModel();
     }
 
-    public async Task<ClienteResponse?> UpdateAsync(string guid, ClienteRequestUpdate clienteRequest){
-        _logger.LogInformation($"Actualizando cliente con guid: {guid}");
+    public async Task<ClienteResponse?> UpdateMeAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
+        _logger.LogInformation($"Actualizando cliente correspondiente al usuario con guid {userAuth.Guid}");
         
-        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
+        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
             return null;
         }
 
@@ -241,7 +263,7 @@ public class ClienteService : IClienteService
         var redisValue = JsonSerializer.Serialize(clienteModel);
         await _redisDatabase.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
-        _logger.LogInformation($"Cliente actualizado con guid: {guid}");
+        _logger.LogInformation($"Cliente actualizado con guid: {clienteEntityExistente.Guid}");
         return clienteEntityExistente.ToResponseFromEntity();
     }
 
@@ -258,8 +280,23 @@ public class ClienteService : IClienteService
 
         clienteExistenteEntity.IsDeleted = true;
         clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
-
         _context.Clientes.Update(clienteExistenteEntity);
+        
+        _logger.LogInformation($"Desactivando cuentas y tarjetas pertenecientes al cliente con guid {clienteExistenteEntity.Guid}");
+        var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+        foreach (var cuenta in cuentas)
+        {
+            cuenta.IsDeleted = true;
+            _context.Cuentas.Update(cuenta);
+
+            if (cuenta.TarjetaId == null) continue;
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+        }
+        
+        _logger.LogInformation("Guardando todos los cambios en la base de datos");
         await _context.SaveChangesAsync();
         
         var cacheKey = CacheKeyPrefix + clienteExistenteEntity.Guid;
@@ -267,6 +304,48 @@ public class ClienteService : IClienteService
         await _redisDatabase.KeyDeleteAsync(cacheKey);
         
         _logger.LogInformation($"Cliente borrado (desactivado) con guid: {guid}");
+        return clienteExistenteEntity.ToResponseFromEntity();
+    }
+    
+    public async Task<ClienteResponse?> DeleteMeAsync(User.Models.User userAuth) 
+    {
+        _logger.LogInformation($"Borrando cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        
+        var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
+        if (clienteExistenteEntity == null)
+        {
+            _logger.LogInformation($"Cliente no encontrado correspondiente al usuario con guid: {userAuth.Guid}");
+            return null;
+        }
+
+        clienteExistenteEntity.IsDeleted = true;
+        clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
+        _context.Clientes.Update(clienteExistenteEntity);
+        
+        _logger.LogInformation($"Desactivando cuentas y tarjetas pertenecientes al cliente con guid {clienteExistenteEntity.Guid}");
+        var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+        foreach (var cuenta in cuentas)
+        {
+            cuenta.IsDeleted = true;
+            cuenta.UpdatedAt = DateTime.UtcNow;
+            _context.Cuentas.Update(cuenta);
+
+            if (cuenta.TarjetaId == null) continue;
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+        }
+        
+        _logger.LogInformation("Guardando todos los cambios en la base de datos");
+        await _context.SaveChangesAsync();
+        
+        var cacheKey = CacheKeyPrefix + clienteExistenteEntity.Guid;
+        _memoryCache.Remove(cacheKey);
+        await _redisDatabase.KeyDeleteAsync(cacheKey);
+        
+        _logger.LogInformation($"Cliente borrado (desactivado) con guid: {clienteExistenteEntity.Guid}");
         return clienteExistenteEntity.ToResponseFromEntity();
     }
 
@@ -340,20 +419,20 @@ public class ClienteService : IClienteService
         }
     }
     
-    public async Task<ClienteResponse?> UpdateFotoPerfil(string guid, IFormFile fotoPerfil)
+    public async Task<ClienteResponse?> UpdateFotoPerfil(User.Models.User userAuth, IFormFile fotoPerfil)
     {
-        _logger.LogInformation($"Actualizando foto de perfil del cliente con guid: {guid}");
+        _logger.LogInformation($"Actualizando foto de perfil del cliente correspondiente al usuario con guid: {userAuth.Guid}");
 
-        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == guid);
+        var clienteEntityExistente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
             return null;
         }
 
         var fotoAnterior = clienteEntityExistente.FotoPerfil;
 
-        string nuevaFoto = null;
+        string nuevaFoto;
         try
         {
             nuevaFoto = await _fileStorageService.SaveFileAsync(fotoPerfil);
@@ -364,50 +443,58 @@ public class ClienteService : IClienteService
             throw new FileStorageException($"Error al guardar la foto: {ex.Message}");
         }
 
-        if (nuevaFoto != null)
+        if (!string.IsNullOrEmpty(fotoAnterior) && fotoAnterior != "https://example.com/fotoPerfil.jpg")
         {
-            if (!string.IsNullOrEmpty(fotoAnterior) && fotoAnterior != "https://example.com/fotoPerfil.jpg")
+            try
             {
-                try
-                {
-                    await _fileStorageService.DeleteFileAsync(fotoAnterior);
-                }
-                catch (FileStorageNotFoundException)
-                {
-                    _logger.LogInformation($"Archivo no encontrado, omitiendo la eliminación: {fotoAnterior}");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Error al intentar eliminar la foto anterior: {ex.Message}");
-                }
+                await _fileStorageService.DeleteFileAsync(fotoAnterior);
             }
-
-            clienteEntityExistente.FotoPerfil = nuevaFoto;
-            clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
-            _context.Clientes.Update(clienteEntityExistente);
-            await _context.SaveChangesAsync();
-
-            return clienteEntityExistente.ToResponseFromEntity();
+            catch (FileStorageNotFoundException)
+            {
+                _logger.LogInformation($"Archivo no encontrado, omitiendo la eliminación: {fotoAnterior}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al intentar eliminar la foto anterior: {ex.Message}");
+            }
         }
-        else
-        {
-            throw new FileStorageException("No se pudo guardar la foto de perfil.");
-        }
+
+        clienteEntityExistente.FotoPerfil = nuevaFoto;
+        clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
+        _context.Clientes.Update(clienteEntityExistente);
+        await _context.SaveChangesAsync();
+
+        return clienteEntityExistente.ToResponseFromEntity();
     }
 
-    public async Task<ClienteResponse?> UpdateFotoDni(string guid, IFormFile fotoDni)
+    public async Task<ClienteResponse?> UpdateFotoDni(User.Models.User userAuth, IFormFile fotoDni)
     {
-        _logger.LogInformation($"Actualizando foto del DNI del cliente con guid: {guid}");
+        _logger.LogInformation($"Actualizando foto del DNI del cliente correspondiente al usuario con guid: {userAuth.Guid}");
 
         var clienteEntityExistente = await _context.Clientes.Include(c => c.User)
-            .FirstOrDefaultAsync(c => c.Guid == guid);
+            .FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
 
         if (clienteEntityExistente == null)
         {
-            _logger.LogInformation($"Cliente no encontrado con guid: {guid}");
+            _logger.LogInformation($"Cliente correspondiente al usuario con guid {userAuth.Guid} no encontrado");
             return null;
         }
+        
+        _logger.LogInformation($"Cliente con guid {clienteEntityExistente.Guid} encontrado");
 
+        if (!string.IsNullOrEmpty(clienteEntityExistente.FotoDni) &&
+            clienteEntityExistente.FotoDni != "https://example.com/fotoDni.jpg")
+        {
+            try
+            {
+                await _ftpService.DeleteFileAsync(clienteEntityExistente.FotoDni);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error al eliminar la foto anterior del FTP: {ex.Message}");
+            }
+        }
+        
         string fileExtension = Path.GetExtension(fotoDni.FileName);
         string fileName = $"{clienteEntityExistente.Dni}{fileExtension}";
         string uploadPath = $"data/{fileName}";
@@ -426,37 +513,28 @@ public class ClienteService : IClienteService
             _logger.LogError($"Error al subir la nueva foto al FTP: {ex.Message}");
             throw new InvalidOperationException("Error al subir la nueva foto al servidor FTP.", ex);
         }
-
-        if (!string.IsNullOrEmpty(clienteEntityExistente.FotoDni) &&
-            clienteEntityExistente.FotoDni != "https://example.com/fotoDni.jpg")
-        {
-            try
-            {
-                await _ftpService.DeleteFileAsync(clienteEntityExistente.FotoDni);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"Error al eliminar la foto anterior del FTP: {ex.Message}");
-            }
-        }
-
+        
         clienteEntityExistente.FotoDni = uploadPath;
         clienteEntityExistente.UpdatedAt = DateTime.UtcNow;
 
         _context.Clientes.Update(clienteEntityExistente);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation($"Foto del DNI del cliente con guid {guid} actualizada correctamente.");
+        _logger.LogInformation($"Foto del DNI del cliente con guid {clienteEntityExistente.Guid} actualizada correctamente.");
         return clienteEntityExistente.ToResponseFromEntity();
     }
     
     public async Task<Stream> GetFotoDniAsync(string guid)
     {
+        _logger.LogInformation($"Buscando foto DNI del cliente con guid: {guid}");
+
         var clienteEntityExistente = await _context.Clientes
             .FirstOrDefaultAsync(c => c.Guid == guid);
 
         if (clienteEntityExistente == null || string.IsNullOrEmpty(clienteEntityExistente.FotoDni))
             return null;
+        
+        _logger.LogInformation($"Descargando foto DNI del cliente con guid: {guid}");
 
         try
         {

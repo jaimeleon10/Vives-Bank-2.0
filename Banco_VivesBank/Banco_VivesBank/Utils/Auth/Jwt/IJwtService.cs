@@ -1,4 +1,4 @@
-﻿namespace Banco_VivesBank.Utils.Jwt;
+﻿namespace Banco_VivesBank.Utils.Auth.Jwt;
 
 public interface IJwtService
 {

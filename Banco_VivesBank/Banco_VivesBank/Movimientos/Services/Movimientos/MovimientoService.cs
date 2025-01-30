@@ -125,6 +125,19 @@ public class MovimientoService : IMovimientoService
         ));
     }
 
+    public async Task<IEnumerable<MovimientoResponse>> GetMyMovimientos(User.Models.User userAuth)
+    {
+        _logger.LogInformation($"Buscando todos los movimientos del cliente correspondiente al usuario con guid: {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        var movimientos = await _movimientoCollection.Find(mov => mov.ClienteGuid == cliente!.Guid).ToListAsync();
+        return movimientos.Select(mov => mov.ToResponseFromModel(
+            mov.Domiciliacion.ToResponseFromModel(),
+            mov.IngresoNomina.ToResponseFromModel(),
+            mov.PagoConTarjeta.ToResponseFromModel(),
+            mov.Transferencia.ToResponseFromModel()
+        ));
+    }
+
     public async Task CreateAsync(MovimientoRequest movimientoRequest)
     {
         _logger.LogInformation("Guardando movimiento");
