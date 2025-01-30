@@ -112,7 +112,6 @@ public class CuentaService : ICuentaService
 
     public async Task<IEnumerable<CuentaResponse>> GetByClientGuidAsync(string guid)
     {
-
         _logger.LogInformation($"Buscando todas las Cuentas del cliente con guid: {guid}");
         
         var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guid);
@@ -122,13 +121,36 @@ public class CuentaService : ICuentaService
             throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
         }
         
-        
-        
         var query = _context.Cuentas
             .Include(c => c.Tarjeta)
             .Include(c => c.Cliente)
             .Include(c => c.Producto)
             .AsQueryable().Where(c => c.Cliente.Guid == guid); 
+        
+        var content = await query.ToListAsync();
+        
+        var cuentasResponses = content.Select(c => c.ToResponseFromEntity()).ToList();
+        
+        return cuentasResponses;
+    }
+    
+    public async Task<IEnumerable<CuentaResponse>> GetAllMeAsync(string guid)
+    {
+
+        _logger.LogInformation($"Buscando todas las Cuentas del cliente con guid: {guid}");
+        
+        var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.User.Guid == guid);
+        if (clienteExiste == null)
+        {
+            _logger.LogInformation($"Cliente con guid: {guid} no encontrado");
+            throw new ClienteNotFoundException($"No se encontró el cliente con guid: {guid}");
+        }
+        
+        var query = _context.Cuentas
+            .Include(c => c.Tarjeta)
+            .Include(c => c.Cliente)
+            .Include(c => c.Producto)
+            .AsQueryable().Where(c => c.Cliente.User.Guid == guid); 
         
         var content = await query.ToListAsync();
         

@@ -61,7 +61,7 @@ public class CuentaControllerAdmin : ControllerBase
             return Ok(pageResult);
         
     }
-
+    
     [HttpGet("admin/cliente/{guid}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllByClientGuid(string guid)
@@ -73,76 +73,121 @@ public class CuentaControllerAdmin : ControllerBase
         }
         catch (ClienteNotFoundException e)
         {
-            return NotFound( new { message = "Error buscando cliente.", details = e.Message });
+            return NotFound(new { message = "Cliente no encontrado.", details = e.Message });
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
         }
     }
 
+
     [HttpGet("admin/{guid}")]
     [Authorize(Policy = "AdminPolicy")]
-    public async Task<ActionResult<List<CuentaResponse>>> GetByGuid(string guid)
+    public async Task<ActionResult<CuentaResponse>> GetByGuid(string guid)
     {
-        var cuentaByGuid = await _cuentaService.GetByGuidAsync(guid);
-        if (cuentaByGuid is null) return NotFound(new {message =$"Cuenta no encontrada con guid {guid}"});
-        return Ok(cuentaByGuid);
+        try
+        { 
+            var cuentaByGuid = await _cuentaService.GetByGuidAsync(guid);
+            if (cuentaByGuid is null) return NotFound(new { message = $"Cuenta no encontrada con guid {guid}" });
+            
+            return Ok(cuentaByGuid);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+        }
     }
+
     
     [HttpGet("admin/iban/{iban}")]
     [Authorize(Policy = "AdminPolicy")]
-    public async Task<ActionResult<List<CuentaResponse>>> GetByIban(string iban)
+    public async Task<ActionResult<CuentaResponse>> GetByIban(string iban)
     {
-        var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
-        if (cuentaByIban is null) return NotFound(new { message = $"Cuenta no encontrada con iban {iban}"});
-        return Ok(cuentaByIban);
+        try
+        {
+            var cuentaByIban = await _cuentaService.GetByIbanAsync(iban);
+            if (cuentaByIban is null) return NotFound(new { message = $"Cuenta no encontrada con IBAN {iban}" });
+            
+            return Ok(cuentaByIban);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+        }
     }
+
     
     [HttpDelete("admin/{guid}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<CuentaResponse>> DeleteAdmin(string guid)
     {
-        var cuentaDelete = await _cuentaService.DeleteByGuidAsync(guid);
-        if (cuentaDelete is null) return NotFound(new {message = $"Cuenta no encontrada con guid {guid}"});
-        return Ok(cuentaDelete);
+        try
+        {
+            var cuentaDelete = await _cuentaService.DeleteByGuidAsync(guid);
+            if (cuentaDelete is null) return NotFound(new { message = $"Cuenta no encontrada con guid {guid}" });
+            
+            return Ok(cuentaDelete);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+        }
     }
+
     
-     [HttpGet("me")]
-     [Authorize(Policy = "ClientePolicy")]
+    [HttpGet("me")]
+    [Authorize(Policy = "ClientePolicy")]
     public async Task<ActionResult<List<CuentaResponse>>> GetAllMeAccounts()
     {
         try
         {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return NotFound(new {message = "No se ha podido identificar al usuario logeado"});
-            
-            return Ok(await _cuentaService.GetByClientGuidAsync(userAuth.Guid));
+            if (userAuth is null) return Unauthorized(new { message = "No se ha podido identificar al usuario logeado" });
+
+            var cuentas = await _cuentaService.GetAllMeAsync(userAuth.Guid);
+            return Ok(cuentas);
+        }
+        catch (ClienteNotFoundException e)
+        {
+            return NotFound(new { message = e.Message });
         }
         catch (Exception e)
         {
-            return BadRequest( new { message = "Error obteniendo las cuentas.", details = e.Message });
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
         }
-        
     }
+
     
 
     [HttpGet("/iban/{iban}")]
     [Authorize(Policy = "ClientePolicy")]
-    public async Task<ActionResult<List<CuentaResponse>>> GetMeByIban(string iban)
+    public async Task<ActionResult<CuentaResponse>> GetMeByIban(string iban)
     {
         try
         {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return NotFound(new {message = "No se ha podido identificar al usuario logeado"});
-            
-            
-            var cuentaByIban = await _cuentaService.GetMeByIbanAsync(userAuth.Guid,iban);
-            if (cuentaByIban is null) return NotFound(new {menssage =$"Cuenta no encontrada con iban {iban}"});
+            if (userAuth is null)  return Unauthorized(new { message = "No se ha podido identificar al usuario logeado" });
+
+            var cuentaByIban = await _cuentaService.GetMeByIbanAsync(userAuth.Guid, iban);
+            if (cuentaByIban is null) return NotFound(new { message = $"Cuenta no encontrada con IBAN {iban}" });
+
             return Ok(cuentaByIban);
+        }
+        catch (ClienteNotFoundException e)
+        {
+            return NotFound(new { message = e.Message });
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
+        {
+            return NotFound(new { message = e.Message });
         }
         catch (Exception e)
         {
-            return BadRequest( new { message = "Error obteniendo las cuentas.", details = e.Message });
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
         }
-        
     }
+
     
     [HttpPost("me")]
     [Authorize(Policy = "ClientePolicy")]
@@ -151,34 +196,52 @@ public class CuentaControllerAdmin : ControllerBase
         try
         {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return NotFound(new {message = "No se ha podido identificar al usuario logeado"});
-            
-            var cuenta = await _cuentaService.CreateAsync(userAuth.Guid,cuentaRequest);
+            if (userAuth is null)  return Unauthorized(new { message = "No se ha podido identificar al usuario logeado" });
 
+            var cuenta = await _cuentaService.CreateAsync(userAuth.Guid, cuentaRequest);
             return Ok(cuenta);
         }
         catch (ProductoNotExistException e)
         {
-            return NotFound( new { message = "Tipo de producto no existente.", details = e.Message });
-        
+            return NotFound(new { message = "Tipo de producto no existente.", details = e.Message });
+        }
+        catch (ClienteNotFoundException e)
+        {
+            return NotFound(new { message = "Cliente no encontrado.", details = e.Message });
         }
         catch (Exception e)
         {
-            return BadRequest( new { message = "Error creando cuenta.", details = e.Message});
-
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
         }
-        
     }
+
     
     [HttpDelete("me/{guid}")]
     [Authorize(Policy = "ClientePolicy")]
     public async Task<ActionResult<CuentaResponse>> Delete(string guid)
     {
-        var userAuth = _userService.GetAuthenticatedUser();
-        if (userAuth is null) return NotFound(new {message = "No se ha podido identificar al usuario logeado"});
-        
-        var cuentaDelete = await _cuentaService.DeleteMeAsync(userAuth.Guid,guid);
-        if (cuentaDelete is null) return NotFound($"Cuenta no encontrada con guid {guid}");
-        return Ok(cuentaDelete);
+        try
+        {
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return Unauthorized(new { message = "No se ha podido identificar al usuario logeado" });
+            
+            var cuentaDelete = await _cuentaService.DeleteMeAsync(userAuth.Guid, guid);
+            if (cuentaDelete is null)  return NotFound(new { message = $"Cuenta no encontrada con guid {guid}" });
+            
+            return Ok(cuentaDelete);
+        }
+        catch (ClienteNotFoundException e)
+        {
+            return NotFound(new { message = "Cliente no encontrado.", details = e.Message });
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
+        {
+            return StatusCode(403, new { message = "No tienes permisos para eliminar esta cuenta.", details = e.Message });
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+        }
     }
+
 }
