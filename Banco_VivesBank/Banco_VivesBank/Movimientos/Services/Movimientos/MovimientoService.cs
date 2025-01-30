@@ -16,6 +16,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
+using CuentaInvalidaException = Banco_VivesBank.Storage.Pdf.Exception.CuentaInvalidaException;
 
 namespace Banco_VivesBank.Movimientos.Services.Movimientos;
 
@@ -162,7 +163,7 @@ public class MovimientoService : IMovimientoService
         _logger.LogInformation("Movimiento guardado con éxito");
     }
 
-    public async Task<IngresoNominaResponse> CreateIngresoNominaAsync(IngresoNominaRequest ingresoNominaRequest)
+    public async Task<IngresoNominaResponse> CreateIngresoNominaAsync(User.Models.User userAuth, IngresoNominaRequest ingresoNominaRequest)
     {
         _logger.LogInformation("Creando ingreso de nómina");
         
@@ -172,6 +173,16 @@ public class MovimientoService : IMovimientoService
         {
             _logger.LogWarning($"No se ha encontrado la cuenta con iban: {ingresoNominaRequest.IbanCliente}");
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {ingresoNominaRequest.IbanCliente}");
+        }
+        
+        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        
+        _logger.LogInformation($"Validando pertenencia de la cuenta con guid {cuenta.Guid} al cliente con guid {cliente!.Guid}");
+        if (cuenta.ClienteGuid != cliente!.Guid)
+        {
+            _logger.LogWarning($"La cuenta con guid {cuenta.Guid} no pertenece al cliente autenticado con guid {cliente.Guid}");
+            throw new CuentaNoPertenecienteAlUsuarioException($"La cuenta con guid {cuenta.Guid} no pertenece al cliente con guid {cliente.Guid}");
         }
         
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -224,7 +235,7 @@ public class MovimientoService : IMovimientoService
         return ingresoNomina.ToResponseFromModel()!;
     }
 
-    public async Task<PagoConTarjetaResponse> CreatePagoConTarjetaAsync(PagoConTarjetaRequest pagoConTarjetaRequest)
+    public async Task<PagoConTarjetaResponse> CreatePagoConTarjetaAsync(User.Models.User userAuth, PagoConTarjetaRequest pagoConTarjetaRequest)
     {
         _logger.LogInformation("Creando pago con tarjeta");
         
@@ -242,6 +253,16 @@ public class MovimientoService : IMovimientoService
         {
             _logger.LogWarning($"No se ha encontrado la cuenta asociada a la tarjeta con guid: {tarjeta.Guid}");
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta asociada a la tarjeta con guid: {tarjeta.Guid}");
+        }
+        
+        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        
+        _logger.LogInformation($"Validando pertenencia de la cuenta con guid {cuenta.Guid} al cliente con guid {cliente!.Guid}");
+        if (cuenta.ClienteGuid != cliente!.Guid)
+        {
+            _logger.LogWarning($"La tarjeta con guid {tarjeta.Guid} perteneciente a la cuenta con guid {cuenta.Guid} no pertenece al cliente autenticado con guid {cliente.Guid}");
+            throw new CuentaNoPertenecienteAlUsuarioException($"La tarjeta con guid {tarjeta.Guid} perteneciente a la cuenta con guid {cuenta.Guid} no pertenece al cliente con guid {cliente.Guid}");
         }
         
         _logger.LogInformation($"Validando saldo suficiente en la cuenta con guid: {cuenta.Guid} perteneciente a la tarjeta con guid: {tarjeta.Guid}");
@@ -299,119 +320,145 @@ public class MovimientoService : IMovimientoService
         return pagoConTarjeta.ToResponseFromModel()!;
     }
 
-    public async Task<TransferenciaResponse> CreateTransferenciaAsync(TransferenciaRequest transferenciaRequest)
+    public async Task<TransferenciaResponse> CreateTransferenciaAsync(User.Models.User userAuth, TransferenciaRequest transferenciaRequest)
     {
         _logger.LogInformation("Creando transferencia");
         
-        _logger.LogInformation("Validando existencia de la cuenta de destino");
-        var cuentaDestino = await _cuentaService.GetByIbanAsync(transferenciaRequest.IbanDestino);
-        if (cuentaDestino == null)
+        _logger.LogInformation("Validando que la cuenta de origen y destino sean distintas");
+        if (transferenciaRequest.IbanOrigen == transferenciaRequest.IbanDestino)
         {
-            _logger.LogWarning($"No se ha encontrado la cuenta con iban: {transferenciaRequest.IbanDestino}");
-            throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {transferenciaRequest.IbanDestino}");
+            _logger.LogWarning("Las cuentas de origen y destino deben ser distintas");
+            throw new CuentaInvalidaException("Las cuentas de origen y destino deben ser distintas");
         }
         
-        _logger.LogInformation("Validando saldo suficiente en la cuenta de origen en caso de pertenecer a VivesBank");
+        _logger.LogInformation("Validando existencia de la cuenta de origen");
         var cuentaOrigen = await _cuentaService.GetByIbanAsync(transferenciaRequest.IbanOrigen);
-        
-        if (cuentaOrigen != null)
+        if (cuentaOrigen == null)
         {
-            if (cuentaOrigen.Saldo < transferenciaRequest.Importe)
-            {
-                _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} €");
-                throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} ���");
-            }
-            
-            await using var transactionCuentaOrigen = await _context.Database.BeginTransactionAsync();
+            _logger.LogWarning($"No se ha encontrado la cuenta con iban: {transferenciaRequest.IbanOrigen}");
+            throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {transferenciaRequest.IbanOrigen}");
+        }
+        
+        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        
+        _logger.LogInformation($"Validando pertenencia de la cuenta de origen con guid {cuentaOrigen.Guid} al cliente con guid {cliente!.Guid}");
+        if (cuentaOrigen.ClienteGuid != cliente.Guid)
+        {
+            _logger.LogWarning($"La cuenta de origen con guid {cuentaOrigen.Guid} no pertenece al cliente autenticado con guid {cliente.Guid}");
+            throw new CuentaNoPertenecienteAlUsuarioException($"La cuenta de origen con guid {cuentaOrigen.Guid} no pertenece al cliente con guid {cliente.Guid}");
+        }
+        
+        _logger.LogInformation($"Validando saldo suficiente en la cuenta de origen con guid {cuentaOrigen.Guid}");
+        if (cuentaOrigen.Saldo < transferenciaRequest.Importe)
+        {
+            _logger.LogWarning($"Saldo insuficiente en la cuenta de origen con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} €");
+            throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta de origen con guid: {cuentaOrigen.Guid} respecto al importe de {transferenciaRequest.Importe} ���");
+        }
+        
+        _logger.LogInformation("Validando existencia de la cuenta de destino en caso de pertenecer a VivesBank");
+        var cuentaDestino = await _cuentaService.GetByIbanAsync(transferenciaRequest.IbanDestino);
+        
+        if (cuentaDestino != null)
+        {
+            await using var transactionCuentaDestino = await _context.Database.BeginTransactionAsync();
             try
             {
-                var cuentaUpdateOrigen = await _context.Cuentas.Where(c => c.Guid == cuentaOrigen.Guid).FirstOrDefaultAsync();
+                var cuentaUpdateDestino = await _context.Cuentas.Where(c => c.Guid == cuentaDestino.Guid).FirstOrDefaultAsync();
 
-                if (cuentaUpdateOrigen != null)
+                if (cuentaUpdateDestino != null)
                 {
-                    cuentaUpdateOrigen.Saldo -= transferenciaRequest.Importe;
+                    cuentaUpdateDestino.Saldo += transferenciaRequest.Importe;
 
                     await _context.SaveChangesAsync();
-                    await transactionCuentaOrigen.CommitAsync();
+                    await transactionCuentaDestino.CommitAsync();
                 }
                 else
                 {
-                    await transactionCuentaOrigen.RollbackAsync();
+                    await transactionCuentaDestino.RollbackAsync();
                 }
             }
             catch (Exception ex)
             {
-                await transactionCuentaOrigen.RollbackAsync();
-                _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}");
-                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
+                await transactionCuentaDestino.RollbackAsync();
+                _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}");
+                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
             }
         }
         
-        await using var transactionCuentaDestino = await _context.Database.BeginTransactionAsync();
+        await using var transactionCuentaOrigen = await _context.Database.BeginTransactionAsync();
         try
         {
-            var cuentaUpdateDestino = await _context.Cuentas.Where(c => c.Guid == cuentaDestino.Guid).FirstOrDefaultAsync();
+            var cuentaUpdateOrigen = await _context.Cuentas.Where(c => c.Guid == cuentaOrigen.Guid).FirstOrDefaultAsync();
 
-            if (cuentaUpdateDestino != null)
+            if (cuentaUpdateOrigen != null)
             {
-                cuentaUpdateDestino.Saldo += transferenciaRequest.Importe;
+                cuentaUpdateOrigen.Saldo -= transferenciaRequest.Importe;
 
                 await _context.SaveChangesAsync();
-                await transactionCuentaDestino.CommitAsync();
+                await transactionCuentaOrigen.CommitAsync();
             }
             else
             {
-                await transactionCuentaDestino.RollbackAsync();
+                await transactionCuentaOrigen.RollbackAsync();
             }
         }
         catch (Exception ex)
         {
-            await transactionCuentaDestino.RollbackAsync();
-            _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}");
-            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
+            await transactionCuentaOrigen.RollbackAsync();
+            _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}");
+            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
         }
         
-        Transferencia transferencia = new Transferencia
+        _logger.LogInformation("Transferencia realizada con éxito");
+
+        if (cuentaDestino != null)
+        {
+            Transferencia transferenciaDestino = new Transferencia
+            {
+                IbanOrigen = transferenciaRequest.IbanOrigen,
+                NombreBeneficiario = transferenciaRequest.NombreBeneficiario,
+                IbanDestino = transferenciaRequest.IbanDestino,
+                Importe = transferenciaRequest.Importe
+            };
+            
+            MovimientoRequest movimientoRequestDestino = new MovimientoRequest
+            {
+                ClienteGuid = cuentaDestino.ClienteGuid,
+                Domiciliacion = null,
+                IngresoNomina = null,
+                PagoConTarjeta = null,
+                Transferencia = transferenciaDestino
+            };
+            
+            await CreateAsync(movimientoRequestDestino);
+            _logger.LogInformation("Movimiento de la transferencia en la cuenta de destino generado con éxito");
+        }
+
+        Transferencia transferenciaOrigen = new Transferencia
         {
             IbanOrigen = transferenciaRequest.IbanOrigen,
             NombreBeneficiario = transferenciaRequest.NombreBeneficiario,
             IbanDestino = transferenciaRequest.IbanDestino,
-            Importe = transferenciaRequest.Importe
+            Importe = -transferenciaRequest.Importe
         };
         
-        _logger.LogInformation("Transferencia realizada con éxito");
-
-        if (cuentaOrigen != null)
+        MovimientoRequest movimientoRequestOrigen = new MovimientoRequest
         {
-            MovimientoRequest movimientoRequestOrigen = new MovimientoRequest
-            {
-                ClienteGuid = cuentaOrigen.ClienteGuid,
-                Domiciliacion = null,
-                IngresoNomina = null,
-                PagoConTarjeta = null,
-                Transferencia = transferencia
-            };
-            
-            await CreateAsync(movimientoRequestOrigen);
-            _logger.LogInformation("Movimiento de la transferencia en la cuenta de origen generado con éxito");
-        }
-
-        MovimientoRequest movimientoRequestDestino = new MovimientoRequest
-        {
-            ClienteGuid = cuentaDestino.ClienteGuid,
+            ClienteGuid = cuentaOrigen.ClienteGuid,
             Domiciliacion = null,
             IngresoNomina = null,
             PagoConTarjeta = null,
-            Transferencia = transferencia
+            Transferencia = transferenciaOrigen
         };
         
-        await CreateAsync(movimientoRequestDestino);
-        _logger.LogInformation("Movimiento de la transferencia en la cuenta de destino generado con éxito");
+        await CreateAsync(movimientoRequestOrigen);
+        _logger.LogInformation("Movimiento de la transferencia en la cuenta de origen generado con éxito");
 
-        return transferencia.ToResponseFromModel()!;
+        return transferenciaOrigen.ToResponseFromModel()!;
     }
 
-    public async Task<TransferenciaResponse> RevocarTransferenciaAsync(string movimientoGuid)
+    public async Task<TransferenciaResponse> RevocarTransferenciaAsync(User.Models.User userAuth, string movimientoGuid)
     {
         _logger.LogInformation("Revocando transferencia");
         
@@ -423,6 +470,23 @@ public class MovimientoService : IMovimientoService
             throw new MovimientoNotFoundException($"No existe el movimiento con guid: {movimientoGuid} o no es un movimiento de transferencia");
         }
         
+        _logger.LogInformation($"Buscando cliente correspondiente al usuario autenticado con guid {userAuth.Guid}");
+        var cliente = await _clienteService.GetMeAsync(userAuth);
+        
+        _logger.LogInformation($"Validando que el movimiento de la transferencia a revocar pertenezca al usuario que lo solicita");
+        if (movimiento.ClienteGuid != cliente!.Guid)
+        {
+            _logger.LogWarning($"El movimiento de la transferencia con guid: {movimientoGuid} no pertenece al usuario que lo solicita");
+            throw new MovimientoNoPertenecienteAlUsuarioAutenticadoException($"El movimiento de la transferencia con guid: {movimientoGuid} no pertenece al usuario que lo solicita");
+        }
+        
+        _logger.LogInformation("Validando que la transferencia a revocar sea una transferencia recibida");
+        if (movimiento.Transferencia.Importe < 0)
+        {
+            _logger.LogWarning($"La transferencia con guid de movimiento: {movimientoGuid} no es una transferencia recibida");
+            throw new TransferenciaEmitidaException($"La transferencia con guid de movimiento: {movimientoGuid} no es una transferencia recibida");
+        }
+        
         _logger.LogInformation($"Validando que la transferencia no haya sido revocada previamente");
         if (movimiento.Transferencia.Revocada)
         {
@@ -430,112 +494,131 @@ public class MovimientoService : IMovimientoService
             throw new TransferenciaRevocadaException($"La transferencia con guid de movimiento: {movimientoGuid} ya ha sido revocada previamente");
         }
         
-        _logger.LogInformation("Validando existencia de la cuenta de origen en caso de pertenecer a VivesBank");
-        var cuentaOrigen = await _cuentaService.GetByIbanAsync(movimiento.Transferencia.IbanOrigen);
-        if (cuentaOrigen != null)
-        {
-            await using var transactionCuentaOrigen = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var cuentaUpdateOrigen = await _context.Cuentas.Where(c => c.Guid == cuentaOrigen.Guid).FirstOrDefaultAsync();
-
-                if (cuentaUpdateOrigen != null)
-                {
-                    cuentaUpdateOrigen.Saldo += movimiento.Transferencia.Importe;
-
-                    await _context.SaveChangesAsync();
-                    await transactionCuentaOrigen.CommitAsync();
-                }
-                else
-                {
-                    await transactionCuentaOrigen.RollbackAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                await transactionCuentaOrigen.RollbackAsync();
-                _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}");
-                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigen.Guid}\n\n{ex.Message}");
-            }
-        }
-        
-        _logger.LogInformation("Validando existencia de la cuenta de destino");
-        var cuentaDestino = await _cuentaService.GetByIbanAsync(movimiento.Transferencia.IbanDestino);
-        if (cuentaDestino == null)
+        _logger.LogInformation("Validando existencia de la nueva cuenta origen de la transferencia");
+        // Cuenta destino "old" de la transferencia que se va a revocar
+        var cuentaOrigenNew = await _cuentaService.GetByIbanAsync(movimiento.Transferencia.IbanDestino);
+        if (cuentaOrigenNew == null)
         {
             _logger.LogWarning($"No se ha encontrado la cuenta con iban: {movimiento.Transferencia.IbanDestino}");
             throw new CuentaNotFoundException($"No se ha encontrado la cuenta con iban: {movimiento.Transferencia.IbanDestino}");
         }
-
-        if (cuentaDestino.Saldo < movimiento.Transferencia.Importe)
+        
+        _logger.LogInformation($"Validando pertenencia de la nueva cuenta de origen con guid {cuentaOrigenNew.Guid} al cliente con guid {cliente!.Guid}");
+        if (cuentaOrigenNew.ClienteGuid != cliente!.Guid)
         {
-            _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
-            throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuentaDestino.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
+            _logger.LogWarning($"La nueva cuenta de origen con guid {cuentaOrigenNew.Guid} no pertenece al cliente autenticado con guid {cliente.Guid}");
+            throw new CuentaNoPertenecienteAlUsuarioException($"La nueva cuenta de origen con guid {cuentaOrigenNew.Guid} no pertenece al cliente con guid {cliente.Guid}");
+        }
+
+        if (cuentaOrigenNew.Saldo < movimiento.Transferencia.Importe)
+        {
+            _logger.LogWarning($"Saldo insuficiente en la cuenta con guid: {cuentaOrigenNew.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
+            throw new SaldoCuentaInsuficientException($"Saldo insuficiente en la cuenta con guid: {cuentaOrigenNew.Guid} respecto al importe de {movimiento.Transferencia.Importe} €");
         }
         
-        await using var transactionCuentaDestino = await _context.Database.BeginTransactionAsync();
+        _logger.LogWarning($"{movimiento.Transferencia.Importe}");
+        
+        await using var transactionCuentaOrigenNew = await _context.Database.BeginTransactionAsync();
         try
         {
-            var cuentaUpdateDestino = await _context.Cuentas.Where(c => c.Guid == cuentaDestino.Guid).FirstOrDefaultAsync();
+            var cuentaUpdateOrigenNew = await _context.Cuentas.Where(c => c.Guid == cuentaOrigenNew.Guid).FirstOrDefaultAsync();
 
-            if (cuentaUpdateDestino != null)
+            if (cuentaUpdateOrigenNew != null)
             {
-                cuentaUpdateDestino.Saldo -= movimiento.Transferencia.Importe;
+                cuentaUpdateOrigenNew.Saldo -= movimiento.Transferencia.Importe;
 
                 await _context.SaveChangesAsync();
-                await transactionCuentaDestino.CommitAsync();
+                await transactionCuentaOrigenNew.CommitAsync();
             }
             else
             {
-                await transactionCuentaDestino.RollbackAsync();
+                await transactionCuentaOrigenNew.RollbackAsync();
             }
         }
         catch (Exception ex)
         {
-            await transactionCuentaDestino.RollbackAsync();
-            _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}");
-            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestino.Guid}\n\n{ex.Message}");
+            await transactionCuentaOrigenNew.RollbackAsync();
+            _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaOrigenNew.Guid}");
+            throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaOrigenNew.Guid}\n\n{ex.Message}");
         }
         
-        Transferencia transferencia = new Transferencia
+        _logger.LogInformation("Validando existencia de la nueva cuenta destino en caso de pertenecer a VivesBank");
+        // Cuenta origen "old" de la transferencia que se va a revocar
+        var cuentaDestinoNew = await _cuentaService.GetByIbanAsync(movimiento.Transferencia.IbanOrigen);
+        if (cuentaDestinoNew != null)
+        {
+            await using var transactionCuentaDestinoNew = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var cuentaUpdateDestinoNew = await _context.Cuentas.Where(c => c.Guid == cuentaDestinoNew.Guid).FirstOrDefaultAsync();
+
+                if (cuentaUpdateDestinoNew != null)
+                {
+                    cuentaUpdateDestinoNew.Saldo += movimiento.Transferencia.Importe;
+
+                    await _context.SaveChangesAsync();
+                    await transactionCuentaDestinoNew.CommitAsync();
+                }
+                else
+                {
+                    await transactionCuentaDestinoNew.RollbackAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await transactionCuentaDestinoNew.RollbackAsync();
+                _logger.LogWarning($"Error al actualizar el saldo de la cuenta con guid: {cuentaDestinoNew.Guid}");
+                throw new TransactionException($"Error a la hora de actualizar el saldo de la cuenta con guid: {cuentaDestinoNew.Guid}\n\n{ex.Message}");
+            }
+        }
+
+        if (cuentaDestinoNew != null)
+        {
+            Transferencia transferenciaDestinoNew = new Transferencia
+            {
+                IbanOrigen = movimiento.Transferencia.IbanOrigen,
+                NombreBeneficiario = movimiento.Transferencia.NombreBeneficiario,
+                IbanDestino = movimiento.Transferencia.IbanDestino,
+                Importe = movimiento.Transferencia.Importe
+            };
+            
+            MovimientoRequest movimientoRequestOrigen = new MovimientoRequest
+            {
+                ClienteGuid = cuentaDestinoNew.ClienteGuid,
+                Domiciliacion = null,
+                IngresoNomina = null,
+                PagoConTarjeta = null,
+                Transferencia = transferenciaDestinoNew
+            };
+            
+            await CreateAsync(movimientoRequestOrigen);
+            _logger.LogInformation("Movimiento de la revocación de transferencia en la cuenta de origen generado con éxito");
+        }
+        
+        Transferencia transferenciaOrigenNew = new Transferencia
         {
             IbanOrigen = movimiento.Transferencia.IbanOrigen,
             NombreBeneficiario = movimiento.Transferencia.NombreBeneficiario,
             IbanDestino = movimiento.Transferencia.IbanDestino,
-            Importe = movimiento.Transferencia.Importe
+            Importe = -movimiento.Transferencia.Importe
         };
 
         movimiento.Transferencia.Revocada = true;
         await _movimientoCollection.ReplaceOneAsync(m => m.Guid == movimientoGuid, movimiento);
         _logger.LogInformation("Transferencia revocada con éxito");
 
-        if (cuentaOrigen != null)
-        {
-            MovimientoRequest movimientoRequestOrigen = new MovimientoRequest
-            {
-                ClienteGuid = cuentaOrigen.ClienteGuid,
-                Domiciliacion = null,
-                IngresoNomina = null,
-                PagoConTarjeta = null,
-                Transferencia = transferencia
-            };
-            
-            await CreateAsync(movimientoRequestOrigen);
-            _logger.LogInformation("Movimiento de la revocación de transferencia en la cuenta de origen generado con éxito");
-        }
-
         MovimientoRequest movimientoRequestDestino = new MovimientoRequest
         {
-            ClienteGuid = cuentaDestino.ClienteGuid,
+            ClienteGuid = cuentaOrigenNew.ClienteGuid,
             Domiciliacion = null,
             IngresoNomina = null,
             PagoConTarjeta = null,
-            Transferencia = transferencia
+            Transferencia = transferenciaOrigenNew
         };
         
         await CreateAsync(movimientoRequestDestino);
         _logger.LogInformation("Movimiento de la revocación de transferencia en la cuenta de destino generado con éxito");
 
-        return transferencia.ToResponseFromModel()!;
+        return transferenciaOrigenNew.ToResponseFromModel()!;
     }
 }
