@@ -1,4 +1,4 @@
-﻿namespace Banco_VivesBank.Config.Storage;
+﻿namespace Banco_VivesBank.Config.Storage.Images;
 
 public static class MimeTypes
 {

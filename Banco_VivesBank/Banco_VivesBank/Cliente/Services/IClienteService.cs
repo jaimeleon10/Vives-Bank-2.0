@@ -19,9 +19,9 @@ public interface IClienteService
 
     public Task<string> DerechoAlOlvido(string userGuid);
     
-    public Task<ClienteResponse?> UpdateFotoDni(string guid, IFormFile dniFoto);
+    public Task<ClienteResponse?> UpdateFotoDni(User.Models.User userAuth, IFormFile dniFoto);
     public Task<Stream> GetFotoDniAsync(string guid);
-    public Task<ClienteResponse?> UpdateFotoPerfil(string guid, IFormFile fotoPerfil);
+    public Task<ClienteResponse?> UpdateFotoPerfil(User.Models.User userAuth, IFormFile fotoPerfil);
     public Task<IEnumerable<Models.Cliente>> GetAllForStorage();
 
     public Task<Models.Cliente?> GetClienteModelByGuid(string guid);

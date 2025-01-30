@@ -170,15 +170,19 @@ public class ClienteController : ControllerBase
         return Ok(clienteResponse);
     }
 
-    [HttpPatch("{guid}/foto_perfil")]
-    public async Task<ActionResult<ClienteResponse>> PatchFotoPerfil(string guid, IFormFile foto)
+    [HttpPatch("fotoPerfil")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> UpdateMyProfilePicture(IFormFile foto)
     {
         try
         {
-            var clienteResponse = await _clienteService.UpdateFotoPerfil(guid, foto);
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            
+            var clienteResponse = await _clienteService.UpdateFotoPerfil(userAuth, foto);
 
             if (clienteResponse is null)
-                return NotFound($"No se ha podido actualizar la foto de perfil del cliente con GUID: {guid}");
+                return NotFound($"No se ha podido actualizar la foto de perfil del cliente correspondiente al usuario con guid {userAuth.Guid}");
 
             return Ok(clienteResponse);
         }
@@ -188,8 +192,9 @@ public class ClienteController : ControllerBase
         }
     }
     
-    [HttpPost("{guid}/foto_dni")]
-    public async Task<ActionResult<ClienteResponse>> PostFotoDni(string guid, IFormFile foto)
+    [HttpPost("fotoDni")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<ClienteResponse>> UpdateMyDniPicture(IFormFile foto)
     {
         if (foto == null || foto.Length == 0)
         {
@@ -198,7 +203,10 @@ public class ClienteController : ControllerBase
         
         try
         {
-            var clienteResponse = await _clienteService.UpdateFotoDni(guid, foto);
+            var userAuth = _userService.GetAuthenticatedUser();
+            if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+            
+            var clienteResponse = await _clienteService.UpdateFotoDni(userAuth, foto);
             return Ok(clienteResponse);
         }
         catch (Exception ex)
@@ -207,7 +215,8 @@ public class ClienteController : ControllerBase
         }
     }
 
-    [HttpGet("{guid}/foto_dni")]
+    [HttpGet("fotoDni/{guid}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> GetFotoDni(string guid)
     {
         try
@@ -221,21 +230,24 @@ public class ClienteController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Error interno al recuperar la foto del DNI.");
+            return NotFound( $"Error al recuperar la foto del DNI.\n\n{ex.Message}");
         }
     }
     
-    [HttpGet("{guid}/movimientos_pdf")]
-    public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos(string guid)
+    [HttpGet("movimientosPDF")]
+    [Authorize(Policy = "ClientePolicy")]
+    public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos()
     {
-        var clienteResponse = await _clienteService.GetByGuidAsync(guid);
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
+        
+        var clienteResponse = await _clienteService.GetMeAsync(userAuth);
         if (clienteResponse is null)
-            return NotFound($"No se ha encontrado cliente con guid: {guid}");
+            return NotFound($"No se ha encontrado el cliente correspondiente al usuario con guid: {userAuth.Guid}");
 
-        var movimientos = await _movimientoService.GetByClienteGuidAsync(guid);
+        var movimientos = await _movimientoService.GetByClienteGuidAsync(clienteResponse.Guid);
 
-        if (movimientos is null || !movimientos.Any())
-            return NotFound($"No se han encontrado movimientos del cliente con guid: {guid}");
+        if (movimientos == null || !movimientos.Any()) return NotFound($"No se han encontrado movimientos del cliente con guid: {clienteResponse.Guid}");
 
         var movimientosList = movimientos.ToList();
 
