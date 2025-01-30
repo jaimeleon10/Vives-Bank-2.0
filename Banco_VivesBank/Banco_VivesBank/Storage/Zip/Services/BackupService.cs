@@ -1,4 +1,6 @@
 using System.IO.Compression;
+using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
@@ -39,103 +41,102 @@ public class BackupService : IBackupService
     }
     
     public async Task ExportToZip(string sourceDirectory, string zipFilePath)
+{
+    _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
+
+    if (string.IsNullOrWhiteSpace(sourceDirectory))
+        throw new ArgumentNullException(nameof(sourceDirectory));
+
+    if (string.IsNullOrWhiteSpace(zipFilePath))
+        throw new ArgumentNullException(nameof(zipFilePath));
+
+    try
     {
-        _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
-
-        if (string.IsNullOrWhiteSpace(sourceDirectory))
-            throw new ArgumentNullException(nameof(sourceDirectory));
-        
-        if (string.IsNullOrWhiteSpace(zipFilePath))
-            throw new ArgumentNullException(nameof(zipFilePath));
-
-        try
+        if (File.Exists(zipFilePath))
         {
-            if (File.Exists(zipFilePath))
-            {
-                _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
-                File.Delete(zipFilePath);
-            }
-
-            var users = await _context.Usuarios.ToListAsync();
-            
-            var clientesEntity = await _context.Clientes.ToListAsync();
-            var clientes = new List<Cliente.Models.Cliente>();
-            foreach (var clienteEntity in clientesEntity)
-            {
-                var clienteResponse = ClienteMapper.ToModelFromEntity(clienteEntity);
-                clientes.Add(clienteResponse);
-            }
-
-            var productos = await _context.ProductoBase.ToListAsync();
-            
-            var CuentasEntity = await _context.Cuentas.ToListAsync();
-            var cuentas = new List<Cuenta>();
-            foreach (var cuentaEntity in CuentasEntity)
-            {
-                var cuenta = CuentaMapper.ToModelFromEntity(cuentaEntity);
-                cuentas.Add(cuenta);
-            }
-            
-            var tarjetasEntity = await _context.Tarjetas.ToListAsync();
-            var tarjetas = new List<Tarjeta>();
-            foreach (var tarjetaEntity in tarjetasEntity)
-            {
-                var tarjeta = TarjetaMapper.ToModelFromEntity(tarjetaEntity);
-                tarjetas.Add(tarjeta);
-            }
-            
-            var movimientos = await _movimientoCollection.Find(_ => true).ToListAsync();
-            var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
-            
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), users.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos.ToList());
-            _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones.ToList());
-
-
-            using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-            {
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "usuarios.json"), "usuarios.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "clientes.json"), "clientes.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "productos.json"), "productos.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "cuentas.json"), "cuentas.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "tarjetas.json"), "tarjetas.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "movimientos.json"), "movimientos.json");
-                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, "domiciliaciones.json"), "domiciliaciones.json");
-
-                var avatarDirectory = Path.Combine("data", "avatares");
-                if (Directory.Exists(avatarDirectory))
-                {
-                    _logger.LogInformation($"Agregando avatares al ZIP...");
-                    foreach (var file in Directory.GetFiles(avatarDirectory))
-                    {
-                        var entryName = Path.Combine("avatares", Path.GetFileName(file));
-                        zipArchive.CreateEntryFromFile(file, entryName);
-                    }
-                }
-            }
-
-            foreach (var fileName in new[] { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" })
-            {
-                var filePath = Path.Combine(sourceDirectory, fileName);
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-            }
-
-            _logger.LogInformation("Exportación de datos a ZIP finalizada.");
+            _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
+            File.Delete(zipFilePath);
         }
-        catch (Exception e)
+
+        var usuarios = await _context.Usuarios.ToListAsync();
+
+        var clientesEntity = await _context.Clientes.ToListAsync();
+        var clientes = clientesEntity.Select(ClienteMapper.ToModelFromEntity).ToList();
+
+        var productos = await _context.ProductoBase.ToListAsync();
+
+        var cuentasEntity = await _context.Cuentas.ToListAsync();
+        var cuentas = cuentasEntity.Select(CuentaMapper.ToModelFromEntity).ToList();
+
+        var tarjetasEntity = await _context.Tarjetas.ToListAsync();
+        var tarjetas = tarjetasEntity.Select(TarjetaMapper.ToModelFromEntity).ToList();
+
+        var movimientos = await _movimientoCollection.Find(_ => true).ToListAsync();
+        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+
+        ExportarDatosAJson(sourceDirectory, usuarios, clientes, productos, cuentas, tarjetas, movimientos, domiciliaciones);
+        AgregarArchivosAlZip(sourceDirectory, zipFilePath);
+        EliminarArchivosTemporales(sourceDirectory);
+
+        _logger.LogInformation("Exportación de datos a ZIP finalizada.");
+    }
+    catch (Exception e)
+    {
+        _logger.LogError(e, "Error al exportar datos a ZIP");
+        throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
+    }
+}
+
+    public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios, List<Cliente.Models.Cliente> clientes,
+        List<ProductoEntity> productos, List<Cuenta> cuentas, List<Tarjeta> tarjetas, List<Movimiento> movimientos, List<Domiciliacion> domiciliaciones)
+    {
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), usuarios);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos);
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones);
+    }
+
+    public void AgregarArchivosAlZip(string sourceDirectory, string zipFilePath)
+    {
+        using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
         {
-            _logger.LogError(e, "Error al exportar datos a ZIP");
-            throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
+            string[] archivos = { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" };
+
+            foreach (var archivo in archivos)
+            {
+                zipArchive.CreateEntryFromFile(Path.Combine(sourceDirectory, archivo), archivo);
+            }
+
+            var avatarDirectory = Path.Combine("data", "avatares");
+            if (Directory.Exists(avatarDirectory))
+            {
+                _logger.LogInformation("Agregando avatares al ZIP...");
+                foreach (var file in Directory.GetFiles(avatarDirectory))
+                {
+                    var entryName = Path.Combine("avatares", Path.GetFileName(file));
+                    zipArchive.CreateEntryFromFile(file, entryName);
+                }
+            }
         }
     }
 
+    public void EliminarArchivosTemporales(string sourceDirectory)
+    {
+        string[] archivos = { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" };
+
+        foreach (var archivo in archivos)
+        {
+            var filePath = Path.Combine(sourceDirectory, archivo);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+    }
+    
     public async Task ImportFromZip(string zipFilePath, string destinationDirectory)
     {
         _logger.LogInformation("Iniciando la importación de datos desde ZIP...");
@@ -188,20 +189,17 @@ public class BackupService : IBackupService
             var users = _storageJson.ImportJson<UserEntity>(usuariosFile);
             var clientesModel = _storageJson.ImportJson<Cliente.Models.Cliente>(clientesFile);
             var clientes = new List<ClienteEntity>();
-            foreach (var clienteModel in clientesModel)
+            if (clientesModel != null && clientesModel.Any())
             {
-                var clientes = _storageJson.ImportJson<ClienteRequest>(clientesFile);
-                foreach (var cliente in clientes)
+                foreach (var clienteModel in clientesModel)
                 {
-                    try
-                    {
-                        // TODO await _clienteService.CreateAsync(cliente);
-                    }
-                    catch (ClienteExistsException e)
-                    {
-                        _logger.LogWarning($"Cliente duplicado encontrado: {cliente.Nombre}. Saltando...");
-                    }
+                    var clienteEntity = ClienteMapper.ToEntityFromModel(clienteModel);
+                    clientes.Add(clienteEntity);
                 }
+            }
+            else
+            {
+                _logger.LogWarning("No hay clientes para importar.");
             }
 
             var productos = _storageJson.ImportJson<ProductoEntity>(productoFile);
