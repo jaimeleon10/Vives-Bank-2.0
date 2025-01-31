@@ -4,6 +4,8 @@ namespace Banco_VivesBank.Movimientos.Dto;
 
 public class TransferenciaResponse
 {
+    public string ClienteOrigen { get; set; }
+    
     public string IbanOrigen { get; set; }
     
     public string NombreBeneficiario { get; set; }

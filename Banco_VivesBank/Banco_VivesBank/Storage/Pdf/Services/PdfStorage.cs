@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Movimientos.Dto;
@@ -22,7 +22,7 @@ public class PdfStorage : IPdfStorage
     public void ExportPDF(ClienteResponse cliente, List<MovimientoResponse> movimientos)
     {
         if (cliente == null)
-            throw new CuentaNotFoundException("cliente null");
+            throw new ClienteNotFoundException("La cliente proporcionada es nula.");
         if (movimientos == null)
             throw new MovimientosInvalidosException("La lista de movimientos proporcionada es nula.");
     
