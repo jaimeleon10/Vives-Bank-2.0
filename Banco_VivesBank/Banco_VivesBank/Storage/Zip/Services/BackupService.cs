@@ -41,62 +41,72 @@ public class BackupService : IBackupService
     }
     
     public async Task ExportToZip(string sourceDirectory, string zipFilePath)
-{
-    _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
-
-    if (string.IsNullOrWhiteSpace(sourceDirectory))
-        throw new ArgumentNullException(nameof(sourceDirectory));
-
-    if (string.IsNullOrWhiteSpace(zipFilePath))
-        throw new ArgumentNullException(nameof(zipFilePath));
-
-    try
     {
-        if (File.Exists(zipFilePath))
+        _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
+
+        if (string.IsNullOrWhiteSpace(sourceDirectory))
+            throw new ArgumentNullException(nameof(sourceDirectory));
+
+        if (string.IsNullOrWhiteSpace(zipFilePath))
+            throw new ArgumentNullException(nameof(zipFilePath));
+
+        try
         {
-            _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
-            File.Delete(zipFilePath);
+            if (File.Exists(zipFilePath))
+            {
+                _logger.LogWarning($"El archivo {zipFilePath} ya existe. Se eliminará antes de crear uno nuevo.");
+                File.Delete(zipFilePath);
+            }
+
+            var usuarios = await _context.Usuarios.ToListAsync();
+
+            var clientesEntity = await _context.Clientes.ToListAsync();
+            var clientes = clientesEntity.Select(ClienteMapper.ToModelFromEntity).ToList();
+
+            var productos = await _context.ProductoBase.ToListAsync();
+
+            var cuentasEntity = await _context.Cuentas.ToListAsync();
+            var cuentas = cuentasEntity.Select(CuentaMapper.ToModelFromEntity).ToList();
+
+            var tarjetasEntity = await _context.Tarjetas.ToListAsync();
+            var tarjetas = tarjetasEntity.Select(TarjetaMapper.ToModelFromEntity).ToList();
+
+            var movimientos = await _movimientoCollection.Find(_ => true).ToListAsync();
+            var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+
+            ExportarDatosAJson(sourceDirectory, usuarios, clientes, productos, cuentas, tarjetas, movimientos, domiciliaciones);
+            AgregarArchivosAlZip(sourceDirectory, zipFilePath);
+            EliminarArchivosTemporales(sourceDirectory);
+
+            _logger.LogInformation("Exportación de datos a ZIP finalizada.");
         }
-
-        var usuarios = await _context.Usuarios.ToListAsync();
-
-        var clientesEntity = await _context.Clientes.ToListAsync();
-        var clientes = clientesEntity.Select(ClienteMapper.ToModelFromEntity).ToList();
-
-        var productos = await _context.ProductoBase.ToListAsync();
-
-        var cuentasEntity = await _context.Cuentas.ToListAsync();
-        var cuentas = cuentasEntity.Select(CuentaMapper.ToModelFromEntity).ToList();
-
-        var tarjetasEntity = await _context.Tarjetas.ToListAsync();
-        var tarjetas = tarjetasEntity.Select(TarjetaMapper.ToModelFromEntity).ToList();
-
-        var movimientos = await _movimientoCollection.Find(_ => true).ToListAsync();
-        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
-
-        ExportarDatosAJson(sourceDirectory, usuarios, clientes, productos, cuentas, tarjetas, movimientos, domiciliaciones);
-        AgregarArchivosAlZip(sourceDirectory, zipFilePath);
-        EliminarArchivosTemporales(sourceDirectory);
-
-        _logger.LogInformation("Exportación de datos a ZIP finalizada.");
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error al exportar datos a ZIP");
+            throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
+        }
     }
-    catch (Exception e)
-    {
-        _logger.LogError(e, "Error al exportar datos a ZIP");
-        throw new ExportFromZipException("Ocurrió un error al intentar exportar datos al archivo ZIP.", e);
-    }
-}
 
-    public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios, List<Cliente.Models.Cliente> clientes,
-        List<ProductoEntity> productos, List<Cuenta> cuentas, List<Tarjeta> tarjetas, List<Movimiento> movimientos, List<Domiciliacion> domiciliaciones)
+    public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios, 
+        List<Cliente.Models.Cliente> clientes, List<ProductoEntity> productos, 
+        List<Cuenta> cuentas, List<Tarjeta> tarjetas, List<Movimiento> movimientos, 
+        List<Domiciliacion> domiciliaciones)
     {
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), usuarios);
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes);
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos);
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas);
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos);
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), usuarios);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos);
+        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones);
+    }
+
+    private void GuardarSiNoVacia<T>(FileInfo file, List<T> data)
+    {
+        if (data != null && data.Count > 0)
+        {
+            _storageJson.ExportJson(file, data);
+        }
     }
 
     public void AgregarArchivosAlZip(string sourceDirectory, string zipFilePath)
@@ -282,7 +292,7 @@ public class BackupService : IBackupService
         }
     }
     
-    async Task SaveEntidadesSiNoExistenAsync<TEntity>(
+    public async Task SaveEntidadesSiNoExistenAsync<TEntity>(
         IEnumerable<TEntity> entidades, 
         DbSet<TEntity> dbSet, 
         Func<TEntity, string> selectorId, 
@@ -329,7 +339,7 @@ public class BackupService : IBackupService
         }
     }
     
-    async Task SaveSiNoExistenAsyncMongo<TEntity>(
+    public async Task SaveSiNoExistenAsyncMongo<TEntity>(
         IEnumerable<TEntity> entidades, 
         IMongoCollection<TEntity> collection, 
         Func<TEntity, string> selectorId) where TEntity : class

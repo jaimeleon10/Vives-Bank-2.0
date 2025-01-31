@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using Banco_VivesBank.Config.Storage;
+using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Storage.Ftp.Exceptions;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Microsoft.Extensions.Logging;
