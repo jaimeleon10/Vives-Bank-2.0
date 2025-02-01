@@ -22,8 +22,8 @@ public static class DomiciliacionMapper
             Importe = domiciliacion.Importe,
             Periodicidad = domiciliacion.Periodicidad.ToString(),
             Activa = domiciliacion.Activa,
-            FechaInicio = domiciliacion.FechaInicio.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UltimaEjecuccion = domiciliacion.UltimaEjecucion.ToString("dd/MM/yyyy - HH:mm:ss")
+            FechaInicio = domiciliacion.FechaInicio.ToString(),
+            UltimaEjecuccion = domiciliacion.UltimaEjecucion.ToString()
         };
     }
 }

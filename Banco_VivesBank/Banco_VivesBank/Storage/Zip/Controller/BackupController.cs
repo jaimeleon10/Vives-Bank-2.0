@@ -1,5 +1,6 @@
-﻿using Banco_VivesBank.Storage.Zip.Exceptions;
+using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.Storage.Zip.Services;
+using GraphQL;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Storage.Zip.Controller;
@@ -31,6 +32,7 @@ public class BackupController : ControllerBase
     protected virtual string GetBackupFilePath() => _backupFilePath;
 
     [HttpGet("exportar-zip")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -70,6 +72,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("importar-zip")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

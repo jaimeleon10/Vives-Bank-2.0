@@ -54,8 +54,8 @@ namespace Banco_VivesBank.User.Mapper
                 Username = usuario.Username,
                 Password = usuario.Password,
                 Role = usuario.Role.ToString(),
-                CreatedAt = usuario.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-                UpdatedAt = usuario.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+                CreatedAt = usuario.CreatedAt.ToString(),
+                UpdatedAt = usuario.UpdatedAt.ToString(),
                 IsDeleted = usuario.IsDeleted
             };
         }
@@ -68,8 +68,8 @@ namespace Banco_VivesBank.User.Mapper
                 Username = userEntity.Username,
                 Password = userEntity.Password,
                 Role = userEntity.Role.ToString(),
-                CreatedAt = userEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-                UpdatedAt = userEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+                CreatedAt = userEntity.CreatedAt.ToString(),
+                UpdatedAt = userEntity.UpdatedAt.ToString(),
                 IsDeleted = userEntity.IsDeleted
             };
         }
