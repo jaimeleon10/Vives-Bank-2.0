@@ -103,11 +103,12 @@ public static class ClienteMapper
               Username = cliente.User.Username,
               Password = cliente.User.Password,
               Role = cliente.User.Role.ToString(),
-              CreatedAt  = cliente.User.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-              UpdatedAt = cliente.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), IsDeleted = cliente.User.IsDeleted
+              CreatedAt  = cliente.User.CreatedAt.ToString(),
+              UpdatedAt = cliente.User.UpdatedAt.ToString(), 
+              IsDeleted = cliente.User.IsDeleted
             },
-            CreatedAt = cliente.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = cliente.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = cliente.CreatedAt.ToString(),
+            UpdatedAt = cliente.UpdatedAt.ToString(),
             IsDeleted = cliente.IsDeleted
         };
     }
@@ -131,12 +132,12 @@ public static class ClienteMapper
                 Username = clienteEntity.User.Username,
                 Password = clienteEntity.User.Password,
                 Role = clienteEntity.User.Role.ToString(),
-                CreatedAt  = clienteEntity.User.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-                UpdatedAt = clienteEntity.User.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), 
+                CreatedAt  = clienteEntity.User.CreatedAt.ToString(),
+                UpdatedAt = clienteEntity.User.UpdatedAt.ToString(), 
                 IsDeleted = clienteEntity.User.IsDeleted
             },
-            CreatedAt = clienteEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = clienteEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = clienteEntity.CreatedAt.ToString(),
+            UpdatedAt = clienteEntity.UpdatedAt.ToString(),
             IsDeleted = clienteEntity.IsDeleted
         };
     }

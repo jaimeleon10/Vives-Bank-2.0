@@ -69,8 +69,8 @@ public static class TarjetaMapper
             LimiteDiario = tarjetaEntity.LimiteDiario,
             LimiteSemanal = tarjetaEntity.LimiteSemanal,
             LimiteMensual = tarjetaEntity.LimiteMensual,
-            CreatedAt = tarjetaEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = tarjetaEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = tarjetaEntity.CreatedAt.ToString(),
+            UpdatedAt = tarjetaEntity.UpdatedAt.ToString(),
             IsDeleted = tarjetaEntity.IsDeleted
         };
     }
@@ -87,8 +87,8 @@ public static class TarjetaMapper
             LimiteDiario = tarjeta.LimiteDiario,
             LimiteSemanal = tarjeta.LimiteSemanal,
             LimiteMensual = tarjeta.LimiteMensual,
-            CreatedAt = tarjeta.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = tarjeta.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = tarjeta.CreatedAt.ToString(),
+            UpdatedAt = tarjeta.UpdatedAt.ToString(),
             IsDeleted = tarjeta.IsDeleted
         };
     }

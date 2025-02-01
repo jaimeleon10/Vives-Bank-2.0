@@ -231,9 +231,10 @@ public class MovimientoService : IMovimientoService
         };
         
         await CreateAsync(movimientoRequest);
-        _logger.LogInformation("Movimiento del pago inicial de la domiciliación generado con éxito");
         var ingresoResponse = ingresoNomina.ToResponseFromModel();
-        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = ingresoResponse.ToString(), Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        var mensaje =
+            $"Se ha realizado el ingreso de la nomina con un importe de  {ingresoNomina.Importe} a la cuenta con iban {ingresoNomina.IbanCliente} del cliente {cliente.Nombre} {cliente.Apellidos}";
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
 
         return ingresoResponse!;
     }
@@ -318,9 +319,10 @@ public class MovimientoService : IMovimientoService
         };
         
         await CreateAsync(movimientoRequest);
-        _logger.LogInformation("Movimiento del pago inicial de la domiciliación generado con éxito");
         var pagoResponse = pagoConTarjeta.ToResponseFromModel();
-        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = pagoConTarjeta.ToString(), Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        var mensaje =
+            $"Se ha realizado el pago con la tarjeta con numero {pagoConTarjeta.NumeroTarjeta}, con un importe de {pagoConTarjeta.Importe} a la cuenta con iban {cuenta.Iban} del cliente {cliente.Nombre} {cliente.Apellidos}";
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
 
         return pagoResponse!;
     }

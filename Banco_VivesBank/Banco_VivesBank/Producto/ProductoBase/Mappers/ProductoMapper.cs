@@ -61,8 +61,8 @@ public static class ProductoMapper
             Descripcion = model.Descripcion,
             Tae = model.Tae,
             TipoProducto = model.TipoProducto,
-            CreatedAt = model.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = model.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = model.CreatedAt.ToString(),
+            UpdatedAt = model.UpdatedAt.ToString(),
             IsDeleted = model.IsDeleted
         };
     }
@@ -76,8 +76,8 @@ public static class ProductoMapper
             Descripcion = entity.Descripcion,
             Tae = entity.Tae,
             TipoProducto = entity.TipoProducto,
-            CreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = entity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = entity.CreatedAt.ToString(),
+            UpdatedAt = entity.UpdatedAt.ToString(),
             IsDeleted = entity.IsDeleted
         };
     }

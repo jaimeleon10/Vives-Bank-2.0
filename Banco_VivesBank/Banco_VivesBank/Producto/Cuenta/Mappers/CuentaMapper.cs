@@ -54,8 +54,8 @@ public static class CuentaMapper
             TarjetaGuid = cuenta.Tarjeta?.Guid,
             ClienteGuid = cuenta.Cliente.Guid,
             ProductoGuid = cuenta.Producto.Guid,
-            CreatedAt = cuenta.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = cuenta.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = cuenta.CreatedAt.ToString(),
+            UpdatedAt = cuenta.UpdatedAt.ToString(),
             IsDeleted = cuenta.IsDeleted
         };
     }
@@ -70,8 +70,8 @@ public static class CuentaMapper
             TarjetaGuid = cuentaEntity.Tarjeta?.Guid,
             ClienteGuid = cuentaEntity.Cliente.Guid,
             ProductoGuid = cuentaEntity.Producto.Guid,
-            CreatedAt = cuentaEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
-            UpdatedAt = cuentaEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"),
+            CreatedAt = cuentaEntity.CreatedAt.ToString(),
+            UpdatedAt = cuentaEntity.UpdatedAt.ToString(),
             IsDeleted = cuentaEntity.IsDeleted
         };
     }
