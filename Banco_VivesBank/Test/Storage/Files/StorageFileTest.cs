@@ -11,14 +11,13 @@ namespace Test.Storage.Images;
 
 public class StorageFileTest
 {
-    private readonly Mock<ILogger<FileStorageService>> _logger;
-    private readonly Mock<IOptions<FileStorageConfig>> _storageConfig;
-    private readonly FileStorageService _storageService;
+    private Mock<ILogger<FileStorageService>> _logger;
+    private Mock<IOptions<FileStorageConfig>> _storageConfig;
+    private FileStorageService _storageService;
 
     public StorageFileTest()
     {
         _logger = new Mock<ILogger<FileStorageService>>();
-
         var fileStorageConfig = new FileStorageConfig
         {
             MaxFileSize = 5 * 1024 * 1024,
@@ -47,6 +46,40 @@ public class StorageFileTest
         Assert.That(File.Exists(Path.Combine(_storageConfig.Object.Value.UploadDirectory, result)), Is.True);
 
         File.Delete(Path.Combine(_storageConfig.Object.Value.UploadDirectory, result));
+    }
+
+    [Test]
+    public void GetFileAsyncErrorAlObtenerArchivo()
+    {
+        var fileName = "existentfile.png";
+        _storageService = new FileStorageService(_storageConfig.Object, _logger.Object);
+
+        _logger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()))
+            .Callback<LogLevel, EventId, object, Exception, Func<object, Exception, string>>(
+                (logLevel, eventId, state, exception, formatter) =>
+                {
+                    throw new IOException("Error reading file.");
+                });
+
+        var exception = Assert.ThrowsAsync<FileStorageNotFoundException>(() => _storageService.GetFileAsync(fileName));
+        Assert.That(exception.Message, Is.EqualTo("File not found: existentfile.png"));
+    }
+
+    [Test]
+    public void DeleteFileAsyncErrorAlEliminarArchivo()
+    {
+        var fileName = "existentfile.png";
+        _storageService = new FileStorageService(_storageConfig.Object, _logger.Object);
+
+        _logger.Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception, string>>()))
+            .Callback<LogLevel, EventId, object, Exception, Func<object, Exception, string>>(
+                (logLevel, eventId, state, exception, formatter) =>
+                {
+                    throw new IOException("Error deleting file.");
+                });
+
+        var exception = Assert.ThrowsAsync<FileStorageNotFoundException>(() => _storageService.DeleteFileAsync(fileName));
+        Assert.That(exception.Message, Is.EqualTo("File not found: existentfile.png"));
     }
     
     [Test]
