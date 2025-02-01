@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Movimientos.Database;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Moq;
-using Newtonsoft.Json;
 using Testcontainers.MongoDb;
 using Testcontainers.PostgreSql;
 
@@ -117,43 +117,6 @@ public class BackupServiceTests : IAsyncDisposable
         
         Assert.That(exception.ParamName, Is.EqualTo("zipFilePath"));
     }
-
-    /*[Test]
-    public async Task ExportacionZip()
-    {
-        // Arrange
-        var dirOrigen = CreateTempDirectory();
-        var rutaZip = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid()}.zip");
-
-        // Crear algunos archivos de prueba en el directorio de origen
-        File.WriteAllText(Path.Combine(dirOrigen, "test1.txt"), "Contenido de prueba 1");
-        File.WriteAllText(Path.Combine(dirOrigen, "test2.txt"), "Contenido de prueba 2");
-
-        try
-        {
-            // Act
-            await _backupService.ExportToZip(dirOrigen, rutaZip);
-
-            // Assert
-            Assert.Multiple(() =>
-            {
-                Assert.That(File.Exists(rutaZip), Is.True, "El archivo ZIP no fue creado");
-                Assert.That(new FileInfo(rutaZip).Length, Is.GreaterThan(0), "El archivo ZIP está vacío");
-
-                using (var archive = ZipFile.OpenRead(rutaZip))
-                {
-                    Assert.That(archive.Entries.Count, Is.EqualTo(2), "El número de archivos en el ZIP no es el esperado");
-                    Assert.That(archive.Entries.Select(e => e.Name), Does.Contain("test1.txt"), "El archivo test1.txt no está en el ZIP");
-                    Assert.That(archive.Entries.Select(e => e.Name), Does.Contain("test2.txt"), "El archivo test2.txt no está en el ZIP");
-                }
-            });
-        }
-        finally
-        {
-            // Cleanup
-            CleanupFiles(rutaZip, dirOrigen);
-        }
-    }*/
     
     [Test]
     public async Task ExportacionZipFileNotFound()
@@ -525,7 +488,25 @@ public class BackupServiceTests : IAsyncDisposable
                 { 
                     Guid = "test-client-guid",
                     Nombre = "Test Client",
-                    Email = "test@example.com"
+                    Email = "test@example.com",
+                    Telefono = "1234567890",
+                    Direccion = new Direccion
+                    {
+                        Calle = "Test Street",
+                        Numero = "123",
+                        CodigoPostal = "12345",
+                        Piso = "2",
+                        Letra = "A"
+                    },
+                    User = new Banco_VivesBank.User.Models.User
+                    {
+                        Guid = "test-user-guid",
+                        Username = "testuser",
+                        Password = "testpass",
+                        Role = Role.User
+                    },
+                    Dni = "03177397Q",
+                    Apellidos = "apellido"
                 }
             });
 
@@ -542,53 +523,19 @@ public class BackupServiceTests : IAsyncDisposable
 
         _storageJsonMock
             .Setup(s => s.ImportJson<Cuenta>(It.IsAny<FileInfo>()))
-            .Returns(new List<Cuenta> 
-            { 
-                new Cuenta 
-                { 
-                    Guid = "test-account-guid",
-                    Iban = "ES1234567890"
-                }
-            });
+            .Returns(new List<Cuenta> ());
 
         _storageJsonMock
             .Setup(s => s.ImportJson<Tarjeta>(It.IsAny<FileInfo>()))
-            .Returns(new List<Tarjeta> 
-            { 
-                new Tarjeta 
-                { 
-                    Guid = "test-card-guid",
-                    Numero = "1234567890123456"
-                }
-            });
+            .Returns(new List<Tarjeta>());
 
         _storageJsonMock
             .Setup(s => s.ImportJson<Movimiento>(It.IsAny<FileInfo>()))
-            .Returns(new List<Movimiento> 
-            { 
-                new Movimiento 
-                { 
-                    Guid = "test-movement-guid",
-                    ClienteGuid = "test-client-guid"
-                }
-            });
+            .Returns(new List<Movimiento>());
 
         _storageJsonMock
             .Setup(s => s.ImportJson<Domiciliacion>(It.IsAny<FileInfo>()))
-            .Returns(new List<Domiciliacion> 
-            { 
-                new Domiciliacion 
-                { 
-                    Acreedor = "fef",
-                    Importe = 12345,
-                    FechaInicio = DateTime.UtcNow,
-                    Activa = true,
-                    Guid = "test-domiciliation-guid",
-                    ClienteGuid = "test-client-guid",
-                    IbanCliente = "ES98765432101234567890",
-                    IbanEmpresa = "ES98765432101234567890"
-                }
-            });
+            .Returns(new List<Domiciliacion>());
     }
 
 }

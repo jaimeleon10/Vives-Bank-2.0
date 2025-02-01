@@ -87,26 +87,18 @@ public class BackupService : IBackupService
         }
     }
 
-    public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios, 
+    public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios,  
         List<Cliente.Models.Cliente> clientes, List<ProductoEntity> productos, 
         List<Cuenta> cuentas, List<Tarjeta> tarjetas, List<Movimiento> movimientos, 
         List<Domiciliacion> domiciliaciones)
     {
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), usuarios);
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes);
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos);
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas);
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas);
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos);
-        GuardarSiNoVacia(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones);
-    }
-
-    private void GuardarSiNoVacia<T>(FileInfo file, List<T> data)
-    {
-        if (data != null && data.Count > 0)
-        {
-            _storageJson.ExportJson(file, data);
-        }
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), usuarios ?? new List<UserEntity>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes ?? new List<Cliente.Models.Cliente>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos ?? new List<ProductoEntity>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas ?? new List<Cuenta>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas ?? new List<Tarjeta>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "movimientos.json")), movimientos ?? new List<Movimiento>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones ?? new List<Domiciliacion>());
     }
 
     public void AgregarArchivosAlZip(string sourceDirectory, string zipFilePath)
@@ -197,15 +189,23 @@ public class BackupService : IBackupService
             }
 
             var users = _storageJson.ImportJson<UserEntity>(usuariosFile);
+            if (users == null || !users.Any())
+            {
+                _logger.LogWarning("No hay usuarios para importar.");
+            }
+            else
+            {
+                _logger.LogInformation("Almacenando Usuarios en la base de datos...");
+                await SaveEntidadesSiNoExistenAsync(users, _context.Usuarios, u => u.Id.ToString(), u => u.Guid);
+            }
+
             var clientesModel = _storageJson.ImportJson<Cliente.Models.Cliente>(clientesFile);
             var clientes = new List<ClienteEntity>();
             if (clientesModel != null && clientesModel.Any())
             {
-                foreach (var clienteModel in clientesModel)
-                {
-                    var clienteEntity = ClienteMapper.ToEntityFromModel(clienteModel);
-                    clientes.Add(clienteEntity);
-                }
+                clientes = clientesModel.Select(ClienteMapper.ToEntityFromModel).ToList();
+                _logger.LogInformation("Almacenando Clientes en la base de datos...");
+                await SaveEntidadesSiNoExistenAsync(clientes, _context.Clientes, c => c.Id.ToString(), c => c.Guid);
             }
             else
             {
@@ -213,40 +213,63 @@ public class BackupService : IBackupService
             }
 
             var productos = _storageJson.ImportJson<ProductoEntity>(productoFile);
+            if (productos == null || !productos.Any())
+            {
+                _logger.LogWarning("No hay productos para importar.");
+            }
+            else
+            {
+                _logger.LogInformation("Almacenando Productos en la base de datos...");
+                await SaveEntidadesSiNoExistenAsync(productos, _context.ProductoBase, p => p.Id.ToString(), p => p.Guid);
+            }
+
             var cuentasModel = _storageJson.ImportJson<Cuenta>(cuentasFile);
             var cuentas = new List<CuentaEntity>();
-            foreach (var cuentaModel in cuentasModel)
+            if (cuentasModel != null && cuentasModel.Any())
             {
-                var cuentaEntity = CuentaMapper.ToEntityFromModel(cuentaModel);
-                cuentas.Add(cuentaEntity);
+                cuentas = cuentasModel.Select(CuentaMapper.ToEntityFromModel).ToList();
+                _logger.LogInformation("Almacenando Cuentas en la base de datos...");
+                await SaveEntidadesSiNoExistenAsync(cuentas, _context.Cuentas, c => c.Id.ToString(), c => c.Guid);
+            }
+            else
+            {
+                _logger.LogWarning("No hay cuentas para importar.");
             }
 
             var tarjetasModel = _storageJson.ImportJson<Tarjeta>(tarjetasFile);
             var tarjetas = new List<TarjetaEntity>();
-            foreach (var tarjetaModel in tarjetasModel)
+            if (tarjetasModel != null && tarjetasModel.Any())
             {
-                var tarjetaEntity = TarjetaMapper.ToEntityFromModel(tarjetaModel);
-                tarjetas.Add(tarjetaEntity);
+                tarjetas = tarjetasModel.Select(TarjetaMapper.ToEntityFromModel).ToList();
+                _logger.LogInformation("Almacenando Tarjetas en la base de datos...");
+                await SaveEntidadesSiNoExistenAsync(tarjetas, _context.Tarjetas, t => t.Id.ToString(), t => t.Guid);
+            }
+            else
+            {
+                _logger.LogWarning("No hay tarjetas para importar.");
             }
 
             var movimientos = _storageJson.ImportJson<Movimiento>(movimientosFile);
+            if (movimientos == null || !movimientos.Any())
+            {
+                _logger.LogWarning("No hay movimientos para importar.");
+            }
+            else
+            {
+                _logger.LogInformation("Almacenando Movimientos en MongoDB...");
+                await SaveSiNoExistenAsyncMongo(movimientos, _movimientoCollection, m => m.Guid.ToString());
+            }
+
             var domiciliaciones = _storageJson.ImportJson<Domiciliacion>(domiciliacionesFile);
-
-            _logger.LogInformation("Almacenando Usuarios en la base de datos...");
-            await SaveEntidadesSiNoExistenAsync(users, _context.Usuarios, u => u.Id.ToString(), u => u.Guid);
-            _logger.LogInformation("Almacenando Clientes en la base de datos...");
-            await SaveEntidadesSiNoExistenAsync(clientes, _context.Clientes, c => c.Id.ToString(), c => c.Guid);
-            _logger.LogInformation("Almacenando Productos en la base de datos...");
-            await SaveEntidadesSiNoExistenAsync(productos, _context.ProductoBase, p => p.Id.ToString(), p => p.Guid);
-            _logger.LogInformation("Almacenando Cuentas en la base de datos...");
-            await SaveEntidadesSiNoExistenAsync(cuentas, _context.Cuentas, c => c.Id.ToString(), c => c.Guid);
-            _logger.LogInformation("Almacenando Tarjetas en la base de datos...");
-            await SaveEntidadesSiNoExistenAsync(tarjetas, _context.Tarjetas, t => t.Id.ToString(), t => t.Guid);
-
-            _logger.LogInformation("Almacenando Movimientos en MongoDB...");
-            await SaveSiNoExistenAsyncMongo(movimientos, _movimientoCollection, m => m.Guid.ToString());
-            _logger.LogInformation("Almacenando Domiciliaciones en MongoDB...");
-            await SaveSiNoExistenAsyncMongo(domiciliaciones, _domiciliacionCollection, d => d.Guid.ToString());
+            if (domiciliaciones == null || !domiciliaciones.Any())
+            {
+                _logger.LogWarning("No hay domiciliaciones para importar.");
+            }
+            else
+            {
+                _logger.LogInformation("Almacenando Domiciliaciones en MongoDB...");
+                await SaveSiNoExistenAsyncMongo(domiciliaciones, _domiciliacionCollection, d => d.Guid.ToString());
+            }
 
             var avatarDirectory = Path.Combine(temporaryDirectory, "avatares");
             if (Directory.Exists(avatarDirectory))
