@@ -9,9 +9,11 @@ using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
+using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -384,7 +386,8 @@ public class ClienteServiceTests
     // [Order(6)]
     // public async Task Create()
     // {
-    //     var user = new Banco_VivesBank.User.Models.User
+    //     _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+    //     var userEntity = new UserEntity
     //     {
     //         Id = 1,
     //         Guid = "user-guid",
@@ -395,17 +398,8 @@ public class ClienteServiceTests
     //         CreatedAt = DateTime.UtcNow,
     //         UpdatedAt = DateTime.UtcNow
     //     };
-    //     var userEntity = new UserEntity
-    //     {
-    //         Id = 1,
-    //         Guid = "user-guid",
-    //         Username = "user1",
-    //         Password = "password",
-    //         Role = Role.User,
-    //         IsDeleted = false,
-    //         CreatedAt = user.CreatedAt,
-    //         UpdatedAt = user.UpdatedAt
-    //     };
+    //     
+    //     
     //     _dbContext.Usuarios.Add(userEntity);
     //     await _dbContext.SaveChangesAsync();
     //     
@@ -430,12 +424,16 @@ public class ClienteServiceTests
     //         .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
     //         .ReturnsAsync(true);
     //    
+    //     var entidadUsuario = _dbContext.Usuarios.FirstOrDefault(u => u.Id == userEntity.Id);
+    //     var user = entidadUsuario.ToModelFromEntity();
     //     
     //     var result = await _clienteService.CreateAsync(user , clienteRequest);
     //     
     //     Assert.That(result, Is.Not.Null);
     //     Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
     //     Assert.That(result.Email, Is.EqualTo(clienteRequest.Email));
+    //     Assert.That(result.UserResponse.Role, Is.EqualTo(Role.Cliente.ToString()));
+    //     
     //     
     //     _redisDatabase.Verify(db => db.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()), Times.Once);
     // }
@@ -497,261 +495,159 @@ public class ClienteServiceTests
          Assert.That(ex.Message, Is.EqualTo($"El usuario con guid {user.Guid} ya es un cliente"));
      }
     
-    // [Test]
-    // [Order(8)]
-    // public async Task CreateAsync_ClienteConDniExistente()
-    // {
-    //     // Arrange
-    //     var clienteRequest = new ClienteRequest
-    //     {
-    //         Dni = "12345678A",
-    //         Nombre = "Juana",
-    //         Apellidos = "Perez",
-    //         Calle = "Calle Falsa",
-    //         Numero = "123",
-    //         CodigoPostal = "28000",
-    //         Piso = "2",
-    //         Letra = "A",
-    //         Email = "juanaperez@example.com",
-    //         Telefono = "600100000",
-    //         IsDeleted = false
-    //     };
-    //
-    //     // Mock de _userService.GetUserModelByGuid
-    //     var user = new Banco_VivesBank.User.Models.User
-    //     {
-    //         Guid = "user-guid",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 1
-    //     };
-    //     var user2 = new Banco_VivesBank.User.Models.User
-    //     {
-    //         Guid = "user-guid2",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 2
-    //     };
-    //     
-    //     var userE = new UserEntity
-    //     {
-    //         Guid = "user-guid",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 1
-    //     };
-    //     var userE2 = new UserEntity
-    //     {
-    //         Guid = "user-guid2",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 2
-    //     };
-    //     _dbContext.Usuarios.AddRange(userE, userE2);
-    //     await _dbContext.SaveChangesAsync();
-    //     _userServiceMock
-    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
-    //         .ReturnsAsync(user);
-    //     _userServiceMock
-    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
-    //         .ReturnsAsync(user2);
-    //
-    //     await _clienteService.CreateAsync(user2, new ClienteRequest
-    //     {
-    //         Dni = "12345678A",
-    //         Nombre = "Juana",
-    //         Apellidos = "Perez",
-    //         Calle = "Calle Falsa",
-    //         Numero = "123",
-    //         CodigoPostal = "28000",
-    //         Piso = "2",
-    //         Letra = "A",
-    //         Email = "juanaperez@example.com",
-    //         Telefono = "600100000",
-    //         IsDeleted = false
-    //     });
-    //     var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-    //         _clienteService.CreateAsync(user, clienteRequest) 
-    //     );
-    //     // Act & Assert
-    //     Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el DNI: 12345678A"));
-    // }
-    //
-    //  [Test]
-    //  [Order(9)]
-    // public async Task CreateAsync_ClienteConTelefonoExistente()
-    // {
-    //     // Arrange
-    //     var clienteRequest = new ClienteRequest
-    //     {
-    //         Dni = "12345678S",
-    //         Nombre = "Juana",
-    //         Apellidos = "Perez",
-    //         Calle = "Calle Falsa",
-    //         Numero = "123",
-    //         CodigoPostal = "28000",
-    //         Piso = "2",
-    //         Letra = "A",
-    //         Email = "juanaperez@example.com",
-    //         Telefono = "600000000",
-    //         IsDeleted = false
-    //     };
-    //
-    //     // Mock de _userService.GetUserModelByGuid
-    //     var user = new Banco_VivesBank.User.Models.User
-    //     {
-    //         Guid = "user-guid",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 1
-    //     };
-    //     var user2 = new Banco_VivesBank.User.Models.User
-    //     {
-    //         Guid = "user-guid2",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 2
-    //     };
-    //     
-    //     var userE = new UserEntity
-    //     {
-    //         Guid = "user-guid",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 1
-    //     };
-    //     var userE2 = new UserEntity
-    //     {
-    //         Guid = "user-guid2",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 2
-    //     };
-    //     _dbContext.Usuarios.AddRange(userE, userE2);
-    //     await _dbContext.SaveChangesAsync();
-    //     _userServiceMock
-    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
-    //         .ReturnsAsync(user);
-    //     _userServiceMock
-    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
-    //         .ReturnsAsync(user2);
-    //
-    //     // Simulamos que ya existe un cliente con ese DNI
-    //     await _clienteService.CreateAsync(user2, new ClienteRequest
-    //     {
-    //         Dni = "12345678A",
-    //         Nombre = "Juana",
-    //         Apellidos = "Perez",
-    //         Calle = "Calle Falsa",
-    //         Numero = "123",
-    //         CodigoPostal = "28000",
-    //         Piso = "2",
-    //         Letra = "A",
-    //         Email = "juanapereza@example.com",
-    //         Telefono = "600000000",
-    //         IsDeleted = false
-    //     });
-    //     var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-    //         _clienteService.CreateAsync(user, clienteRequest) 
-    //     );
-    //     // Act & Assert
-    //     Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el teléfono: 600000000"));
-    //     
-    // }
+    [Test]
+    [Order(8)]
+    public async Task CreateAsync_ClienteConDniExistente()
+    {
+        // Arrange
+        var clienteRequest = new ClienteRequest
+        {
+            Dni = "12345678A",
+            Nombre = "Juana",
+            Apellidos = "Perez",
+            Calle = "Calle Falsa",
+            Numero = "123",
+            CodigoPostal = "28000",
+            Piso = "2",
+            Letra = "A",
+            Email = "juanaperez@example.com",
+            Telefono = "600100000",
+            IsDeleted = false
+        };
+       
+        var userEntityExistente = new UserEntity
+        {
+            Guid = "user-guid",
+            Username = "Test User",
+            Password = "password",
+            IsDeleted = false,
+            Id = 1
+        };
+        var userE2 = new UserEntity
+        {
+            Guid = "user-guid2",
+            Username = "Test User",
+            Password = "password",
+            IsDeleted = false,
+            Id = 2
+        };
+        _dbContext.Usuarios.AddRange(userEntityExistente, userE2);
+        await _dbContext.SaveChangesAsync();
+        var clienteExistente = new ClienteEntity{ Dni = "12345678A" ,Guid = "cliente-guid", Nombre = "Juan", Apellidos = "Perez", Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Email = "ejemplo@gmail.com", Telefono = "600000000", IsDeleted = false, UserId = 1};
+        _dbContext.Clientes.Add(clienteExistente);
+        await _dbContext.SaveChangesAsync();
+        
+        var user = _dbContext.Usuarios.FirstOrDefault(u => u.Guid == userE2.Guid).ToModelFromEntity();
+        
+        var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
+            _clienteService.CreateAsync(user, clienteRequest) 
+        );
+        // Act & Assert
+        Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el DNI: 12345678A"));
+    }
     
-    //  [Test]
-    //  [Order(10)]
-    // public async Task CreateAsync_ClienteConEmailExistente()
-    // {
-    //     // Arrange
-    //     var clienteRequest = new ClienteRequest
-    //     {
-    //         Dni = "12345678B",
-    //         Nombre = "Juana",
-    //         Apellidos = "Perez",
-    //         Calle = "Calle Falsa",
-    //         Numero = "123",
-    //         CodigoPostal = "28000",
-    //         Piso = "2",
-    //         Letra = "A",
-    //         Email = "juanaperez@example.com",
-    //         Telefono = "600100000",
-    //         IsDeleted = false
-    //     };
-    //
-    //     // Mock de _userService.GetUserModelByGuid
-    //     var user = new Banco_VivesBank.User.Models.User
-    //     {
-    //         Guid = "user-guid",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 1
-    //     };
-    //     var user2 = new Banco_VivesBank.User.Models.User
-    //     {
-    //         Guid = "user-guid2",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 2
-    //     };
-    //     
-    //     var userE = new UserEntity
-    //     {
-    //         Guid = "user-guid",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 1
-    //     };
-    //     var userE2 = new UserEntity
-    //     {
-    //         Guid = "user-guid2",
-    //         Username = "Test User",
-    //         Password = "password",
-    //         IsDeleted = false,
-    //         Id = 2
-    //     };
-    //     _dbContext.Usuarios.AddRange(userE, userE2);
-    //     await _dbContext.SaveChangesAsync();
-    //     _userServiceMock
-    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid"))
-    //         .ReturnsAsync(user);
-    //     _userServiceMock
-    //         .Setup(u => u.GetUserModelByGuidAsync("user-guid2"))
-    //         .ReturnsAsync(user2);
-    //
-    //     // Simulamos que ya existe un cliente con ese DNI
-    //     await _clienteService.CreateAsync(user2, new ClienteRequest
-    //     {
-    //         Dni = "12345678A",
-    //         Nombre = "Juana",
-    //         Apellidos = "Perez",
-    //         Calle = "Calle Falsa",
-    //         Numero = "123",
-    //         CodigoPostal = "28000",
-    //         Piso = "2",
-    //         Letra = "A",
-    //         Email = "juanaperez@example.com",
-    //         Telefono = "600120000",
-    //         IsDeleted = false
-    //     });
-    //     var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
-    //         _clienteService.CreateAsync(user, clienteRequest) 
-    //     );
-    //     // Act & Assert
-    //     Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el email: juanaperez@example.com"));
-    //     
-    // }
+     [Test]
+     [Order(9)]
+    public async Task CreateAsync_ClienteConTelefonoExistente()
+    {
+        // Arrange
+        var clienteRequest = new ClienteRequest
+        {
+            Dni = "12345678A",
+            Nombre = "Juana",
+            Apellidos = "Perez",
+            Calle = "Calle Falsa",
+            Numero = "123",
+            CodigoPostal = "28000",
+            Piso = "2",
+            Letra = "A",
+            Email = "juanaperez@example.com",
+            Telefono = "600000000",
+            IsDeleted = false
+        };
+       
+        var userEntityExistente = new UserEntity
+        {
+            Guid = "user-guid",
+            Username = "Test User",
+            Password = "password",
+            IsDeleted = false,
+            Id = 1
+        };
+        var userE2 = new UserEntity
+        {
+            Guid = "user-guid2",
+            Username = "Test User",
+            Password = "password",
+            IsDeleted = false,
+            Id = 2
+        };
+        _dbContext.Usuarios.AddRange(userEntityExistente, userE2);
+        await _dbContext.SaveChangesAsync();
+        var clienteExistente = new ClienteEntity{  Telefono = "600000000", Dni = "12345678B" ,Guid = "cliente-guid", Nombre = "Juan", Apellidos = "Perez", Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Email = "ejemplo@gmail.com", IsDeleted = false, UserId = 1};
+        _dbContext.Clientes.Add(clienteExistente);
+        await _dbContext.SaveChangesAsync();
+        
+        var user = _dbContext.Usuarios.FirstOrDefault(u => u.Guid == userE2.Guid).ToModelFromEntity();
+        
+        var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
+            _clienteService.CreateAsync(user, clienteRequest) 
+        );
+        // Act & Assert
+        Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el teléfono: 600000000"));
+    }
+    
+     [Test]
+     [Order(10)]
+    public async Task CreateAsync_ClienteConEmailExistente()
+    {
+        // Arrange
+        var clienteRequest = new ClienteRequest
+        {
+            Dni = "12345678A",
+            Nombre = "Juana",
+            Apellidos = "Perez",
+            Calle = "Calle Falsa",
+            Numero = "123",
+            CodigoPostal = "28000",
+            Piso = "2",
+            Letra = "A",
+            Email = "juanaperez@example.com",
+            Telefono = "60000000",
+            IsDeleted = false
+        };
+       
+        var userEntityExistente = new UserEntity
+        {
+            Guid = "user-guid",
+            Username = "Test User",
+            Password = "password",
+            IsDeleted = false,
+            Id = 1
+        };
+        var userE2 = new UserEntity
+        {
+            Guid = "user-guid2",
+            Username = "Test User",
+            Password = "password",
+            IsDeleted = false,
+            Id = 2
+        };
+        _dbContext.Usuarios.AddRange(userEntityExistente, userE2);
+        await _dbContext.SaveChangesAsync();
+        var clienteExistente = new ClienteEntity{  Email = "juanaperez@example.com", Telefono = "60000100", Dni = "12345678B" ,Guid = "cliente-guid", Nombre = "Juan", Apellidos = "Perez", Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" }, IsDeleted = false, UserId = 1};
+        _dbContext.Clientes.Add(clienteExistente);
+        await _dbContext.SaveChangesAsync();
+        
+        var user = _dbContext.Usuarios.FirstOrDefault(u => u.Guid == userE2.Guid).ToModelFromEntity();
+        
+        var ex = Assert.ThrowsAsync<ClienteExistsException>(() =>
+            _clienteService.CreateAsync(user, clienteRequest) 
+        );
+        // Act & Assert
+        Assert.That(ex.Message, Is.EqualTo("Ya existe un cliente con el email: juanaperez@example.com"));
+        
+    }
     
     [Test]
     [Order(11)]
