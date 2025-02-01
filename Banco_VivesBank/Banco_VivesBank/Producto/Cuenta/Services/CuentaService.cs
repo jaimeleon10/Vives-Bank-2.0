@@ -15,6 +15,7 @@ using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
+using Banco_VivesBank.Websockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -334,6 +335,8 @@ public class CuentaService : ICuentaService
         await _database.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
         var cuentaResponse = cuentaEntity.ToResponseFromEntity();
+        var mensaje = $"Ha creado una cuenta con iban {cuentaEntity.Iban}";
+        await WebSocketHandler.SendToCliente(cuentaEntity.Cliente.User.Username, new Notificacion { Entity = cuentaEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
         return cuentaResponse;
     }
     
@@ -376,7 +379,10 @@ public class CuentaService : ICuentaService
         await _database.KeyDeleteAsync(cacheKey);
         
         _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        return cuentaExistenteEntity.ToResponseFromEntity();
+        var cuentaResponse = cuentaExistenteEntity.ToResponseFromEntity();
+        var mensaje = $"Se ha eliminado su cuenta con iban {cuentaExistenteEntity.Iban}";
+        await WebSocketHandler.SendToCliente(cuentaExistenteEntity.Cliente.User.Username, new Notificacion { Entity = cuentaExistenteEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.DELETE, CreatedAt = DateTime.UtcNow.ToString()});
+        return cuentaResponse;
     }
     
     public async Task<CuentaResponse?> DeleteMeAsync(string guidClient,string guid)
@@ -434,7 +440,10 @@ public class CuentaService : ICuentaService
         await _database.KeyDeleteAsync(cacheKey);
         
         _logger.LogInformation($"Cuenta borrada correctamente con guid: {guid}");
-        return cuentaExistenteEntity.ToResponseFromEntity();
+        var cuentaResponse = cuentaExistenteEntity.ToResponseFromEntity();
+        var mensaje = $"Ha eliminado su cuenta con iban {cuentaExistenteEntity.Iban}";
+        await WebSocketHandler.SendToCliente(cuentaExistenteEntity.Cliente.User.Username, new Notificacion { Entity = cuentaExistenteEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.DELETE, CreatedAt = DateTime.UtcNow.ToString()});
+        return cuentaResponse;
     }
 
     public async Task<Models.Cuenta?> GetCuentaModelByGuidAsync(string guid)

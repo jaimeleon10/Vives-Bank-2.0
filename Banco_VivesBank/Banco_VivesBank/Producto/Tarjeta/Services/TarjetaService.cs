@@ -7,6 +7,7 @@ using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
+using Banco_VivesBank.Websockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -189,7 +190,10 @@ public class TarjetaService : ITarjetaService
         
         _logger.LogDebug($"Tarjeta creada correctamente con id: {tarjetaEntity.Id}");
 
-        return tarjetaEntity.ToResponseFromEntity();
+        var tarjetaResponse = tarjetaEntity.ToResponseFromEntity();
+        var mensaje = $"Ha creado una tarjeta con numero {tarjetaEntity.Numero}";
+        await WebSocketHandler.SendToCliente(cuentaEntity.Cliente.User.Username, new Notificacion { Entity = cuentaEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        return tarjetaResponse;
     }
 
     public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequestUpdate dto)
@@ -227,9 +231,13 @@ public class TarjetaService : ITarjetaService
         _memoryCache.Set(cacheKey, tarjetaModel, TimeSpan.FromMinutes(30));  
         await _database.StringSetAsync(cacheKey, serializedUser, TimeSpan.FromMinutes(30)); 
 
+        var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta!.Guid == guid);
 
         _logger.LogDebug($"Tarjeta actualizada correctamente con id: {guid}");
-        return tarjeta.ToResponseFromEntity();
+        var tarjetaResponse = tarjeta.ToResponseFromEntity();
+        var mensaje = $"Ha actualizado su tarjeta con numero {tarjeta.Numero}";
+        await WebSocketHandler.SendToCliente(cuentaEntity.Cliente.User.Username, new Notificacion { Entity = cuentaEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.UPDATE, CreatedAt = DateTime.UtcNow.ToString()});
+        return tarjetaResponse;
     }
 
     public async Task<TarjetaResponse?> DeleteAsync(string guid)
@@ -263,7 +271,10 @@ public class TarjetaService : ITarjetaService
         await _database.KeyDeleteAsync(cacheKey);
 
         _logger.LogDebug($"Tarjeta eliminada correctamente con guid: {guid}");
-        return tarjeta.ToResponseFromEntity();
+        var tarjetaResponse = tarjeta.ToResponseFromEntity();
+        var mensaje = $"Ha eliminado su tarjeta con numero {tarjeta.Numero}";
+        await WebSocketHandler.SendToCliente(cuentaEntity.Cliente.User.Username, new Notificacion { Entity = cuentaEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.DELETE, CreatedAt = DateTime.UtcNow.ToString()});
+        return tarjetaResponse;
     }
     
     public async Task<Models.Tarjeta?> GetTarjetaModelByGuid(string guid)
