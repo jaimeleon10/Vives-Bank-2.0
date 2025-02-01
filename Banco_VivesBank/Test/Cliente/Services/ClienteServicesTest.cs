@@ -159,6 +159,231 @@ public class ClienteServiceTests
     }
     
     [Test]
+    [Order(37)]
+    public async Task GetAllPagedAsync_Empty()
+    {
+        // Arrange
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 1,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+
+        // Act
+        var result = await _clienteService.GetAllPagedAsync(null, null, null, pageRequest);
+
+        // Assert
+        Assert.That(result.Content, Is.Empty);
+        Assert.That(result.PageNumber, Is.EqualTo(0));
+        Assert.That(result.PageSize, Is.EqualTo(1));
+        Assert.That(result.TotalElements, Is.EqualTo(0));
+        Assert.That(result.TotalPages, Is.EqualTo(0));
+        Assert.That(result.Empty, Is.True);
+        Assert.That(result.First, Is.True);
+        Assert.That(result.Last, Is.False);
+    }
+    
+    [Test]
+    [Order(38)]
+    public async Task GetAllPagedAsync_FiltradoPorNombre()
+    {
+        UserEntity user1 = new UserEntity { Guid = "user-guid", Username = "user1", Password = "password", IsDeleted = false };
+        UserEntity user2 = new UserEntity { Guid = "user-guid2", Username = "user2", Password = "password", IsDeleted = false };
+        await _dbContext.Usuarios.AddRangeAsync(user1, user2);
+        await _dbContext.SaveChangesAsync();
+        ClienteEntity cliente1 = new ClienteEntity
+        {
+            Guid = "a",
+            Nombre = "test1",
+            Dni = "a",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user1.Id
+        };
+        ClienteEntity cliente2 = new ClienteEntity
+        {
+            Guid = "b",
+            Nombre = "test2",
+            Dni = "b",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user2.Id
+        };
+        _dbContext.Clientes.AddRange(cliente1, cliente2);
+        await _dbContext.SaveChangesAsync();
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+
+        var result = await _clienteService.GetAllPagedAsync("test1", null, null, pageRequest);
+
+        Assert.That(result.Content.Count, Is.EqualTo(1));
+        Assert.That(result.Content.First().Nombre, Is.EqualTo("test1"));
+    }
+
+    [Test]
+    [Order(39)]
+    public async Task GetAllPagedAsync_FiltradoPorApellidos()
+    {
+        UserEntity user1 = new UserEntity { Guid = "user-guid", Username = "user1", Password = "password", IsDeleted = false };
+        UserEntity user2 = new UserEntity { Guid = "user-guid2", Username = "user2", Password = "password", IsDeleted = false };
+        await _dbContext.Usuarios.AddRangeAsync(user1, user2);
+        await _dbContext.SaveChangesAsync();
+        ClienteEntity cliente1 = new ClienteEntity
+        {
+            Guid = "a",
+            Nombre = "test1",
+            Dni = "a",
+            Apellidos = "abc",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user1.Id
+        };
+        ClienteEntity cliente2 = new ClienteEntity
+        {
+            Guid = "b",
+            Nombre = "test2",
+            Dni = "b",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user2.Id
+        };
+        _dbContext.Clientes.AddRange(cliente1, cliente2);
+        await _dbContext.SaveChangesAsync();
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+
+        var result = await _clienteService.GetAllPagedAsync(null, "a", null, pageRequest);
+
+        Assert.That(result.Content.Count, Is.EqualTo(2));
+        Assert.That(result.Content.All(c => c.Apellidos.StartsWith("a")), Is.True);
+    }
+
+    [Test]
+    [Order(40)]
+    public async Task GetAllPagedAsync_FiltradoPorDni()
+    {
+        UserEntity user1 = new UserEntity { Guid = "user-guid", Username = "user1", Password = "password", IsDeleted = false };
+        UserEntity user2 = new UserEntity { Guid = "user-guid2", Username = "user2", Password = "password", IsDeleted = false };
+        await _dbContext.Usuarios.AddRangeAsync(user1, user2);
+        await _dbContext.SaveChangesAsync();
+        ClienteEntity cliente1 = new ClienteEntity
+        {
+            Guid = "a",
+            Nombre = "test1",
+            Dni = "a",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user1.Id
+        };
+        ClienteEntity cliente2 = new ClienteEntity
+        {
+            Guid = "b",
+            Nombre = "test2",
+            Dni = "b",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user2.Id
+        };
+        _dbContext.Clientes.AddRange(cliente1, cliente2);
+        await _dbContext.SaveChangesAsync();
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+
+        var result = await _clienteService.GetAllPagedAsync(null, null, "a", pageRequest);
+
+        Assert.That(result.Content.Count, Is.EqualTo(1));
+        Assert.That(result.Content.First().Dni, Is.EqualTo("a"));
+    }
+
+    [Test]
+    [Order(41)]
+    public async Task GetAllPagedAsync_Paginado()
+    {
+        UserEntity user1 = new UserEntity { Guid = "user-guid", Username = "user1", Password = "password", IsDeleted = false };
+        UserEntity user2 = new UserEntity { Guid = "user-guid2", Username = "user2", Password = "password", IsDeleted = false };
+        await _dbContext.Usuarios.AddRangeAsync(user1, user2);
+        await _dbContext.SaveChangesAsync();
+        ClienteEntity cliente1 = new ClienteEntity
+        {
+            Guid = "a",
+            Nombre = "test1",
+            Dni = "a",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user1.Id
+        };
+        ClienteEntity cliente2 = new ClienteEntity
+        {
+            Guid = "b",
+            Nombre = "test2",
+            Dni = "b",
+            Apellidos = "a",
+            Email = "example",
+            Direccion = new Direccion
+                { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Telefono = "600000000",
+            UserId = user2.Id
+        };
+        _dbContext.Clientes.AddRange(cliente1, cliente2);
+        await _dbContext.SaveChangesAsync();
+        var pageRequest = new PageRequest
+        {
+            PageNumber = 1, // Segunda página
+            PageSize = 1,
+            SortBy = "id",
+            Direction = "ASC"
+        };
+
+        var result = await _clienteService.GetAllPagedAsync(null, null, null, pageRequest);
+
+        Assert.That(result.Content.Count, Is.EqualTo(1));
+        Assert.That(result.PageNumber, Is.EqualTo(1));
+        Assert.That(result.PageSize, Is.EqualTo(1));
+        Assert.That(result.TotalElements, Is.EqualTo(2));
+        Assert.That(result.TotalPages, Is.EqualTo(2));
+        Assert.That(result.Empty, Is.False);
+        Assert.That(result.First, Is.False);
+        Assert.That(result.Last, Is.True);
+    }
+    
+    [Test]
     [Order(2)]
     public async Task GetByGuid_EnBBDD()
     {
@@ -934,203 +1159,201 @@ public class ClienteServiceTests
         Assert.That(result, Is.Null);
     }
     
-    // [Test]
-    // [Order(23)]
-    // public async Task UpdateFotoPerfilClienteNotFound()
-    // {
-    //     var guid = "non-existing-guid";
-    //     var fotoPerfil = new Mock<IFormFile>().Object;
-    //
-    //     var result = await _clienteService.UpdateFotoPerfil(guid, fotoPerfil);
-    //
-    //     Assert.That(result, Is.Null);
-    // }
+    [Test]
+    [Order(23)]
+    public async Task UpdateFotoPerfilClienteNotFound()
+    {
+        var user = new User { Guid = "user-guid" };
+        var fotoPerfil = new Mock<IFormFile>().Object;
+    
+        var result = await _clienteService.UpdateFotoPerfil(user, fotoPerfil);
+    
+        Assert.That(result, Is.Null);
+    }
 
-    // [Test]
-    // [Order(24)]
-    // public async Task UpdateFotoPerfil()
-    // {
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //     
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id
-    //     };
-    //     
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     var nuevaFotoUrl = "https://example.com/newFoto.jpg";
-    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
-    //
-    //     var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
-    //
-    //     Assert.That(result, Is.Not.Null);
-    //     Assert.That(nuevaFotoUrl, Is.EqualTo(result!.FotoPerfil));
-    //     var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
-    //     Assert.That(nuevaFotoUrl, Is.EqualTo(clienteActualizado.FotoPerfil));
-    // }
+    [Test]
+    [Order(24)]
+    public async Task UpdateFotoPerfil()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
+    
+        var result = await _clienteService.UpdateFotoPerfil(user1.ToModelFromEntity() , new Mock<IFormFile>().Object);
+    
+        Assert.That(result, Is.Not.Null);
+        Assert.That(nuevaFotoUrl, Is.EqualTo(result!.FotoPerfil));
+        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
+        Assert.That(nuevaFotoUrl, Is.EqualTo(clienteActualizado.FotoPerfil));
+    }
 
-    // [Test]
-    // [Order(25)]
-    // public async Task UpdateFotoPerfilFileStorageException()
-    // {
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //     
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id
-    //     };
-    //     
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     var fotoPerfil = new Mock<IFormFile>().Object;
-    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ThrowsAsync(new FileStorageException("Error saving file"));
-    //
-    //     var ex = Assert.ThrowsAsync<FileStorageException>(async () =>
-    //         await _clienteService.UpdateFotoPerfil(cliente.Guid, fotoPerfil));
-    //     Assert.That(ex.Message, Is.EqualTo("Error al guardar la foto: Error saving file"));
-    // }
-    //
-    // [Test]
-    // [Order(26)]
-    // public async Task UpdateFotoDniClienteNotFound()
-    // {
-    //     // Arrange
-    //     var guid = "non-existing-guid";
-    //     var fotoDni = new Mock<IFormFile>().Object;
-    //
-    //     // Act
-    //     var result = await _clienteService.UpdateFotoDni(guid, fotoDni);
-    //
-    //     // Assert
-    //     Assert.That(result, Is.Null);
-    // }
-    //
-    // [Test]
-    // [Order(27)]
-    // public async Task UpdateFotoDni()
-    // {
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //     
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id
-    //     };
-    //
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     var nuevaFotoDniUrl = "data/12345678Z";
-    //     _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-    //
-    //     var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
-    //
-    //     Assert.That(result, Is.Not.Null);
-    //     Assert.That(result.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
-    //     var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
-    //     Assert.That(clienteActualizado.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
-    // }
-    //
-    // [Test]
-    // [Order(28)]
-    // public async Task UpdateFotoDniException()
-    // {
-    //     // Arrange
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //     
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id
-    //     };
-    //     
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     var fotoDni = new Mock<IFormFile>().Object;
-    //     _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("FTP error"));
-    //
-    //     // Act & Assert
-    //     var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
-    //         await _clienteService.UpdateFotoDni(cliente.Guid, fotoDni));
-    //     Assert.That(ex.Message, Is.EqualTo("Error al subir la nueva foto al servidor FTP."));
-    // }
-    //
-    //
-    //
-    //
-    // [Test]
-    // [Order(29)]
-    // public async Task UpdateFotoPerfil_DeleteOldFileFailure()
-    // {
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id,
-    //         FotoPerfil = "https://example.com/oldFoto.jpg"
-    //     };
-    //
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     var nuevaFotoUrl = "https://example.com/newFoto.jpg";
-    //     _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
-    //     _storageService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new FileStorageNotFoundException("Archivo no encontrado"));
-    //
-    //     var result = await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object);
-    //
-    //     Assert.That(result, Is.Not.Null);
-    //     Assert.That(result.FotoPerfil, Is.EqualTo(nuevaFotoUrl));
-    //     _storageService.Verify(fs => fs.DeleteFileAsync("https://example.com/oldFoto.jpg"), Times.Once);
-    // }
-    //
+    [Test]
+    [Order(25)]
+    public async Task UpdateFotoPerfilFileStorageException()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        var fotoPerfil = new Mock<IFormFile>().Object;
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ThrowsAsync(new FileStorageException("Error saving file"));
+    
+        var ex = Assert.ThrowsAsync<FileStorageException>(async () =>
+            await _clienteService.UpdateFotoPerfil(user1.ToModelFromEntity(), fotoPerfil));
+        Assert.That(ex.Message, Is.EqualTo("Error al guardar la foto: Error saving file"));
+    }
+    
+    [Test]
+    [Order(26)]
+    public async Task UpdateFotoDniClienteNotFound()
+    {
+        // Arrange
+        var user = new User { Guid = "non-existing-guid" };
+        var fotoDni = new Mock<IFormFile>().Object;
+    
+        // Act
+        var result = await _clienteService.UpdateFotoDni(user, fotoDni);
+    
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+    
+    [Test]
+    [Order(27)]
+    public async Task UpdateFotoDni()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+    
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        var nuevaFotoDniUrl = "data/12345678Z";
+        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+    
+        var result = await _clienteService.UpdateFotoDni(user1.ToModelFromEntity(), new Mock<IFormFile>().Object);
+    
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
+        var clienteActualizado = await _dbContext.Clientes.FirstAsync(c => c.Guid == cliente.Guid);
+        Assert.That(clienteActualizado.FotoDni, Is.EqualTo(nuevaFotoDniUrl));
+    }
+    
+    [Test]
+    [Order(28)]
+    public async Task UpdateFotoDniException()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id
+        };
+        
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        var fotoDni = new Mock<IFormFile>().Object;
+        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).ThrowsAsync(new InvalidOperationException("FTP error"));
+    
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _clienteService.UpdateFotoDni(user1.ToModelFromEntity(), fotoDni));
+        Assert.That(ex.Message, Is.EqualTo("Error al subir la nueva foto al servidor FTP."));
+    }
+    
+  
+    [Test]
+    [Order(29)]
+    public async Task UpdateFotoPerfil_DeleteOldFileFailure()
+    {
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+    
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id,
+            FotoPerfil = "https://example.com/oldFoto.jpg"
+        };
+    
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        var nuevaFotoUrl = "https://example.com/newFoto.jpg";
+        _storageService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>())).ReturnsAsync(nuevaFotoUrl);
+        _storageService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new FileStorageNotFoundException("Archivo no encontrado"));
+    
+        var result = await _clienteService.UpdateFotoPerfil(user1.ToModelFromEntity(), new Mock<IFormFile>().Object);
+    
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.FotoPerfil, Is.EqualTo(nuevaFotoUrl));
+        _storageService.Verify(fs => fs.DeleteFileAsync("https://example.com/oldFoto.jpg"), Times.Once);
+    }
+    
     // [Test]
     // [Order(30)]
     // public async Task UpdateFotoPerfil_NullNewFile()
@@ -1147,9 +1370,11 @@ public class ClienteServiceTests
     //         Dni = "12345678Z", 
     //         Apellidos = "Perez", 
     //         Email = "example", 
+    //         FotoPerfil = "data/oldFoto.jpg",
+    //         FotoDni = "data/oldDni.jpg",
     //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
     //         Telefono = "600000000", 
-    //         UserId = user1.Id
+    //         UserId = user1.Id,
     //     };
     //     
     //     await _dbContext.Clientes.AddAsync(cliente);
@@ -1159,76 +1384,76 @@ public class ClienteServiceTests
     //
     //     // Act & Assert
     //     Assert.ThrowsAsync<FileStorageException>(async () => 
-    //         await _clienteService.UpdateFotoPerfil(cliente.Guid, new Mock<IFormFile>().Object));
+    //         await _clienteService.UpdateFotoPerfil(user1.ToModelFromEntity(), new Mock<IFormFile>().Object));
     // }
-    //
-    // [Test]
-    // [Order(31)]
-    // public async Task UpdateFotoDni_DeleteOldFileFails()
-    // {
-    //     // Arrange
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //     
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id,
-    //         FotoDni = "data/oldDni.jpg"
-    //     };
-    //
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-    //     _ftpService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new Exception("Delete failed"));
-    //
-    //     // Act
-    //     var result = await _clienteService.UpdateFotoDni(cliente.Guid, new Mock<IFormFile>().Object);
-    //
-    //     // Assert
-    //     Assert.That(result, Is.Not.Null);
-    //     Assert.That(result.FotoDni, Is.EqualTo($"data/{cliente.Dni}"));
-    // }
-    //
-    // [Test]
-    // [Order(32)]
-    // public async Task GetFotoDniAsync_FileNotFound()
-    // {
-    //     // Arrange
-    //     var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
-    //     await _dbContext.Usuarios.AddAsync(user1);
-    //     await _dbContext.SaveChangesAsync();
-    //     
-    //     var cliente = new ClienteEntity
-    //     {
-    //         Nombre = "Cliente 1", 
-    //         Guid = "guid", 
-    //         Dni = "12345678Z", 
-    //         Apellidos = "Perez", 
-    //         Email = "example", 
-    //         Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
-    //         Telefono = "600000000", 
-    //         UserId = user1.Id,
-    //         FotoDni = "data/testDni.jpg"
-    //     };
-    //
-    //     await _dbContext.Clientes.AddAsync(cliente);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     _ftpService.Setup(fs => fs.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("Download failed"));
-    //
-    //     // Act & Assert
-    //     Assert.ThrowsAsync<Exception>(async () => 
-    //         await _clienteService.GetFotoDniAsync(cliente.Guid));
-    // }
+    
+    [Test]
+    [Order(31)]
+    public async Task UpdateFotoDni_DeleteOldFileFails()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id,
+            FotoDni = "data/oldDni.jpg"
+        };
+    
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        _ftpService.Setup(fs => fs.UploadFileAsync(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+        _ftpService.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>())).ThrowsAsync(new Exception("Delete failed"));
+    
+        // Act
+        var result = await _clienteService.UpdateFotoDni(user1.ToModelFromEntity(), new Mock<IFormFile>().Object);
+    
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.FotoDni, Is.EqualTo($"data/{cliente.Dni}"));
+    }
+    
+    [Test]
+    [Order(32)]
+    public async Task GetFotoDniAsync_FileNotFound()
+    {
+        // Arrange
+        var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        await _dbContext.Usuarios.AddAsync(user1);
+        await _dbContext.SaveChangesAsync();
+        
+        var cliente = new ClienteEntity
+        {
+            Nombre = "Cliente 1", 
+            Guid = "guid", 
+            Dni = "12345678Z", 
+            Apellidos = "Perez", 
+            Email = "example", 
+            Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, 
+            Telefono = "600000000", 
+            UserId = user1.Id,
+            FotoDni = "data/testDni.jpg"
+        };
+    
+        await _dbContext.Clientes.AddAsync(cliente);
+        await _dbContext.SaveChangesAsync();
+    
+        _ftpService.Setup(fs => fs.DownloadFileAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("Download failed"));
+    
+        // Act & Assert
+        Assert.ThrowsAsync<Exception>(async () => 
+            await _clienteService.GetFotoDniAsync(cliente.Guid));
+    }
     
     [Test]
     [Order(33)]
@@ -1281,4 +1506,113 @@ public class ClienteServiceTests
         _ftpService.Verify(ftp => ftp.DownloadFileAsync(cliente.FotoDni, It.IsAny<string>()), Times.Once);
     }
 
+    [Test]
+    [Order(34)]
+    public async Task DeletMeAsync_ClienteNotFound()
+    {
+        var user = new User { Guid = "non-existing-guid" };
+        var result = await _clienteService.DeleteMeAsync(user);
+        
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    [Order(35)]
+    public async Task DeleteMeAsync()
+    {
+        UserEntity user = new UserEntity
+        {
+            Id = 1,
+            Guid = "user-guid",
+            Username = "user1",
+            Password = "password",
+            IsDeleted = false
+        };
+        ClienteEntity cliente = new ClienteEntity
+        {
+            Id = 1,
+            Guid = "cliente-guid",
+            Nombre = "Juan",
+            Apellidos = "Perez",
+            Dni = "12345678Z",
+            Direccion = new Direccion
+            {
+                Calle = "Calle Falsa",
+                Numero = "123",
+                CodigoPostal = "28000",
+                Piso = "2",
+                Letra = "A"
+            },
+            Email = "ejemplo@ejemplo.com",
+            Telefono = "600000000",
+            IsDeleted = false,
+            UserId = 1
+        };
+        _dbContext.Usuarios.Add(user);
+        _dbContext.Clientes.Add(cliente);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _clienteService.DeleteMeAsync(user.ToModelFromEntity());
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.IsDeleted, Is.True);
+    }
+    
+    [Test]
+    [Order(36)]
+    public async Task GetMeAsync_ClienteNotFound()
+    {
+        var user = new User { Guid = "non-existing-guid" };
+        var result = await _clienteService.GetMeAsync(user);
+        
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    [Order(37)]
+    public async Task GetMeAsync()
+    {
+        UserEntity user = new UserEntity
+        {
+            Id = 1,
+            Guid = "user-guid",
+            Username = "user1",
+            Password = "password",
+            IsDeleted = false
+        };
+        ClienteEntity cliente = new ClienteEntity
+        {
+            Id = 1,
+            Guid = "cliente-guid",
+            Nombre = "Juan",
+            Apellidos = "Perez",
+            Dni = "12345678Z",
+            Direccion = new Direccion
+            {
+                Calle = "Calle Falsa",
+                Numero = "123",
+                CodigoPostal = "28000",
+                Piso = "2",
+                Letra = "A"
+            },
+            Email = "ejemplo",
+            Telefono = "600000000",
+            IsDeleted = false,
+            UserId = 1
+        };
+        _dbContext.Usuarios.Add(user);
+        _dbContext.Clientes.Add(cliente);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _clienteService.GetMeAsync(user.ToModelFromEntity());
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Nombre, Is.EqualTo(cliente.Nombre));
+        Assert.That(result.Apellidos, Is.EqualTo(cliente.Apellidos));
+        Assert.That(result.Dni, Is.EqualTo(cliente.Dni));
+        Assert.That(result.Direccion.Calle, Is.EqualTo(cliente.Direccion.Calle));
+        Assert.That(result.Email, Is.EqualTo(cliente.Email));
+        Assert.That(result.Telefono, Is.EqualTo(cliente.Telefono));
+        Assert.That(result.Guid, Is.EqualTo(cliente.Guid));
+    }
 }
