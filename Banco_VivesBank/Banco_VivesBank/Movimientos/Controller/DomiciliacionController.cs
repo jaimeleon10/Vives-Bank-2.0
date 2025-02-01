@@ -104,7 +104,7 @@ public class DomiciliacionController : ControllerBase
         {
             var domiciliacion = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid);
             if (domiciliacion != null) return Ok(domiciliacion);
-            return BadRequest(new { message = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"});
+            return NotFound(new { message = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"});
         }
         catch (MovimientoException e)
         {
