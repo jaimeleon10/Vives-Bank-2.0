@@ -1,7 +1,8 @@
 using Banco_VivesBank.Storage.Zip.Controller;
+using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.Storage.Zip.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 
 namespace Test.Storage.Zip;
@@ -30,10 +31,13 @@ public class BackupControllerTests
             _backupServiceMock.Object
         );
         
-        typeof(BackupController).GetField("_dataDirectory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-            .SetValue(_controller, _testDataDirectory);
-        typeof(BackupController).GetField("_backupFilePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-            .SetValue(_controller, _testZipPath);
+        typeof(BackupController)
+            .GetField("_dataDirectory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_controller, _testDataDirectory);
+        
+        typeof(BackupController)
+            .GetField("_backupFilePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            ?.SetValue(_controller, _testZipPath);
     }
 
     [TearDown]
@@ -60,7 +64,46 @@ public class BackupControllerTests
         );
     }
 
+    [Test]
+    public async Task ExportToZipDirectorioNoEncontrado()
+    {
+        Directory.Delete(_testDataDirectory, true);
 
+        var result = await _controller.ExportToZip();
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("El directorio fuente no existe."));
+    }
+
+    [Test]
+    public async Task ExportToZipArgumentException()
+    {
+        _backupServiceMock
+            .Setup(s => s.ExportToZip(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new ArgumentNullException("test"));
+
+        var result = await _controller.ExportToZip();
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("Argumentos de exportación inválidos."));
+    }
+
+    [Test]
+    public async Task ExportToZipIOException()
+    {
+        _backupServiceMock
+            .Setup(s => s.ExportToZip(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new IOException("test"));
+
+        var result = await _controller.ExportToZip();
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var objectResult = result as ObjectResult;
+        Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult?.Value, Is.EqualTo("Error de archivo al exportar."));
+    }
 
     [Test]
     public async Task ExportToZipException()
@@ -73,12 +116,14 @@ public class BackupControllerTests
 
         Assert.That(result, Is.InstanceOf<ObjectResult>());
         var objectResult = result as ObjectResult;
-        Assert.That(500, Is.EqualTo(objectResult.StatusCode));
+        Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult?.Value, Is.EqualTo("Error al exportar datos"));
     }
 
     [Test]
     public async Task ImportFromZip()
     {
+        File.WriteAllText(_testZipPath, "test content");
         _backupServiceMock
             .Setup(s => s.ImportFromZip(
                 It.Is<string>(path => path == _testZipPath), 
@@ -97,8 +142,53 @@ public class BackupControllerTests
     }
 
     [Test]
+    public async Task ImportFromZipArchivoNotFound()
+    {
+        if (File.Exists(_testZipPath))
+            File.Delete(_testZipPath);
+
+        var result = await _controller.ImportFromZip();
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("El archivo ZIP no existe."));
+    }
+
+    [Test]
+    public async Task ImportFromZipImportException()
+    {
+        File.WriteAllText(_testZipPath, "test content");
+        _backupServiceMock
+            .Setup(s => s.ImportFromZip(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new ImportFromZipException("Test exception", null));
+
+        var result = await _controller.ImportFromZip();
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.That(badRequestResult?.Value, Is.EqualTo("Los archivos dentro del ZIP no son válidos o están incompletos."));
+    }
+
+    [Test]
+    public async Task ImportFromZipIOException()
+    {
+        File.WriteAllText(_testZipPath, "test content");
+        _backupServiceMock
+            .Setup(s => s.ImportFromZip(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new IOException("Test exception"));
+
+        var result = await _controller.ImportFromZip();
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var objectResult = result as ObjectResult;
+        Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult?.Value, Is.EqualTo("Error de archivo al importar."));
+    }
+
+    [Test]
     public async Task ImportFromZipException()
     {
+        File.WriteAllText(_testZipPath, "test content");
         _backupServiceMock
             .Setup(s => s.ImportFromZip(It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new Exception("Test exception"));
@@ -107,6 +197,7 @@ public class BackupControllerTests
 
         Assert.That(result, Is.InstanceOf<ObjectResult>());
         var objectResult = result as ObjectResult;
-        Assert.That(500, Is.EqualTo(objectResult.StatusCode));
+        Assert.That(objectResult?.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult?.Value, Is.EqualTo("Error al importar datos"));
     }
 }

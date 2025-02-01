@@ -955,6 +955,7 @@ public class ClienteControllerTest
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-25",
                 Domiciliacion = null,
@@ -964,9 +965,13 @@ public class ClienteControllerTest
             },
             new MovimientoResponse
             {
+                Guid = "git_mov_2",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-24",
-                Domiciliacion = new DomiciliacionResponse(),
+                Domiciliacion = new DomiciliacionResponse()
+                {
+                    Guid = "git_dom_1",
+                },
                 IngresoNomina = null,
                 PagoConTarjeta = null,
                 Transferencia = null
@@ -1008,6 +1013,7 @@ public class ClienteControllerTest
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-25",
                 Domiciliacion = null,

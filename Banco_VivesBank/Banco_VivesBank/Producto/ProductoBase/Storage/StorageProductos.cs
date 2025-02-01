@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using System.Text;
+using Banco_VivesBank.Producto.Base.Storage;
 
-namespace Banco_VivesBank.Producto.Base.Storage;
-
+namespace Banco_VivesBank.Producto.ProductoBase.Storage;
 public class StorageProductos : IStorageProductos
 {
     private readonly ILogger<StorageProductos> _logger;
