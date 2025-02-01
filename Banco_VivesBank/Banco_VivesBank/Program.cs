@@ -23,6 +23,7 @@ using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Auth;
 using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
+using Banco_VivesBank.Websockets;
 using GraphiQl;
 using GraphQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
