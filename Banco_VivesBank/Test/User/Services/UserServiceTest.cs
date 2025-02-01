@@ -1,12 +1,10 @@
-using System.Linq.Expressions;
 using System.Security.Claims;
-using System.Text.Json;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
-using Banco_VivesBank.Utils.Jwt;
+using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
