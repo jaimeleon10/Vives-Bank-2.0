@@ -15,6 +15,7 @@ public class DivisasService : IDivisasService
     
     public FrankFurterResponse ObtenerUltimasTasas(string monedaBase, string monedasObjetivo, string amount)
     {
+        amount = string.IsNullOrWhiteSpace(amount) ? "1" : amount;
         var url = $"https://api.frankfurter.app/latest?base={monedaBase}&symbols={monedasObjetivo}&amount={amount}";
 
         var response = _httpClient.GetAsync(url).Result;
@@ -30,10 +31,11 @@ public class DivisasService : IDivisasService
             PropertyNameCaseInsensitive = true
         });
 
-        if (result == null)
+        if (result == null || result.Rates == null || !result.Rates.Any())
         {
             throw new FrankfurterEmptyResponseException(monedaBase, monedasObjetivo, amount);
         }
+
 
         return result;
     }
