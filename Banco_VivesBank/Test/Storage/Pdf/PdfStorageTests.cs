@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
@@ -84,12 +85,13 @@ public class PdfStorageTests
     }
 
     [Test]
-    public void ExportPDFCuentaNull()
+    public void ExportPDF_ClienteNull()
     {
         var movimientos = CreateSampleMovimientos();
-        
-        var ex = Assert.Throws<CuentaNotFoundException>(() => 
+    
+        var ex = Assert.Throws<ClienteNotFoundException>(() => 
             _pdfStorage.ExportPDF(null, movimientos));
+    
         Assert.That(ex.Message, Is.Not.Empty);
     }
     
