@@ -1,4 +1,5 @@
 ﻿using Banco_VivesBank.Storage.Zip.Services;
+using GraphQL;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Banco_VivesBank.Storage.Zip.Controller;
@@ -33,6 +34,7 @@ public class BackupController : ControllerBase
         _backupFilePath;
 
     [HttpGet("exportar-zip")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ExportToZip()
@@ -55,6 +57,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("importar-zip")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ImportFromZip()
