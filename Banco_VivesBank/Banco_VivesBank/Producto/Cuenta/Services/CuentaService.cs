@@ -409,7 +409,7 @@ public class CuentaService : ICuentaService
             return null;
         }
 
-        if (cuentaExistenteEntity.Cliente.Guid != guidClient)
+        if (cuentaExistenteEntity.Cliente.Guid != cliente.Guid)
         {
             _logger.LogInformation($"La cuenta {guid} no te pertenece");
             throw new CuentaNoPertenecienteAlUsuarioException($"La cuenta {guid} no te pertenece");
