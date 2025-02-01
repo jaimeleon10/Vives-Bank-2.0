@@ -323,7 +323,7 @@ namespace Banco_VivesBank.User.Service
             if (clienteExistenteEntity == null)
             {
                 _logger.LogWarning($"Cliente no encontrado para el usuario con guid: {guid}");
-                throw new ClienteNotFound($"Cliente no encontrado para el usuario con guid: {guid}");
+                throw new ClienteNotFoundException($"Cliente no encontrado para el usuario con guid: {guid}");
             }
 
             clienteExistenteEntity.IsDeleted = true;

@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Mapper;
 
 namespace Test.User.Mapper;
@@ -74,5 +75,54 @@ public class UserMapperTest
             Assert.That(user.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.UpdatedAt));
             Assert.That(user.IsDeleted, Is.EqualTo(result.IsDeleted));
         });
+        
+    }
+
+    [Test]
+    public void ToModelFromEntity()
+    {
+        var userEntity = new UserEntity
+        {
+            Id = 1,
+            Guid = "guid",
+            Username = "test",
+            Password = "test",
+            Role = Banco_VivesBank.User.Models.Role.User,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+        var result = UserMapper.ToModelFromEntity(userEntity);
+        
+            Assert.That(userEntity.Id, Is.EqualTo(result.Id));
+            Assert.That(userEntity.Guid, Is.EqualTo(result.Guid));
+            Assert.That(userEntity.Username, Is.EqualTo(result.Username));
+            Assert.That(userEntity.Password, Is.EqualTo(result.Password));
+            Assert.That(userEntity.Role, Is.EqualTo(result.Role));
+            Assert.That(userEntity.CreatedAt, Is.EqualTo(result.CreatedAt));
+            Assert.That(userEntity.UpdatedAt, Is.EqualTo(result.UpdatedAt));
+            Assert.That(userEntity.IsDeleted, Is.EqualTo(result.IsDeleted));
+    }
+
+    [Test]
+    public void ToResponseFromEntity()
+    {
+        var userEntity = new UserEntity
+        {
+            Guid = "guid",
+            Username = "test",
+            Role = Banco_VivesBank.User.Models.Role.User,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+        var result = UserMapper.ToResponseFromEntity(userEntity);
+        
+            Assert.That(userEntity.Guid, Is.EqualTo(result.Guid));
+            Assert.That(userEntity.Username, Is.EqualTo(result.Username));
+            Assert.That(userEntity.Role.ToString(), Is.EqualTo(result.Role));
+            Assert.That(userEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.CreatedAt));
+            Assert.That(userEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.UpdatedAt));
+            Assert.That(userEntity.IsDeleted, Is.EqualTo(result.IsDeleted));
     }
 }
