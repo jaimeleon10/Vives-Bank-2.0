@@ -10,6 +10,7 @@ using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
+using Banco_VivesBank.Websockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -204,8 +205,11 @@ public class DomiciliacionService : IDomiciliacionService
         
         await _movimientoService.CreateAsync(movimientoRequest);
         _logger.LogInformation("Movimiento del pago inicial de la domiciliación generado con éxito");
-
-        return domiciliacion.ToResponseFromModel()!;
+        
+        var domiciliacionResponse = domiciliacion.ToResponseFromModel();
+        var mensaje = $"Se ha creado una domiciliacion al acreedor {domiciliacion.Acreedor}, con un importe de {domiciliacion.Importe}";
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        return domiciliacionResponse!;
     }
 
     public async Task<DomiciliacionResponse?> DesactivateDomiciliacionAsync(string domiciliacionGuid)
@@ -258,8 +262,13 @@ public class DomiciliacionService : IDomiciliacionService
         _memoryCache.Set(cacheKey, domiciliacion, TimeSpan.FromMinutes(30));
         await _redisDatabase.StringSetAsync(cacheKey, serializedDom, TimeSpan.FromMinutes(30));
         
+        var cliente = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == domiciliacion.ClienteGuid);
+        
         _logger.LogInformation("Domiciliación desactivada con éxito");
-        return domiciliacion.ToResponseFromModel()!;
+        var domiciliacionResponse = domiciliacion.ToResponseFromModel();
+        var mensaje = $"Se ha desactivado una domiciliacion al acreedor {domiciliacion.Acreedor}";
+        await WebSocketHandler.SendToCliente(cliente.User.Username, new Notificacion{Entity = cliente.Nombre, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        return domiciliacionResponse!;
     }
     
     public async Task<DomiciliacionResponse?> DesactivateMyDomiciliacionAsync(User.Models.User userAuth, string domiciliacionGuid)
@@ -321,6 +330,9 @@ public class DomiciliacionService : IDomiciliacionService
         await _redisDatabase.StringSetAsync(cacheKey, serializedDom, TimeSpan.FromMinutes(30));
         
         _logger.LogInformation("Domiciliación desactivada con éxito");
-        return domiciliacion.ToResponseFromModel()!;
+        var domiciliacionResponse = domiciliacion.ToResponseFromModel();
+        var mensaje = $"Ha desactivado una domiciliacion al acreedor {domiciliacion.Acreedor}";
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = mensaje, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        return domiciliacionResponse!;
     }
 }

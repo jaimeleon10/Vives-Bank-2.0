@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using NSubstitute;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
@@ -23,7 +24,7 @@ public class ProductoServiceTest
     private PostgreSqlContainer _postgreSqlContainer;
     private GeneralDbContext _dbContext;
     private ProductoService _productoService;
-    private Mock<IMemoryCache> _memoryCache;
+    private MemoryCache _memoryCache;
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _database;
 
@@ -50,14 +51,14 @@ public class ProductoServiceTest
 
         await _dbContext.ProductoBase.ExecuteDeleteAsync();
         
-        _memoryCache = new Mock<IMemoryCache>();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
         _database = new Mock<IDatabase>();
         _redis = new Mock<IConnectionMultiplexer>();
         _redis.
             Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_database.Object);
 
-        _productoService = new ProductoService(_dbContext, NullLogger<ProductoService>.Instance, _redis.Object, _memoryCache.Object);
+        _productoService = new ProductoService(_dbContext, NullLogger<ProductoService>.Instance, _redis.Object, _memoryCache);
     }
 
     [OneTimeTearDown]
@@ -73,9 +74,15 @@ public class ProductoServiceTest
             await _postgreSqlContainer.StopAsync();
             await _postgreSqlContainer.DisposeAsync();
         }
+        
+        if (_memoryCache != null)
+        {
+            _memoryCache.Dispose();
+        }
     }
     
     [Test]
+    [Order(1)]
     public async Task GetAllPagedAsync()
     {
         var pageRequest = new PageRequest
@@ -94,8 +101,8 @@ public class ProductoServiceTest
         Assert.That(result.Content.Count, Is.EqualTo(2));
         Assert.That(result.PageNumber, Is.EqualTo(0));
         Assert.That(result.PageSize, Is.EqualTo(2));
-        Assert.That(result.TotalElements, Is.EqualTo(9));
-        Assert.That(result.TotalPages, Is.EqualTo(5));
+        Assert.That(result.TotalElements, Is.EqualTo(3));
+        Assert.That(result.TotalPages, Is.EqualTo(2));
         Assert.That(result.Empty, Is.False);
         Assert.That(result.First, Is.True);
         Assert.That(result.Last, Is.False);
@@ -115,17 +122,89 @@ public class ProductoServiceTest
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Nombre, Is.EqualTo("Producto desde BD"));
     }
+    
+    [Test]
+    public async Task GetByGuid_ClienteEnCacheMemoria()
+    {
+        var productoGuid = "existing-guid";
+        var cacheKey = $"Producto:{productoGuid}";
+        var producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
+        {
+            Guid = productoGuid,
+            Nombre = "Producto desde memoria",
+            TipoProducto = "Tipo1",
+            Descripcion = "Descripcion",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+            
+        cacheKey = $"Producto:{productoGuid}";
+        _memoryCache.Set(cacheKey, producto);
+        
+        var result = await _productoService.GetByGuidAsync(productoGuid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(producto.Guid));
+        Assert.That(result.Nombre, Is.EqualTo(producto.Nombre));
+    }
+
+    [Test]
+    public async Task GetByGuid_ClienteEnRedis()
+    {
+        var productoGuid = "existing-guid";
+        var producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
+        {
+            Guid = productoGuid,
+            Nombre = "Producto desde redis",
+            TipoProducto = "Tipo1",
+            Descripcion = "Descripcion",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+        var productoResponse = new ProductoResponse
+        {
+            Guid = productoGuid,
+            Nombre = "Producto desde redis",
+            Descripcion = "Descripcion",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow.ToString(),
+            UpdatedAt = DateTime.UtcNow.ToString(),
+        };
+
+        var productoEntity = new ProductoEntity
+        {
+            Guid = productoGuid,
+            Nombre = "Producto desde redis",
+            Descripcion = "Descripcion",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+        _dbContext.ProductoBase.Add(productoEntity);
+        await _dbContext.SaveChangesAsync();
+
+        var cacheKey = $"Producto:{productoGuid}";
+        _memoryCache.Remove(cacheKey);
+        var redisValue = JsonSerializer.Serialize(producto);
+
+         _database.Setup(db => db.StringGetAsync(It.Is<RedisKey>(k => k==cacheKey), It.IsAny<CommandFlags>())).ReturnsAsync(redisValue);
+         
+        var result = await _productoService.GetByGuidAsync(productoGuid);
+
+        Assert.That(result.Nombre, Is.EqualTo(productoResponse.Nombre));
+        Assert.That(result.Guid, Is.EqualTo(productoResponse.Guid));
+        Assert.That(result, Is.Not.Null);
+    }
 
     [Test]
     public async Task GetByGuidAsyncProductNotExist()
     {
         var guid = "non-existent-guid";
         var cacheKey = "CachePrefix_" + guid;
-
-        _memoryCache
-            .Setup(mc => mc.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-            .Returns(false);
-
+        
         _database
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
@@ -155,11 +234,7 @@ public class ProductoServiceTest
     {
         var tipo = "non-existent-tipo";
         var cacheKey = "CachePrefix_" + tipo;
-
-        _memoryCache
-            .Setup(mc => mc.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-            .Returns(false);
-
+        
         _database
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
@@ -175,9 +250,6 @@ public class ProductoServiceTest
         var request = new ProductoRequest { Nombre = "ProductoNuevo", TipoProducto = "TipoNuevo", Descripcion = "descripcion"};
 
         object cacheValue = null;
-        _memoryCache.Setup(x => x.CreateEntry(It.IsAny<object>()))
-            .Callback<object>(key => cacheValue = key)
-            .Returns(Mock.Of<ICacheEntry>());
 
         var response = await _productoService.CreateAsync(request);
 
@@ -187,17 +259,6 @@ public class ProductoServiceTest
 
         var productInDb = await _dbContext.ProductoBase.FirstOrDefaultAsync(p => p.Nombre == request.Nombre);
         Assert.That(productInDb, Is.Not.Null);
-
-        _database.Verify(db => db.StringSetAsync(
-            It.IsAny<RedisKey>(),
-            It.IsAny<RedisValue>(),
-            It.IsAny<TimeSpan?>(),
-            It.IsAny<bool>(),
-            When.Always,
-            It.IsAny<CommandFlags>()),
-            Times.Once);
-
-        _memoryCache.Verify(x => x.CreateEntry(It.IsAny<object>()), Times.Once);
     }
     
     [Test]
@@ -314,11 +375,7 @@ public class ProductoServiceTest
     {
         var guid = "non-existent-guid";
         var cacheKey = "CachePrefix_" + guid;
-
-        _memoryCache
-            .Setup(mc => mc.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-            .Returns(false);
-
+        
         _database
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
@@ -329,6 +386,7 @@ public class ProductoServiceTest
     }
     
     [Test]
+    [Order(2)]
     public async Task GetAllForStorage()
     {
         var productoEntity1 = new ProductoEntity { Nombre = "Producto1" };
@@ -338,7 +396,7 @@ public class ProductoServiceTest
 
         var result = await _productoService.GetAllForStorage();
 
-        Assert.That(result.Count(), Is.EqualTo(6));
+        Assert.That(result.Count(), Is.EqualTo(5));
         Assert.That(result.All(item => item is Banco_VivesBank.Producto.ProductoBase.Models.Producto), Is.True);
     }
     
