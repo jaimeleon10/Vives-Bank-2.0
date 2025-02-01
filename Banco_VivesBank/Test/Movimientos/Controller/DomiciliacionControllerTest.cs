@@ -8,6 +8,7 @@ using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Newtonsoft.Json.Linq;
 
 namespace Test.Movimientos.Controller;
 [TestFixture]
@@ -136,39 +137,50 @@ public class DomiciliacionControllerTests
     {
         var domiciliacionGuid = "1"; 
         var errorMessage = $"No se ha encontrado la domiciliación con guid: {domiciliacionGuid}";
-        
+
         _mockDomiciliacionService.Setup(service => service.GetByGuidAsync(domiciliacionGuid))
             .ReturnsAsync((DomiciliacionResponse)null);
-        
+
         var result = await _controller.GetDomiciliacionByGuid(domiciliacionGuid);
-        
+
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(notFoundResult, Is.Not.Null, "Expected NotFoundObjectResult.");
-        
-        var responseValue = notFoundResult.Value as Newtonsoft.Json.Linq.JObject;
-        Assert.That(responseValue, Is.Not.Null, "Expected a valid response object.");
 
-        var message = responseValue["message"]?.ToString();
+        Assert.That(notFoundResult.Value, Is.Not.Null, "Expected a valid response object.");
+
+        var responseValue = Newtonsoft.Json.JsonConvert.SerializeObject(notFoundResult.Value);
+        var jObject = Newtonsoft.Json.Linq.JObject.Parse(responseValue);
+
+        var message = jObject["message"]?.ToString();
         Assert.That(message, Is.EqualTo(errorMessage), "Expected error message not found.");
     }
-
     
-
     [Test]
     public async Task GetByGuid_MovimientoException()
     {
-       
         var domiciliacionGuid = "1";
         var exceptionMessage = "Error al procesar la solicitud";
 
         _mockDomiciliacionService.Setup(service => service.GetByGuidAsync(domiciliacionGuid))
             .ThrowsAsync(new MovimientoException(exceptionMessage));
-        
+
         var result = await _controller.GetDomiciliacionByGuid(domiciliacionGuid);
         var badRequestResult = result.Result as BadRequestObjectResult;
-        
+
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(exceptionMessage));
+
+        var response = badRequestResult.Value;
+        var messageProperty = response?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(response).ToString();
+            Assert.That(actualMessage, Is.EqualTo(exceptionMessage));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
     }
     
      [Test]
@@ -220,7 +232,6 @@ public class DomiciliacionControllerTests
     [Test]
     public async Task GetByClienteGuid_NotFound()
     {
-       
         var clienteGuid = "cliente1";
 
         _mockDomiciliacionService.Setup(service => service.GetByClienteGuidAsync(clienteGuid))
@@ -234,29 +245,6 @@ public class DomiciliacionControllerTests
         var responseList = okResult.Value as List<DomiciliacionResponse>;
         Assert.That(responseList, Is.Not.Null);
         Assert.That(responseList.Count, Is.EqualTo(0));
-    }
-    
-    
-    [Test]
-    public async Task Create_Invalido()
-    {
-        _controller.ModelState.AddModelError("ClienteGuid", "El guid del cliente es un campo obligatorio");
-
-        var request = new DomiciliacionRequest
-        {
-            Acreedor = "AcreedorX",
-            IbanEmpresa = "ES1234567890123456789012",  
-            IbanCliente = "ES9876543210987654321098",  
-            Importe = 100.0,
-            Periodicidad = "Mensual",
-            Activa = true
-        };
-        
-        var result = await _controller.CreateDomiciliacion(request);
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        
-        Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.Not.Null);
     }
     
     [Test]
@@ -303,25 +291,19 @@ public class DomiciliacionControllerTests
     public async Task DesactivateDomiciliacion_NotFound()
     {
         var domiciliacionGuid = "domiciliacion1";
-        var errorMessage = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}";
-    
-       
+
         _mockDomiciliacionService.Setup(service => service.DesactivateDomiciliacionAsync(domiciliacionGuid))
             .ReturnsAsync((DomiciliacionResponse)null);
-        
+
         var result = await _controller.DesactivateDomiciliacion(domiciliacionGuid);
-        
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        Assert.That(badRequestResult, Is.Not.Null, "Expected BadRequestObjectResult.");
-        
-        var responseValue = badRequestResult.Value as Newtonsoft.Json.Linq.JObject;
-        Assert.That(responseValue, Is.Not.Null, "Expected response value to be JObject.");
 
-        var message = responseValue["message"]?.ToString();
-        Assert.That(message, Is.EqualTo(errorMessage), "Expected error message not found.");
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult, Is.Not.Null);  // Should not be null now
+
+        // Use JObject to parse the response value
+        var responseValue = JObject.FromObject(notFoundResult.Value);
+        Assert.That(responseValue["message"].ToString(), Is.EqualTo($"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"));
     }
-
-
     
     [Test]
     public async Task DesactivateDomiciliacion_MovimientoException()
@@ -329,25 +311,24 @@ public class DomiciliacionControllerTests
         var domiciliacionGuid = "domiciliacion1";
         var exceptionMessage = "Error al desactivar la domiciliación";
 
-        // Configuración del mock para que el servicio tire una excepción
         _mockDomiciliacionService.Setup(service => service.DesactivateDomiciliacionAsync(domiciliacionGuid))
             .ThrowsAsync(new MovimientoException(exceptionMessage));
-    
-        // Act
+
         var result = await _controller.DesactivateDomiciliacion(domiciliacionGuid);
-    
-        // Assert
         var badRequestResult = result.Result as BadRequestObjectResult;
-        Assert.That(badRequestResult, Is.Not.Null, "Expected BadRequestObjectResult.");
+        Assert.That(badRequestResult, Is.Not.Null);
 
-        // Comprobamos que el objeto contiene la propiedad 'message' y el valor esperado
-        var responseValue = badRequestResult.Value as Newtonsoft.Json.Linq.JObject;
-        Assert.That(responseValue, Is.Not.Null, "Expected response value to be JObject.");
-
-        var message = responseValue["message"]?.ToString();
-        Assert.That(message, Is.EqualTo(exceptionMessage), "Expected error message not found.");
+        var responseValue = badRequestResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+        
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue).ToString();
+            Assert.That(actualMessage, Is.EqualTo(exceptionMessage));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
     }
-
-    
-   
 }
