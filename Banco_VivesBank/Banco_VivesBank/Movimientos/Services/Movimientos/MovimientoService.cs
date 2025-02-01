@@ -11,6 +11,7 @@ using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.Websockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -231,8 +232,10 @@ public class MovimientoService : IMovimientoService
         
         await CreateAsync(movimientoRequest);
         _logger.LogInformation("Movimiento del pago inicial de la domiciliación generado con éxito");
+        var ingresoResponse = ingresoNomina.ToResponseFromModel();
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = ingresoResponse.ToString(), Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
 
-        return ingresoNomina.ToResponseFromModel()!;
+        return ingresoResponse!;
     }
 
     public async Task<PagoConTarjetaResponse> CreatePagoConTarjetaAsync(User.Models.User userAuth, PagoConTarjetaRequest pagoConTarjetaRequest)
@@ -316,8 +319,10 @@ public class MovimientoService : IMovimientoService
         
         await CreateAsync(movimientoRequest);
         _logger.LogInformation("Movimiento del pago inicial de la domiciliación generado con éxito");
+        var pagoResponse = pagoConTarjeta.ToResponseFromModel();
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = pagoConTarjeta.ToString(), Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
 
-        return pagoConTarjeta.ToResponseFromModel()!;
+        return pagoResponse!;
     }
 
     public async Task<TransferenciaResponse> CreateTransferenciaAsync(User.Models.User userAuth, TransferenciaRequest transferenciaRequest)
@@ -456,8 +461,14 @@ public class MovimientoService : IMovimientoService
         
         await CreateAsync(movimientoRequestOrigen);
         _logger.LogInformation("Movimiento de la transferencia en la cuenta de origen generado con éxito");
+        var transferenciaResponse = transferenciaOrigen.ToResponseFromModel();
+        var destino = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.Guid == cuentaDestino.ClienteGuid);
+        var mensajeOrigen = $"Has realizado una transferencia al cliente {transferenciaRequest.NombreBeneficiario}, con un importe de {transferenciaRequest.Importe}";
+        var mensajeDestino = $"El cliente {transferenciaResponse.ClienteOrigen} ha realizado una transferencia a tu cuenta, con un importe de {transferenciaRequest.Importe}";
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = mensajeOrigen, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
+        await WebSocketHandler.SendToCliente(destino.User.Username, new Notificacion{Entity = destino.User.Username, Data = mensajeDestino, Tipo = Tipo.CREATE, CreatedAt = DateTime.UtcNow.ToString()});
 
-        return transferenciaOrigen.ToResponseFromModel()!;
+        return transferenciaResponse!;
     }
 
     public async Task<TransferenciaResponse> RevocarTransferenciaAsync(User.Models.User userAuth, string movimientoGuid)
@@ -622,7 +633,10 @@ public class MovimientoService : IMovimientoService
         
         await CreateAsync(movimientoRequestDestino);
         _logger.LogInformation("Movimiento de la revocación de transferencia en la cuenta de destino generado con éxito");
+        var transferenciaResponse = transferenciaOrigenNew.ToResponseFromModel();
+        var mensaje = $"Ha revocado una transferencia al cliente {transferenciaOrigenNew.NombreBeneficiario}, con un importe de {transferenciaOrigenNew.Importe}";
+        await WebSocketHandler.SendToCliente(userAuth.Username, new Notificacion{Entity = userAuth.Username, Data = mensaje, Tipo = Tipo.DELETE, CreatedAt = DateTime.UtcNow.ToString()});
 
-        return transferenciaOrigenNew.ToResponseFromModel()!;
+        return transferenciaResponse!;
     }
 }
