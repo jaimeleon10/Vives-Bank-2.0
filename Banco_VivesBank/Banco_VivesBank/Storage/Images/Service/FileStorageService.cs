@@ -69,11 +69,6 @@ public class FileStorageService : IFileStorageService
             _logger.LogError(ex, "File not found");
             throw new FileStorageNotFoundException($"File not found: {fileName}");;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting file");
-            throw new FileStorageException($"Error getting file: {fileName}");
-        }
     }
 
     public async Task<bool> DeleteFileAsync(string fileName)
@@ -97,11 +92,6 @@ public class FileStorageService : IFileStorageService
         {
             _logger.LogError(ex, "File not found during delete");
             throw new FileStorageNotFoundException($"File not found: {fileName}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting file");
-            throw new FileStorageException($"Error deleting file: {fileName}");
         }
     }
 }

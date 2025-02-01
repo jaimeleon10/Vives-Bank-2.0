@@ -1,7 +1,9 @@
 ﻿using System.Text;
 using Banco_VivesBank.Cliente.Dto;
+using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Exception;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Dto;
@@ -82,17 +84,16 @@ public class PdfStorageTests
         );
     }
 
-    /*[Test]
-    public void ExportPDFCuentaNull()
+    [Test]
+    public void ExportPDF_ClienteNull()
     {
-        // Arrange
         var movimientos = CreateSampleMovimientos();
-
-        // Act & Assert
-        var ex = Assert.Throws<CuentaInvalidaException>(() => 
+    
+        var ex = Assert.Throws<ClienteNotFoundException>(() => 
             _pdfStorage.ExportPDF(null, movimientos));
+    
         Assert.That(ex.Message, Is.Not.Empty);
-    }*/
+    }
     
     [Test]
     public void ExportPDFNullMovimientos()
@@ -157,55 +158,60 @@ public class PdfStorageTests
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = _cliente.Guid,
-                Domiciliacion = new DomiciliacionResponse()
+                Domiciliacion = new DomiciliacionResponse
                 {
+                    Guid = "dom_1",
                     ClienteGuid = _cliente.Guid,
                     IbanEmpresa = "ES00998877665544387856",
                     IbanCliente = "ES00998877665544332211",
-                    Importe = "50000",
+                    Importe = 50000,
                     Acreedor = "Compañía Eléctrica",
                     FechaInicio = new DateTime(2024, 1, 1).ToString(),
                     Periodicidad = "Mensual",
-                    Activa = true,
+                    Activa = true
                 },
-                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  // Asignación de CreatedAt
+                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             },
             new MovimientoResponse
             {
+                Guid = "git_mov_2",
                 ClienteGuid = _cliente.Guid,
                 IngresoNomina = new IngresoNominaResponse
                 {
                     NombreEmpresa = "Empresa ABC",
                     CifEmpresa = "B12345678",
-                    Importe = "200000",
+                    Importe = 200000,
                     IbanCliente = "ES11223344556677889900",
                     IbanEmpresa = "ES11223344556677889900"
                 },
-                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  // Asignación de CreatedAt
+                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             },
             new MovimientoResponse
             {
+                Guid = "git_mov_3",
                 ClienteGuid = _cliente.Guid,
                 PagoConTarjeta = new PagoConTarjetaResponse
                 {
                     NumeroTarjeta = "4111111111111111",
                     NombreComercio = "Tienda XYZ",
-                    Importe = "50000"
+                    Importe = 50000
                 },
-                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  // Asignación de CreatedAt
+                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             },
             new MovimientoResponse
             {
+                Guid = "git_mov_4",
                 ClienteGuid = _cliente.Guid,
                 Transferencia = new TransferenciaResponse
                 {
                     IbanOrigen = "ES12345678901234567456",
                     NombreBeneficiario = "Jane Doe",
                     IbanDestino = "ES12345678901234567890",
-                    Importe = "50000"
+                    Importe = 50000
                 },
-                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  // Asignación de CreatedAt
+                CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             }
         };
     }

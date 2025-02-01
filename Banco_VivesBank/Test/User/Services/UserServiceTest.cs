@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Text.Json;
 using Banco_VivesBank.Database;
@@ -613,5 +613,4 @@ public class UserServiceTest
 
 
 }
-
 

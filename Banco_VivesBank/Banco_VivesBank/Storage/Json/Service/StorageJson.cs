@@ -30,6 +30,7 @@ public class StorageJson : IStorageJson
         {
             var json = JsonConvert.SerializeObject(data, _jsonSettings);
             File.WriteAllText(file.FullName, json);
+            _logger.LogInformation($"Archivo JSON guardado correctamente en {file.FullName}");
         }
         catch (Exception ex)
         {
