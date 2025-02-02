@@ -501,7 +501,7 @@ public class CuentaService : ICuentaService
             .Include(c => c.Producto)
             .ToListAsync();
         
-        if (cuentasEntity.Count == 0)
+        if (cuentasEntity.Count != 0)
         {
             _logger.LogInformation("Cuentas encontradas");
             foreach (var cuentaEntity in cuentasEntity)

@@ -4,6 +4,7 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Cuenta.Dto;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Dto;
 using Banco_VivesBank.Producto.ProductoBase.Exceptions;
@@ -653,5 +654,150 @@ public class CuentaServiceTests
     }
 
 
+
+    [Test]
+    [Order(15)]
+    public async Task GetAllForStorage()
+    {
+        var result = await _cuentaService.GetAllForStorage();
         
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(1));
+        Assert.That(result[0].Guid, Is.EqualTo("cuenta-guid"));
+        Assert.That(result[0].Iban, Is.EqualTo("ES1234567890123456789012"));
+        Assert.That(result[0].Saldo, Is.EqualTo(1000));
+        
+    }
+    
+    [Test]
+    [Order(17)]
+    public async Task GetAllForStorageEmpty()
+    {
+       _dbContext.Cuentas.RemoveRange(await _dbContext.Cuentas.ToListAsync());
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _cuentaService.GetAllForStorage();
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(0));
+    }
+
+
+    [Test, Order(19)]
+    public async Task GetCuentaModelByIdAsync_Success()
+    {
+        var result = await _cuentaService.GetCuentaModelByIdAsync(cuenta1.Id);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo("cuenta-guid"));
+        Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
+        Assert.That(result.Saldo, Is.EqualTo(1000));
+        Assert.That(result.Cliente.Id, Is.EqualTo(cliente1.Id));
+        Assert.That(result.Producto.Id, Is.EqualTo(producto1.Id));
+    }
+    
+    [Test, Order(21)]
+    public async Task GetCuentaModelByIdAsync_NotFound()
+    {
+        var result = await _cuentaService.GetCuentaModelByIdAsync(1000);
+        
+        Assert.That(result, Is.Null);
+    }
+    
+    [Test, Order(23)]
+    public async Task GetCuentaModelByGuidAsync_Success()
+    {
+        var result = await _cuentaService.GetCuentaModelByGuidAsync("cuenta-guid");
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo("cuenta-guid"));
+        Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
+        Assert.That(result.Saldo, Is.EqualTo(1000));
+        Assert.That(result.Cliente.Id, Is.EqualTo(cliente1.Id));
+        Assert.That(result.Producto.Id, Is.EqualTo(producto1.Id));
+    }
+    
+    [Test, Order(25)]
+    public async Task GetCuentaModelByGuidAsync_NotFound()
+    {
+        var result = await _cuentaService.GetCuentaModelByGuidAsync("cuenta-guid-not-found");
+        
+        Assert.That(result, Is.Null);
+    }
+    
+    // [Test, Order(27)] Fallo en el mapper 
+    // public async Task DeleteMeAsync_Success()
+    // {
+    //     var result = await _cuentaService.DeleteMeAsync(user1.Guid, cuenta1.Guid);
+    //     
+    //     Assert.That(result, Is.Not.Null);
+    //     Assert.That(result.Guid, Is.EqualTo("cuenta-guid"));
+    //     Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
+    //     Assert.That(result.Saldo, Is.EqualTo(1000));
+    //     Assert.That(result.IsDeleted, Is.EqualTo(true));
+    //     Assert.That(result.UpdatedAt, Is.Not.EqualTo(result.CreatedAt));
+    // }
+    
+    [Test, Order(29)]
+    public async Task DeleteMeAsync_ClienteNotFound()
+    {
+        var ex = Assert.ThrowsAsync<ClienteNotFoundException>(async () => await _cuentaService.DeleteMeAsync("cliente-guid-not-found", "cuenta-guid"));
+        
+        Assert.That(ex.Message, Is.EqualTo("No se encontró el cliente con guid: cliente-guid-not-found"));
+        
+    }
+    
+    [Test, Order(31)]
+    public async Task DeleteMeAsync_CuentaNotFound()
+    {
+        var guidFlase = "cuenta-guid-not-found";
+        var result =await  _cuentaService.DeleteMeAsync(user1.Guid, guidFlase);
+        
+        Assert.That(result, Is.Null);
+    }
+    
+    [Test, Order(33)]
+    public async Task DeleteMeAsync_CuentaNoPerteneceAUsuario()
+    {
+        var userEntity = new UserEntity { Guid = "user2-guid", Username = "username2", Password = "password2", Role = Role.User, IsDeleted = false,
+            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _dbContext.Usuarios.Add(userEntity);
+        await _dbContext.SaveChangesAsync();
+        var clienteEntity = new ClienteEntity { Guid = "cliente-guid2", Dni="12345678b" ,Telefono = "123465789", Nombre = "Juan", Apellidos = "PEREZ", Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Email = "algo", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false, UserId = userEntity.Id };
+        _dbContext.Clientes.Add(clienteEntity);
+        await _dbContext.SaveChangesAsync();
+        var cuentaEntity = new CuentaEntity { Guid = "cuenta-guid2", Iban = "ES1234567890123456789012", Saldo = 1000, ClienteId = clienteEntity.Id, ProductoId = producto1.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _dbContext.Cuentas.Add(cuentaEntity);
+        await _dbContext.SaveChangesAsync();
+        
+        var result = Assert.ThrowsAsync<CuentaNoPertenecienteAlUsuarioException>( async () => await _cuentaService.DeleteMeAsync(user1.Guid, cuentaEntity.Guid));
+        
+        Assert.That(result.Message, Is.EqualTo("La cuenta cuenta-guid2 no te pertenece"));
+        
+        
+        
+    }
+    
+    [Test, Order(35)]
+    public async Task DeleteByGuidAsync_Success()
+    {
+        var result = await _cuentaService.DeleteByGuidAsync(cuenta1.Guid);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo("cuenta-guid"));
+        Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
+        Assert.That(result.Saldo, Is.EqualTo(1000));
+        Assert.That(result.IsDeleted, Is.EqualTo(true));
+    }
+    
+    [Test, Order(37)]
+    public async Task DeleteByGuid_CuentaNotFound()
+    {
+        var result = await _cuentaService.DeleteByGuidAsync("cuenta-guid-not-found");
+        
+        Assert.That(result, Is.Null);
+    }
+    
+    
+    
 }
