@@ -2,6 +2,8 @@
 using Banco_VivesBank.Movimientos.Controller;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
+using Banco_VivesBank.Movimientos.Mapper;
+using Banco_VivesBank.Movimientos.Models;
 using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
@@ -247,6 +249,99 @@ public class DomiciliacionControllerTests
         Assert.That(responseList.Count, Is.EqualTo(0));
     }
     
+     [Test]
+    public async Task GetMyDomiciliaciones_Success()
+    {
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        
+        var mockDomiciliaciones = new List<DomiciliacionResponse>
+        {
+            new DomiciliacionResponse
+            {
+                Guid = "1",
+                ClienteGuid = authenticatedUser.Guid,
+                Acreedor = "Empresa1",
+                IbanEmpresa = "ES1234567890",
+                IbanCliente = "ES0987654321",
+                Importe = 100.0,
+                Periodicidad = "Mensual",
+                Activa = true,
+                FechaInicio = "01/01/2025",
+                UltimaEjecuccion = "01/02/2025"
+            },
+            new DomiciliacionResponse
+            {
+                Guid = "2",
+                ClienteGuid = authenticatedUser.Guid,
+                Acreedor = "Empresa2",
+                IbanEmpresa = "ES1111222233",
+                IbanCliente = "ES3333222211",
+                Importe = 200.0,
+                Periodicidad = "Mensual",
+                Activa = false,
+                FechaInicio = "02/01/2025",
+                UltimaEjecuccion = "02/02/2025"
+            }
+        };
+        
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+        
+        _mockDomiciliacionService.Setup(service => service.GetMyDomiciliaciones(authenticatedUser))
+            .ReturnsAsync(mockDomiciliaciones);
+        
+        var result = await _controller.GetMyDomiciliaciones();
+        var okResult = result.Result as OkObjectResult;
+        
+        Assert.That(okResult, Is.Not.Null);
+
+        var responseList = okResult.Value as List<DomiciliacionResponse>;
+        
+        Assert.That(responseList, Is.Not.Null);
+        Assert.That(responseList.Count, Is.EqualTo(mockDomiciliaciones.Count));
+
+       
+        for (int i = 0; i < mockDomiciliaciones.Count; i++)
+        {
+            Assert.That(responseList[i].Guid, Is.EqualTo(mockDomiciliaciones[i].Guid));
+            Assert.That(responseList[i].ClienteGuid, Is.EqualTo(mockDomiciliaciones[i].ClienteGuid));
+            Assert.That(responseList[i].Acreedor, Is.EqualTo(mockDomiciliaciones[i].Acreedor));
+            Assert.That(responseList[i].IbanEmpresa, Is.EqualTo(mockDomiciliaciones[i].IbanEmpresa));
+            Assert.That(responseList[i].IbanCliente, Is.EqualTo(mockDomiciliaciones[i].IbanCliente));
+            Assert.That(responseList[i].Importe, Is.EqualTo(mockDomiciliaciones[i].Importe));
+            Assert.That(responseList[i].Periodicidad, Is.EqualTo(mockDomiciliaciones[i].Periodicidad));
+            Assert.That(responseList[i].Activa, Is.EqualTo(mockDomiciliaciones[i].Activa));
+            Assert.That(responseList[i].FechaInicio, Is.EqualTo(mockDomiciliaciones[i].FechaInicio));
+            Assert.That(responseList[i].UltimaEjecuccion, Is.EqualTo(mockDomiciliaciones[i].UltimaEjecuccion));
+        }
+    }
+
+  
+
+    [Test]
+    public async Task GetMyDomiciliaciones_ListaVacia()
+    {
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.GetMyDomiciliaciones(authenticatedUser))
+            .ReturnsAsync(new List<DomiciliacionResponse>());
+
+        var result = await _controller.GetMyDomiciliaciones();
+        var okResult = result.Result as OkObjectResult;
+        
+        Assert.That(okResult, Is.Not.Null);
+
+        var responseList = okResult.Value as List<DomiciliacionResponse>;
+        
+        Assert.That(responseList, Is.Not.Null);
+        Assert.That(responseList.Count, Is.EqualTo(0));
+    }
+
+
+    
     [Test]
     public async Task DesactivateDomiciliacion()
     {
@@ -298,9 +393,8 @@ public class DomiciliacionControllerTests
         var result = await _controller.DesactivateDomiciliacion(domiciliacionGuid);
 
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult, Is.Not.Null);  // Should not be null now
-
-        // Use JObject to parse the response value
+        Assert.That(notFoundResult, Is.Not.Null);  
+        
         var responseValue = JObject.FromObject(notFoundResult.Value);
         Assert.That(responseValue["message"].ToString(), Is.EqualTo($"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"));
     }
