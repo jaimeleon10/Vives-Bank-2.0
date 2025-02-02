@@ -611,7 +611,6 @@ public class ClienteServiceTests
     // [Order(6)]
     // public async Task Create()
     // {
-    //     _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
     //     var userEntity = new UserEntity
     //     {
     //         Id = 1,
@@ -623,7 +622,6 @@ public class ClienteServiceTests
     //         CreatedAt = DateTime.UtcNow,
     //         UpdatedAt = DateTime.UtcNow
     //     };
-    //     
     //     
     //     _dbContext.Usuarios.Add(userEntity);
     //     await _dbContext.SaveChangesAsync();
@@ -648,11 +646,8 @@ public class ClienteServiceTests
     //     _redisDatabase
     //         .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
     //         .ReturnsAsync(true);
-    //    
-    //     var entidadUsuario = _dbContext.Usuarios.FirstOrDefault(u => u.Id == userEntity.Id);
-    //     var user = entidadUsuario.ToModelFromEntity();
     //     
-    //     var result = await _clienteService.CreateAsync(user , clienteRequest);
+    //     var result = await _clienteService.CreateAsync(userEntity.ToModelFromEntity() , clienteRequest);
     //     
     //     Assert.That(result, Is.Not.Null);
     //     Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
