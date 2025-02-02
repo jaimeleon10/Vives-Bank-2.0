@@ -5,13 +5,27 @@ using System.Text.Json;
 
 namespace Banco_VivesBank.Websockets;
 
+/// <summary>
+/// Maneja las conexiones WebSocket, gestionando los clientes conectados y enviando mensajes a través de WebSocket.
+/// </summary>
 public class WebSocketHandler
 {
     private readonly WebSocket _webSocket;
+    /// <summary>
+    /// Diccionario concurrente que mantiene un mapeo entre los WebSockets y los nombres de usuario asociados.
+    /// </summary>
     private static readonly ConcurrentDictionary<WebSocket, string> _sockets = new();
+    /// <summary>
+    /// Diccionario concurrente que mantiene una lista de WebSockets asociados a cada nombre de usuario.
+    /// </summary>
     private static readonly ConcurrentDictionary<string, List<WebSocket>> _userSockets = new();
     private readonly string _username;
 
+    /// <summary>
+    /// Inicializa una nueva instancia de <see cref="WebSocketHandler"/> para manejar la conexión WebSocket de un usuario.
+    /// </summary>
+    /// <param name="webSocket">El WebSocket asociado con la conexión.</param>
+    /// <param name="username">El nombre de usuario asociado con la conexión WebSocket.</param>
     public WebSocketHandler(WebSocket webSocket, string username)
     {
         _webSocket = webSocket;
@@ -28,6 +42,9 @@ public class WebSocketHandler
             });
     }
 
+    /// <summary>
+    /// Maneja la recepción de mensajes del cliente y envía respuestas al cliente a través de WebSocket.
+    /// </summary>
     public async Task Handle()
     {
         var buffer = new byte[1024 * 4];
@@ -51,6 +68,9 @@ public class WebSocketHandler
         }
     }
 
+    /// <summary>
+    /// Cierra la conexión WebSocket de manera ordenada, eliminando la entrada correspondiente del diccionario y cerrando la conexión.
+    /// </summary>
     private async Task CloseConnection()
     {
         _sockets.TryRemove(_webSocket, out var username);
@@ -65,6 +85,11 @@ public class WebSocketHandler
         await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed", CancellationToken.None);
     }
 
+    /// <summary>
+    /// Envía una notificación a todos los WebSockets asociados con un usuario específico.
+    /// </summary>
+    /// <param name="username">El nombre de usuario al que se enviará la notificación.</param>
+    /// <param name="notificacion">La notificación a enviar.</param>
     public static async Task SendToCliente(string username, Notificacion notificacion)
     {
         if (_userSockets.TryGetValue(username, out var userConnections))
