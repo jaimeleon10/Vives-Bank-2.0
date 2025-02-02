@@ -6,7 +6,7 @@ using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.User.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CuentaInvalidaException = Banco_VivesBank.Storage.Pdf.Exception.CuentaInvalidaException;
+using CuentaInvalidaException = Banco_VivesBank.Storage.Pdf.Exception;
 
 namespace Banco_VivesBank.Movimientos.Controller;
 
@@ -150,7 +150,7 @@ public class MovimientoController : ControllerBase
         {
             return BadRequest(new { message = e.Message});
         }
-        catch (CuentaInvalidaException e)
+        catch (Producto.Cuenta.Exceptions.CuentaInvalidaException e)
         {
             return BadRequest(new { message = e.Message});
         }
