@@ -42,10 +42,10 @@ public class ClienteEntity
     [RegularExpression(@"^[679]\d{8}$", ErrorMessage = "Debe ingresar un teléfono válido.")]
     public string Telefono { get; set; }
     
-    [DefaultValue("https://example.com/fotoPerfil.jpg")]
+    [System.ComponentModel.DefaultValue("https://example.com/fotoPerfil.jpg")]
     public string FotoPerfil { get; set; } = "https://example.com/fotoPerfil.jpg";
  
-    [DefaultValue("https://example.com/fotoDni.jpg")]
+    [System.ComponentModel.DefaultValue("https://example.com/fotoDni.jpg")]
     public string FotoDni { get; set; } = "https://example.com/fotoDni.jpg";
     
     public ICollection<CuentaEntity> Cuentas { get; set; } = new HashSet<CuentaEntity>();
@@ -59,6 +59,6 @@ public class ClienteEntity
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
-    [DefaultValue(false)]
+    [System.ComponentModel.DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 }

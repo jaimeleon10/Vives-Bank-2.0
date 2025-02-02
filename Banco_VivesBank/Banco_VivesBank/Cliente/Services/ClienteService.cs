@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using IDatabase = StackExchange.Redis.IDatabase;
+using Path = System.IO.Path;
 using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Banco_VivesBank.Cliente.Services;

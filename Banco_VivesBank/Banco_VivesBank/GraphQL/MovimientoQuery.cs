@@ -1,45 +1,72 @@
-﻿using Banco_VivesBank.Movimientos.Services;
+﻿using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
-using GraphQL;
-using GraphQL.Types;
+using Banco_VivesBank.User.Service;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Banco_VivesBank.GraphQL;
 
-public sealed class MovimientoQuery : ObjectGraphType
+public class MovimientoQuery
 {
     private readonly IMovimientoService _movimientoService;
-    private readonly ILogger<MovimientoQuery> _logger;
-    
-    public MovimientoQuery(IMovimientoService movimientoService, ILogger<MovimientoQuery> logger)
+    private readonly IDomiciliacionService _domiciliacionService;
+    private readonly IUserService _userService;
+
+
+    public MovimientoQuery(IMovimientoService movimientoService, IDomiciliacionService domiciliacionService, IUserService userService)
     {
         _movimientoService = movimientoService;
-        _logger = logger;
+        _domiciliacionService = domiciliacionService;
+        _userService = userService;
+    }
 
-        Field<ListGraphType<MovimientoType>>("movimientos")
-            .ResolveAsync(async context =>
-            {
-                _logger.LogInformation("Obteniendo todos los movimientos con Graphql");
-                var movimientosResponse = await _movimientoService.GetAllAsync();
-                _logger.LogInformation($"Movimientos obtenidos con graphql: {movimientosResponse.Count()}");
-                return movimientosResponse;
-            });
+    [GraphQLName("movimientos")]
+    public async Task<IEnumerable<MovimientoResponse>> GetMovimientosAsync() =>
+        await _movimientoService.GetAllAsync();
+    
+    [GraphQLName("movimientoByGuid")]
+    public async Task<MovimientoResponse?> GetMovimientoByGuidAsync(string guid) =>
+        await _movimientoService.GetByGuidAsync(guid);
 
-        Field<MovimientoType>("movimientoByGuid")
-            .Arguments(new QueryArguments(new QueryArgument<NonNullGraphType<IdGraphType>> { Name = "guid" }
-            )).ResolveAsync(async context =>
-            {
-                var guid = context.GetArgument<string>("guid");
-                var movimientoResponse = await _movimientoService.GetByGuidAsync(guid);
-                return movimientoResponse;
-            });
-        
-        Field<MovimientoType>("movimientoByClienteGuid")
-            .Arguments(new QueryArguments(new QueryArgument<NonNullGraphType<IdGraphType>> { Name = "clienteGuid" }
-            )).ResolveAsync(async context =>
-            {
-                var clienteGuid = context.GetArgument<string>("clienteGuid");
-                var movimientosResponse = await _movimientoService.GetByClienteGuidAsync(clienteGuid);
-                return movimientosResponse;
-            });
+    [GraphQLName("movimientosByClienteGuid")]
+    public async Task<IEnumerable<MovimientoResponse>> GetMovimientosByClienteGuidAsync(string clienteGuid) =>
+        await _movimientoService.GetByClienteGuidAsync(clienteGuid);
+    
+    [Authorize(Policy = "ClientePolicy")]
+    [GraphQLName("misMovimientos")]
+    public async Task<IEnumerable<MovimientoResponse>> GetMyMovimientosAsync()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null)
+        {
+            throw new GraphQLException("No se ha podido identificar al usuario autenticado.");
+        }
+
+        return await _movimientoService.GetMyMovimientos(userAuth);
+    }
+    
+    [GraphQLName("domiciliaciones")]
+    public async Task<IEnumerable<DomiciliacionResponse>> GetDomiciliacionesAsync() =>
+        await _domiciliacionService.GetAllAsync();
+
+    [GraphQLName("domiciliacionByGuid")]
+    public async Task<DomiciliacionResponse?> GetDomiciliacionByGuidAsync(string domiciliacionGuid) =>
+        await _domiciliacionService.GetByGuidAsync(domiciliacionGuid);
+
+    [GraphQLName("domiciliacionesByClienteGuid")]
+    public async Task<IEnumerable<DomiciliacionResponse>> GetDomiciliacionesByClienteGuidAsync(string clienteGuid) =>
+        await _domiciliacionService.GetByClienteGuidAsync(clienteGuid);
+    
+    [Authorize(Policy = "ClientePolicy")]
+    [GraphQLName("misDomiciliaciones")]
+    public async Task<IEnumerable<DomiciliacionResponse>> GetMyDomiciliacionesAsync()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null)
+        {
+            throw new GraphQLException("No se ha podido identificar al usuario autenticado.");
+        }
+
+        return await _domiciliacionService.GetMyDomiciliaciones(userAuth);
     }
 }

@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Banco_VivesBank.Cliente.Services;
-using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
@@ -25,8 +24,6 @@ using Banco_VivesBank.Utils.Auth;
 using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Websockets;
-using GraphiQl;
-using GraphQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -117,11 +114,8 @@ app.UseEndpoints(endpoints =>
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
 
-// Middleware para GraphQL
-app.MapGraphQL<MovimientoSchema>("/graphql");
+app.MapGraphQL(); // Accesible en /graphql
 
-// GraphQL Playground
-app.UseGraphiQl("/graphiql");
 
 Console.WriteLine($"🕹️ Running service in url: {builder.Configuration["urls"] ?? "not configured"} in mode {environment} 🟢");
 
@@ -199,19 +193,13 @@ WebApplicationBuilder InitServices()
     // Base de datos en PostgreSQL
     myBuilder.Services.AddDbContext<GeneralDbContext>(options =>
         options.UseNpgsql(myBuilder.Configuration.GetConnectionString("DefaultConnection")));
-    
-    // GraphQL
-    myBuilder.Services.AddScoped<MovimientoQuery>();
-    myBuilder.Services.AddScoped<MovimientoSchema>();
-    myBuilder.Services.AddScoped<MovimientoType>();
-    
-    myBuilder.Services.AddGraphQL(graphQlBuilder =>
-    {
-        graphQlBuilder.AddSystemTextJson();
-    });
 
     // Añadimos los controladores
     myBuilder.Services.AddControllers();
+    
+    // Registra el servidor GraphQL y asigna el Query type.
+    myBuilder.Services.AddGraphQLServer()
+        .AddQueryType<MovimientoQuery>();
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle para documentar la API
     myBuilder.Services.AddEndpointsApiExplorer();

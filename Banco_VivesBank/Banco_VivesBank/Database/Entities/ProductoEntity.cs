@@ -32,6 +32,6 @@ public class ProductoEntity
     
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
-    [DefaultValue(false)]
+    [System.ComponentModel.DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 }

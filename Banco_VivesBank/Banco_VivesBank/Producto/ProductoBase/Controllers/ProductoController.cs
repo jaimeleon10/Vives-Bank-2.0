@@ -5,6 +5,7 @@ using Banco_VivesBank.Producto.ProductoBase.Services;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Producto.ProductoBase.Controllers;
 

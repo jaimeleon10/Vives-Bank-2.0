@@ -41,7 +41,7 @@ public class CuentaEntity
     public long ProductoId { get; set; }
     public ProductoEntity Producto { get; set; }
 
-    [DefaultValue(false)]
+    [System.ComponentModel.DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

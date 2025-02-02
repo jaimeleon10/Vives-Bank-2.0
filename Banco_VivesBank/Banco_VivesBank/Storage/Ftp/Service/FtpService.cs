@@ -4,6 +4,7 @@ using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Config.Storage.Images;
 using Banco_VivesBank.Storage.Ftp.Exceptions;
 using Microsoft.Extensions.Options;
+using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Ftp.Service;
 
