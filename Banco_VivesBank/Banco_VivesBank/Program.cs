@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Banco_VivesBank.Cliente.Services;
-using Banco_VivesBank.Config.Storage;
 using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.GraphQL;
@@ -20,8 +19,8 @@ using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
+using Banco_VivesBank.Swagger.Examples.Clientes;
 using Banco_VivesBank.User.Service;
-using Banco_VivesBank.Utils.Auth;
 using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Websockets;
@@ -34,10 +33,10 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Quartz;
-using Quartz.Spi;
 using Serilog;
 using Serilog.Core;
 using StackExchange.Redis;
+using Swashbuckle.AspNetCore.Filters;
 
 var environment = InitLocalEnvironment();
 
@@ -59,7 +58,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Prueba Swagger API v1");
+        c.RoutePrefix = string.Empty;
+    });
 }
 
 // Habilita redirección HTTPS si está habilitado
@@ -231,6 +234,10 @@ WebApplicationBuilder InitServices()
                 Url = new Uri("https://github.com/jaimeleon10, https://github.com/ngalvez0910")
             }
         });
+        c.ExampleFilters();  //Habilita los ejemplos de las clases
+        var xmlFile = Path.Combine(AppContext.BaseDirectory, "Banco_VivesBank.xml");
+           
+        c.IncludeXmlComments(xmlFile);
     });
 
     // redis 
@@ -305,6 +312,10 @@ WebApplicationBuilder InitServices()
     });
     
     myBuilder.Services.AddScoped<IJwtService, JwtService>();
+    
+    // Añadir los ejemplos de las clases
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<ClienteResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PageResponseClienteExample>();
 
     return myBuilder;
 }
@@ -334,6 +345,8 @@ Logger InitLogConfig()
         .ReadFrom.Configuration(configuration)
         .CreateLogger();
 }
+
+
 
 void TryConnectionDataBase()
 {
