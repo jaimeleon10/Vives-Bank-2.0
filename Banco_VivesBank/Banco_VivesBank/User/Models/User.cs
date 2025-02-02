@@ -4,7 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.User.Models;
-
+/// <summary>
+///  Representa el usuario de un banco
+/// </summary>
 public class User 
 {
     public long Id { get; set; }
