@@ -273,10 +273,23 @@ public class ClienteController : ControllerBase
     {
         var userAuth = _userService.GetAuthenticatedUser();
         if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
-        
-        var response = await _clienteService.DerechoAlOlvido(userAuth);
-        if(response.IsNullOrEmpty()) return NotFound(new {message = "No se ha encontrado ningun cliente asociado a su usuario"});
-        return Ok(response);
+
+        try
+        {
+            var response = await _clienteService.DerechoAlOlvido(userAuth);
+            if (response.IsNullOrEmpty())
+                return NotFound(new { message = "No se ha encontrado ningun cliente asociado a su usuario" });
+            return Ok(response);
+        }
+        catch (FileStorageException e)
+        {
+            return BadRequest(new
+                { message = "Ha ocurrido un error al intentar borrar la imagen de perfil", details = e.Message });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = "Ha ocurrido un error al intentar borrar la imagen del dni", details = e.Message });
+        }
     }
 
     /// <summary>

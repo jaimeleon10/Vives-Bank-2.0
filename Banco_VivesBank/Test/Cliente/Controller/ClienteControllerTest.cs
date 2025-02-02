@@ -648,8 +648,38 @@ public class ClienteControllerTest
         var okResult = result.Result as OkObjectResult;
         Assert.That(okResult.Value, Is.EqualTo("Cliente eliminado correctamente"));
     }
-    
-    
+
+    [Test]
+    public async Task DerechoAlOlvido_FileStorageException()
+    {
+        var user = new Banco_VivesBank.User.Models.User { Guid = "guid" };
+        
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.DerechoAlOlvido(user))
+            .ThrowsAsync(new FileStorageException(""));
+        
+        var result = await _clienteController.DerechoAlOlvido();
+        
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult.Value.ToString(), Is.EqualTo("{ message = Ha ocurrido un error al intentar borrar la imagen de perfil, details =  }"));
+    }
+
+    [Test]
+    public async Task DerechoAlOlvido_ExceptionFtp()
+    {
+        var user = new Banco_VivesBank.User.Models.User { Guid = "guid" };
+        
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.DerechoAlOlvido(user))
+            .ThrowsAsync(new Exception(""));
+        
+        var result = await _clienteController.DerechoAlOlvido();
+        
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult.Value.ToString(), Is.EqualTo("{ message = Ha ocurrido un error al intentar borrar la imagen del dni, details =  }"));
+    }
 
     [Test]
     public async Task UpdateMyProfilePicture()
