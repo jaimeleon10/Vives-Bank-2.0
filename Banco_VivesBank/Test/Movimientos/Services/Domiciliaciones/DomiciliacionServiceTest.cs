@@ -25,7 +25,6 @@ using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Models;
-using NSubstitute;
 
 [TestFixture]
 [TestOf(typeof(DomiciliacionService))]
