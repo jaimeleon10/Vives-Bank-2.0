@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.Cliente.Dto;
+﻿using System.Globalization;
+using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Cuenta.Dto;
@@ -70,8 +71,8 @@ public static class CuentaMapper
             TarjetaGuid = cuentaEntity.Tarjeta?.Guid,
             ClienteGuid = cuentaEntity.Cliente.Guid,
             ProductoGuid = cuentaEntity.Producto.Guid,
-            CreatedAt = cuentaEntity.CreatedAt.ToString(),
-            UpdatedAt = cuentaEntity.UpdatedAt.ToString(),
+            CreatedAt = cuentaEntity.CreatedAt.ToString(CultureInfo.InvariantCulture),
+            UpdatedAt = cuentaEntity.UpdatedAt.ToString(CultureInfo.InvariantCulture),
             IsDeleted = cuentaEntity.IsDeleted
         };
     }
