@@ -799,5 +799,119 @@ public class CuentaServiceTests
     }
     
     
+    [Test]
+    [Order(16)]
+    public async Task GetAllMeAsyncOk()
+    {
+        
+        var userGuid = "user-guid";
+        var cuentas = new List<CuentaEntity>
+        {
+            new CuentaEntity { Guid = "cuenta-1", Iban = "ES1111111111111111111111", Saldo = 500, ClienteId = cliente1.Id, ProductoId = producto1.Id },
+            new CuentaEntity { Guid = "cuenta-2", Iban = "ES2222222222222222222222", Saldo = 1500, ClienteId = cliente1.Id, ProductoId = producto1.Id }
+        };
+
+        await _dbContext.Cuentas.AddRangeAsync(cuentas);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _cuentaService.GetAllMeAsync(userGuid);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count(), Is.EqualTo(2));
+        Assert.That(result.First().Guid, Is.EqualTo("cuenta-1"));
+    }
+
+    [Test]
+    [Order(18)]
+    public void GetAllMeAsyncClienteNotFoundException()
+    {
+        var userGuid = "non-existent-guid";
+
+        var ex = Assert.ThrowsAsync<ClienteNotFoundException>(async () => await _cuentaService.GetAllMeAsync(userGuid));
+        Assert.That(ex.Message, Is.EqualTo($"No se encontró el cliente con guid: {userGuid}"));
+    }
+    
+    [Test]
+    [Order(20)]
+    public async Task GetMeByIbanAsyncOk()
+    {
+        var userGuid = "user-guid";
+        var iban = "ES1111111111111111111111";
+        var cuenta = new CuentaEntity { Guid = "cuenta-1", Iban = iban, Saldo = 500, ClienteId = cliente1.Id, ProductoId = producto1.Id };
+        await _dbContext.Cuentas.AddAsync(cuenta);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _cuentaService.GetMeByIbanAsync(userGuid, iban);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Iban, Is.EqualTo(iban));
+    }
+
+    [Test]
+    [Order(22)]
+    public void GetMeByIbanAsyncClienteNotFoundException()
+    {
+        var userGuid = "non-existent-guid";
+        var iban = "ES1111111111111111111111";
+
+        var ex = Assert.ThrowsAsync<ClienteNotFoundException>(async () => await _cuentaService.GetMeByIbanAsync(userGuid, iban));
+        Assert.That(ex.Message, Is.EqualTo($"No se encontró el cliente con guid: {userGuid}"));
+    }
+
+    [Test]
+    [Order(24)]
+    public async Task GetMeByIbanAsyncCuentaNoPertenecienteAlUsuarioException()
+    {
+        var userGuid = "user-guid";
+        var iban = "ES2222222222222222222222";
+        var cuenta = new CuentaEntity { Guid = "cuenta-2", Iban = iban, Saldo = 1500, ClienteId = 9999, ProductoId = producto1.Id };
+        await _dbContext.Cuentas.AddAsync(cuenta);
+        await _dbContext.SaveChangesAsync();
+
+        var ex = Assert.ThrowsAsync<CuentaNoPertenecienteAlUsuarioException>(async () => await _cuentaService.GetMeByIbanAsync(userGuid, iban));
+        Assert.That(ex.Message, Is.EqualTo($"El iban {iban} no te pertenece"));
+    }
+
+    [Test]
+    [Order(26)]
+    public async Task GetMeByIbanAsyncNull()
+    {
+        var userGuid = "user-guid";
+        var iban = "ES3333333333333333333333";
+
+        var result = await _cuentaService.GetMeByIbanAsync(userGuid, iban);
+
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    [Order(28)]
+    public async Task GetByTarjetaGuidAsyncok()
+    {
+        var tarjetaGuid = "tarjeta-guid";
+        var cuenta = new CuentaEntity { Guid = "cuenta-1", Iban = "ES1111111111111111111111", Saldo = 500, ClienteId = cliente1.Id, ProductoId = producto1.Id, Tarjeta = new TarjetaEntity { Guid = tarjetaGuid } };
+        await _dbContext.Cuentas.AddAsync(cuenta);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _cuentaService.GetByTarjetaGuidAsync(tarjetaGuid);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo("cuenta-1"));
+    }
+
+    [Test]
+    [Order(30)]
+    public async Task GetByTarjetaGuidAsyncNull()
+    {
+        var tarjetaGuid = "non-existent-tarjeta-guid";
+
+        
+        var result = await _cuentaService.GetByTarjetaGuidAsync(tarjetaGuid);
+
+        Assert.That(result, Is.Null);
+    }
+    
+
+    
     
 }
