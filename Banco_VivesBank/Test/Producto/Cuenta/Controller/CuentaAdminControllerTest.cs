@@ -18,20 +18,19 @@ namespace Test.Producto.Cuenta.Controller;
 
 public class CuentaAdminControllerTests
 {
-        private  Mock<ICuentaService> _mockCuentaService;
-        private  Mock<PaginationLinksUtils> _mockPaginationLinksUtils;
-        private  Mock<IUserService> _mockUserService;
-        private  CuentaControllerAdmin _controller;
+    private  Mock<ICuentaService> _mockCuentaService;
+    private  Mock<PaginationLinksUtils> _mockPaginationLinksUtils;
+    private  Mock<IUserService> _mockUserService;
+    private  CuentaControllerAdmin _controller;
 
-        [SetUp]
-        public void SetUp()
-        {
-            _mockCuentaService = new Mock<ICuentaService>();
-            _mockPaginationLinksUtils = new Mock<PaginationLinksUtils>();
-            _mockUserService = new Mock<IUserService>();
-            _controller = new CuentaControllerAdmin(_mockCuentaService.Object, _mockPaginationLinksUtils.Object, _mockUserService.Object);
-        }
-        
+    [SetUp]
+    public void SetUp()
+    {
+        _mockCuentaService = new Mock<ICuentaService>();
+        _mockPaginationLinksUtils = new Mock<PaginationLinksUtils>();
+        _mockUserService = new Mock<IUserService>();
+        _controller = new CuentaControllerAdmin(_mockCuentaService.Object, _mockPaginationLinksUtils.Object, _mockUserService.Object);
+    }
     
    [Test]
     public async Task GetAllOk()
@@ -1294,31 +1293,4 @@ public class CuentaAdminControllerTests
         var objectResult = result.Result as ObjectResult;
         Assert.That(objectResult.StatusCode, Is.EqualTo(500));
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-    
-    
-
-    
 }
