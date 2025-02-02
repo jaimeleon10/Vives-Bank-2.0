@@ -15,7 +15,6 @@ using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NSubstitute;
 
 namespace Test.Cliente.Controller;
 
