@@ -28,7 +28,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<IEnumerable<PageResponse<Models.Tarjeta>>>> GetAllTarjetas(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
@@ -54,7 +54,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByGuid(string guid)
     {
         var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
@@ -63,7 +63,7 @@ public class TarjetaController : ControllerBase
     }
     
     [HttpGet("numero/{numeroTarjeta}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByNumeroTarjeta(string numeroTarjeta)
     {
         var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync(numeroTarjeta);
@@ -72,6 +72,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "ClientePolicy")]
     public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
         if (!ModelState.IsValid)
@@ -98,6 +99,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "ClientePolicy")]
     public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequestUpdate dto)
     {
         if (!ModelState.IsValid)
@@ -108,7 +110,6 @@ public class TarjetaController : ControllerBase
         try
         {
             _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
-            
             
             var tarjeta = await _tarjetaService.GetByGuidAsync(id);
             if (tarjeta == null) return NotFound($"La tarjeta con id: {id} no se ha encontrado");
@@ -122,7 +123,7 @@ public class TarjetaController : ControllerBase
     }
 
     [HttpDelete("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<TarjetaResponse>> DeleteTarjeta(string guid)
     {
         var tarjeta = await _tarjetaService.DeleteAsync(guid);

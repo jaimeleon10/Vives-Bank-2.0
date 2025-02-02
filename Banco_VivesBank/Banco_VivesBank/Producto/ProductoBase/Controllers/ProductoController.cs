@@ -27,7 +27,6 @@ public class ProductoController : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<PageResponse<ProductoResponse>>>> GetAll(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
@@ -53,7 +52,6 @@ public class ProductoController : ControllerBase
     }
 
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> GetByGuid(string guid)
     {
         try
