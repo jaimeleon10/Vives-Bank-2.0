@@ -4,6 +4,7 @@ using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
+using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
@@ -11,9 +12,13 @@ using Banco_VivesBank.Websockets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Banco_VivesBank.Producto.Tarjeta.Services;
 
+/// <summary>
+/// Servicio para la gestión de tarjetas de crédito.
+/// </summary>
 public class TarjetaService : ITarjetaService
 {
 
@@ -27,6 +32,14 @@ public class TarjetaService : ITarjetaService
     private const string CacheKeyPrefix = "Tarjeta:"; 
     
 
+    /// <summary>
+    /// Constructor del servicio de tarjetas.
+    /// </summary>
+    /// <param name="context">Contexto de base de datos.</param>
+    /// <param name="logger">Instancia del logger.</param>
+    /// <param name="log">Logger para validaciones de límite de tarjeta.</param>
+    /// <param name="redis">Conexión a Redis.</param>
+    /// <param name="memoryCache">Instancia del caché en memoria.</param>
     public TarjetaService(GeneralDbContext context, ILogger<TarjetaService> logger, ILogger<CardLimitValidators> log,  IConnectionMultiplexer redis,  IMemoryCache memoryCache )
     {
         _context = context;
@@ -37,7 +50,14 @@ public class TarjetaService : ITarjetaService
         _cardLimitValidators = new CardLimitValidators(_log);
         _database = _redis.GetDatabase();
     }
-
+    
+    
+    /// <summary>
+    /// Obtiene una lista paginada de tarjetas.
+    /// </summary>
+    /// <param name="page">Parámetros de paginación.</param>
+    /// <returns>Una lista paginada de tarjetas.</returns>
+    [SwaggerOperation(Summary = "Obtiene todas las tarjetas paginadas", Description = "Devuelve una lista de tarjetas con paginación aplicada.")]
     public async Task<PageResponse<TarjetaResponse>> GetAllPagedAsync(PageRequest page)
     {
         _logger.LogInformation("Obteniendo todas las tarjetas paginadas");
@@ -79,6 +99,13 @@ public class TarjetaService : ITarjetaService
         };
     }
 
+    
+    /// <summary>
+    /// Obtiene una tarjeta específica por su GUID.
+    /// </summary>
+    /// <param name="guid">Identificador único de la tarjeta.</param>
+    /// <returns>La tarjeta encontrada o null si no existe.</returns>
+    [SwaggerOperation(Summary = "Obtiene una tarjeta por su GUID", Description = "Busca una tarjeta en caché, Redis o base de datos según el identificador único proporcionado.")]
     public async Task<TarjetaResponse?> GetByGuidAsync(string guid)
     {
         _logger.LogDebug($"Obteniendo tarjeta con id: {guid}");
@@ -109,7 +136,7 @@ public class TarjetaService : ITarjetaService
         var tarjetaEntity = await _context.Tarjetas.FirstOrDefaultAsync(u => u.Guid == guid);
         if (tarjetaEntity != null)
         {
-            _logger.LogInformation($"Tarjeta no encontrada con guid: {guid}");
+            _logger.LogInformation($"Tarjeta encontrada con guid: {guid}");
 
             // Mapear entidad a modelo y respuesta
             var tarjetaResponse = TarjetaMapper.ToResponseFromEntity(tarjetaEntity);
@@ -129,6 +156,13 @@ public class TarjetaService : ITarjetaService
         return null;
     }
 
+    
+    /// <summary>
+    /// Obtiene una tarjeta por su número de tarjeta.
+    /// </summary>
+    /// <param name="numeroTarjeta">Número de la tarjeta.</param>
+    /// <returns>Tarjeta encontrada o null si no existe.</returns>
+    [SwaggerOperation(Summary = "Obtiene una tarjeta por su número", Description = "Busca una tarjeta en la base de datos a partir de su número único.")]
     public async Task<TarjetaResponse?> GetByNumeroTarjetaAsync(string numeroTarjeta)
     {
         _logger.LogDebug($"Obteniendo tarjeta con número de tarjeta: {numeroTarjeta}");
@@ -144,7 +178,14 @@ public class TarjetaService : ITarjetaService
         return null;
     }
 
-    public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest)
+    /// <summary>
+    /// Crea una nueva tarjeta.
+    /// </summary>
+    /// <param name="tarjetaRequest">Datos de la nueva tarjeta.</param>
+    /// <param name="user">Usuario que solicita la creación.</param>
+    /// <returns>La tarjeta creada.</returns>
+    [SwaggerOperation(Summary = "Crea una nueva tarjeta", Description = "Valida los datos de la cuenta asociada y crea una nueva tarjeta.")]
+    public async Task<TarjetaResponse> CreateAsync(TarjetaRequest tarjetaRequest, User.Models.User user)
     {
         _logger.LogDebug("Creando una nueva tarjeta");
         
@@ -154,6 +195,14 @@ public class TarjetaService : ITarjetaService
         {
             _logger.LogWarning($"Cuenta con guid: {tarjetaRequest.CuentaGuid} no encontrada");
             throw new CuentaNotFoundException("Cuenta no encontrada");
+        }
+
+        var cliente = _context.Clientes.FirstOrDefaultAsync(c => c.Id == user.Id);
+
+        if (!cliente.Result.Cuentas.Contains(cuentaEntity))
+        {
+            _logger.LogWarning($"El cliente con id: {user.Id} no tiene la cuenta con guid: {tarjetaRequest.CuentaGuid}");
+            throw new CuentaNotFoundException("El cliente no tiene la cuenta");
         }
         
         _logger.LogInformation($"Validando que la cuenta con guid {tarjetaRequest.CuentaGuid} no tiene tarjeta asignada");
@@ -196,7 +245,15 @@ public class TarjetaService : ITarjetaService
         return tarjetaResponse;
     }
 
-    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequestUpdate dto)
+    /// <summary>
+    /// Actualiza los datos de una tarjeta existente.
+    /// </summary>
+    /// <param name="guid">Identificador único de la tarjeta.</param>
+    /// <param name="dto">Datos actualizados de la tarjeta.</param>
+    /// <param name="user">Usuario que realiza la actualización.</param>
+    /// <returns>La tarjeta actualizada o null si no se encuentra.</returns>
+    [SwaggerOperation(Summary = "Actualiza una tarjeta", Description = "Modifica los datos de una tarjeta existente si pertenece al usuario autenticado.")]
+    public async Task<TarjetaResponse?> UpdateAsync(string guid, TarjetaRequestUpdate dto, User.Models.User user)
     {
         _logger.LogDebug($"Actualizando tarjeta con id: {guid}");
         var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
@@ -205,6 +262,30 @@ public class TarjetaService : ITarjetaService
         {
             _logger.LogWarning($"Tarjeta con id: {guid} no encontrada");
             return null;
+        }
+        
+        var cliente = _context.Clientes
+            .Include(c => c.Cuentas)
+            .ThenInclude(c => c.Tarjeta)
+            .FirstOrDefault(c => c.Id == user.Id);
+
+        if (cliente == null)
+        {
+            _logger.LogWarning($"El cliente con id: {user.Id} no existe");
+            throw new UserNotFoundException("El usuario no existe");
+        }
+
+        var guids = cliente.Cuentas
+            .Where(c => c.Tarjeta != null)
+            .Select(c => c.Tarjeta.Guid)
+            .ToList();
+
+        _logger.LogInformation($"Tarjetas asociadas al cliente: {string.Join(", ", guids)}");
+
+        if (!guids.Contains(guid))
+        {
+            _logger.LogWarning($"El cliente con id: {cliente.Id} no tiene la cuenta con guid: {guid}");
+            throw new CuentaNotFoundException("El cliente no tiene la cuenta");
         }
         
         _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
@@ -240,7 +321,14 @@ public class TarjetaService : ITarjetaService
         return tarjetaResponse;
     }
 
-    public async Task<TarjetaResponse?> DeleteAsync(string guid)
+    /// <summary>
+    /// Elimina una tarjeta de manera lógica.
+    /// </summary>
+    /// <param name="guid">Identificador único de la tarjeta.</param>
+    /// <param name="user">Usuario que solicita la eliminación.</param>
+    /// <returns>La tarjeta eliminada o null si no se encuentra.</returns>
+    [SwaggerOperation(Summary = "Elimina una tarjeta", Description = "Marca una tarjeta como eliminada en lugar de borrarla físicamente de la base de datos.")]
+    public async Task<TarjetaResponse?> DeleteAsync(string guid, User.Models.User user)
     {
         _logger.LogDebug($"Eliminando tarjeta con guid: {guid}");
         var tarjeta = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Guid == guid);
@@ -249,6 +337,30 @@ public class TarjetaService : ITarjetaService
         {
             _logger.LogWarning($"Tarjeta con guid: {guid} no encontrada");
             return null;
+        }
+        
+        var cliente = _context.Clientes
+            .Include(c => c.Cuentas)
+            .ThenInclude(c => c.Tarjeta)
+            .FirstOrDefault(c => c.Id == user.Id);
+
+        if (cliente == null)
+        {
+            _logger.LogWarning($"El cliente con id: {user.Id} no existe");
+            throw new UserNotFoundException("El usuario no existe");
+        }
+
+        var guids = cliente.Cuentas
+            .Where(c => c.Tarjeta != null)
+            .Select(c => c.Tarjeta.Guid)
+            .ToList();
+
+        _logger.LogInformation($"Tarjetas asociadas al cliente: {string.Join(", ", guids)}");
+
+        if (!guids.Contains(guid))
+        {
+            _logger.LogWarning($"El cliente con id: {cliente.Id} no tiene la cuenta con guid: {guid}");
+            throw new CuentaNotFoundException("El cliente no tiene la cuenta");
         }
 
         _logger.LogDebug("Actualizando isDeleted a true");
@@ -261,7 +373,6 @@ public class TarjetaService : ITarjetaService
         var cuentaEntity = await _context.Cuentas.FirstOrDefaultAsync(c => c.Tarjeta!.Guid == guid);
         cuentaEntity!.TarjetaId = null;
         cuentaEntity.Tarjeta = null;
-        cuentaEntity.UpdatedAt = DateTime.UtcNow;
         _context.Cuentas.Update(cuentaEntity);
         await _context.SaveChangesAsync();
         
