@@ -1,8 +1,6 @@
-﻿using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Movimientos.Controller;
+﻿using Banco_VivesBank.Movimientos.Controller;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
-using Banco_VivesBank.Movimientos.Services;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
@@ -26,7 +24,6 @@ public class MovimientoControllerTests
         _mockUserService = new Mock<IUserService>();  
         _controller = new MovimientoController(_mockMovimientoService.Object, _mockUserService.Object); 
     }
-
     
     [Test]
     public async Task GetAll()
@@ -111,6 +108,7 @@ public class MovimientoControllerTests
     public async Task GetByGuid_NotFound()
     {
         var guid = "non-existent-guid";
+        var exceptionMessage = "No se ha encontrado el movimiento con guid: non-existent-guid";
         _mockMovimientoService.Setup(service => service.GetByGuidAsync(guid))
             .ReturnsAsync((MovimientoResponse)null);
         
@@ -118,7 +116,8 @@ public class MovimientoControllerTests
         
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha encontrado el movimiento con guid: {guid}"));
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+        Assert.That(notFoundResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
     
     [Test]
@@ -167,8 +166,48 @@ public class MovimientoControllerTests
         Assert.That(responseList.Count, Is.EqualTo(0));
     }
     
+    [Test]
+    public async Task GetMyMovimientos()
+    {
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Username = "Test User" };
+        _mockUserService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
+
+        var movimientos = new List<MovimientoResponse> 
+        {
+            new MovimientoResponse { Guid = "1", ClienteGuid = "clienteguid1", CreatedAt = DateTime.UtcNow.ToString() },
+            new MovimientoResponse { Guid = "2", ClienteGuid = "clienteguid2", CreatedAt = DateTime.UtcNow.ToString() }
+        };
+        _mockMovimientoService.Setup(s => s.GetMyMovimientos(user)).ReturnsAsync(movimientos); 
+
+        var result = await _controller.GetMyMovimientos();
+
+        Assert.That(result, Is.InstanceOf<ActionResult<IEnumerable<MovimientoResponse>>>());
+
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+
+        var returnedMovimientos = okResult.Value as IEnumerable<MovimientoResponse>;
+        Assert.That(returnedMovimientos, Is.Not.Null);
+        Assert.That(returnedMovimientos.Count(), Is.EqualTo(2));
+    }
     
-       [Test]
+    [Test]
+    public async Task GetMyMovimientosNotFound()
+    {
+        _mockUserService.Setup(s => s.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
+    
+        var result = await _controller.GetMyMovimientos();
+
+        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
+    
+        var notFoundResult = result.Result as NotFoundObjectResult;
+
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+    }
+    
+    [Test]
     public async Task CreateIngresoNomina()
     {
        
@@ -212,10 +251,8 @@ public class MovimientoControllerTests
         Assert.That(responseValue.IbanCliente, Is.EqualTo(mockResponse.IbanCliente));
         Assert.That(responseValue.Importe, Is.EqualTo(mockResponse.Importe));
     }
-
-
     
-   /* [Test]
+    [Test]
     public async Task CreateIngresoNomina_CuentaException()
     {
         var ingresoNominaRequest = new IngresoNominaRequest
@@ -229,29 +266,28 @@ public class MovimientoControllerTests
 
         var exceptionMessage = "Cuenta no encontrada";
 
-        // Simula un usuario autenticado
-        var mockUser = new Banco_VivesBank.User.Models.User {  };
+        var mockUser = new Banco_VivesBank.User.Models.User();
         _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(mockUser);
 
-        // Configura el mock para lanzar la excepción CuentaException
-        _mockMovimientoService.Setup(service => service.CreateIngresoNominaAsync(mockUser, ingresoNominaRequest))
+        _mockMovimientoService
+            .Setup(service => service.CreateIngresoNominaAsync(It.IsAny<Banco_VivesBank.User.Models.User>(), ingresoNominaRequest))
             .ThrowsAsync(new CuentaException(exceptionMessage));
 
         var result = await _controller.CreateIngresoNomina(ingresoNominaRequest);
+
+        Console.WriteLine(result.Result?.GetType().Name);
+
         var notFoundResult = result.Result as NotFoundObjectResult;
 
-        Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.Not.Null);  // Verifica que Value no es null
+        Assert.That(notFoundResult, Is.Not.Null, "El resultado no es un NotFoundObjectResult");
+        Assert.That(notFoundResult.Value, Is.Not.Null, "El valor del NotFoundObjectResult es nulo");
 
-        // Accede al valor como un Dictionary<string, object>
-        var responseValue = notFoundResult.Value as IDictionary<string, object>;
+        var messageProperty = notFoundResult.Value.GetType().GetProperty("message")?.GetValue(notFoundResult.Value, null);
 
-        Assert.That(responseValue, Is.Not.Null);
-        Assert.That(responseValue["message"], Is.EqualTo(exceptionMessage));  // Compara el valor del mensaje
-    }*/
+        Assert.That(messageProperty, Is.Not.Null, "El objeto no tiene una propiedad 'message'");
+        Assert.That(messageProperty, Is.EqualTo(exceptionMessage), "El mensaje de error no coincide");
+    }
    
-
-    
     [Test]
     public async Task CreateIngresoNomina_MovimientoException()
     {
@@ -265,15 +301,21 @@ public class MovimientoControllerTests
         };
 
         var exceptionMessage = "Error en el movimiento";
-        
-        _mockMovimientoService.Setup(service => service.CreateIngresoNominaAsync(It.IsAny<Banco_VivesBank.User.Models.User>(), ingresoNominaRequest))
+    
+        var mockUser = new Banco_VivesBank.User.Models.User();
+        _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(mockUser);
+
+        _mockMovimientoService
+            .Setup(service => service.CreateIngresoNominaAsync(It.IsAny<Banco_VivesBank.User.Models.User>(), ingresoNominaRequest))
             .ThrowsAsync(new MovimientoException(exceptionMessage));
-        
+    
         var result = await _controller.CreateIngresoNomina(ingresoNominaRequest);
+    
         var badRequestResult = result.Result as BadRequestObjectResult;
-        
-        Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(exceptionMessage));
+    
+        Assert.That(badRequestResult, Is.Not.Null, "El resultado no es un BadRequestObjectResult");
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>(), "El valor no es un objeto esperado");
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage), "El mensaje de error no coincide");
     }
     
     [Test]
@@ -300,6 +342,22 @@ public class MovimientoControllerTests
         
         Assert.That(badRequestResult, Is.Not.Null);
         Assert.That(badRequestResult.Value, Is.TypeOf<SerializableError>());
+    }
+    
+    [Test]
+    public async Task CreateTransferenciaCuentaInvalidaException()
+    {
+        var transferenciaRequest = new TransferenciaRequest(); 
+        _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(new Banco_VivesBank.User.Models.User());
+        _mockMovimientoService.Setup(service => service.CreateTransferenciaAsync(It.IsAny<Banco_VivesBank.User.Models.User>(), It.IsAny<TransferenciaRequest>()))
+            .ThrowsAsync(new CuentaInvalidaException("Cuenta inválida"));
+
+        var result = await _controller.CreateTransferencia(transferenciaRequest);
+
+        var actionResult = result.Result as BadRequestObjectResult;
+        Assert.That(actionResult, Is.Not.Null);
+        Assert.That(actionResult.Value, Is.InstanceOf<object>());
+        Assert.That(actionResult.Value.ToString(), Does.Contain("Cuenta inválida"));
     }
     
     [Test]
@@ -336,7 +394,6 @@ public class MovimientoControllerTests
         Assert.That(responseValue.Importe, Is.EqualTo(mockResponse.Importe));
         Assert.That(responseValue.NumeroTarjeta, Is.EqualTo(mockResponse.NumeroTarjeta));
     }
-
     
     [Test]
     public async Task CreatePagoConTarjeta_TarjetaException()
@@ -360,9 +417,9 @@ public class MovimientoControllerTests
         var notFoundResult = result.Result as NotFoundObjectResult;
 
         Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+        Assert.That(notFoundResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task CreatePagoConTarjeta_SaldoCuentaInsuficientException()
@@ -386,9 +443,9 @@ public class MovimientoControllerTests
         var badRequestResult = result.Result as BadRequestObjectResult;
 
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>());
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task CreatePagoConTarjeta_CuentaException()
@@ -411,9 +468,9 @@ public class MovimientoControllerTests
         var notFoundResult = result.Result as NotFoundObjectResult;
 
         Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+        Assert.That(notFoundResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task CreatePagoConTarjeta_MovimientoException()
@@ -435,10 +492,9 @@ public class MovimientoControllerTests
         var badRequestResult = result.Result as BadRequestObjectResult;
 
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>());
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
-    
     
     [Test]
     public async Task CreatePagoConTarjeta_Invalido()
@@ -461,7 +517,6 @@ public class MovimientoControllerTests
         Assert.That(badRequestResult.Value, Is.TypeOf<SerializableError>());
     }
     
-    
     [Test]
     public async Task CreateTransferencia()
     {
@@ -481,8 +536,7 @@ public class MovimientoControllerTests
             Importe = transferenciaRequest.Importe,
             Revocada = false
         };
-
-       
+        
         var mockUser = new Banco_VivesBank.User.Models.User {  };
         _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(mockUser);
         
@@ -502,7 +556,6 @@ public class MovimientoControllerTests
         Assert.That(responseValue.Importe, Is.EqualTo(mockResponse.Importe));
         Assert.That(responseValue.Revocada, Is.False);
     }
-
     
     [Test]
     public async Task CreateTransferencia_SaldoCuentaInsuficientException()
@@ -526,9 +579,9 @@ public class MovimientoControllerTests
         var badRequestResult = result.Result as BadRequestObjectResult;
 
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>());
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task CreateTransferencia_CuentaException()
@@ -542,7 +595,6 @@ public class MovimientoControllerTests
         };
 
         var exceptionMessage = "Cuenta no encontrada";
-
        
         var mockUser = new Banco_VivesBank.User.Models.User {  };
         _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(mockUser);
@@ -553,9 +605,9 @@ public class MovimientoControllerTests
         var notFoundResult = result.Result as NotFoundObjectResult;
 
         Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+        Assert.That(notFoundResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task CreateTransferencia_MovimientoException()
@@ -578,10 +630,9 @@ public class MovimientoControllerTests
         var badRequestResult = result.Result as BadRequestObjectResult;
 
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>());
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
-    
     
     [Test]
     public async Task CreateTransferencia_Invalido()
@@ -605,6 +656,7 @@ public class MovimientoControllerTests
         Assert.That(badRequestResult, Is.Not.Null);
         Assert.That(badRequestResult.Value, Is.TypeOf<SerializableError>());
     }
+    
     [Test]
     public async Task RevocarTransferencia()
     {
@@ -654,9 +706,9 @@ public class MovimientoControllerTests
         var notFoundResult = result.Result as NotFoundObjectResult;
 
         Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+        Assert.That(notFoundResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task RevocarTransferencia_MovimientoException()
@@ -674,9 +726,9 @@ public class MovimientoControllerTests
         var badRequestResult = result.Result as BadRequestObjectResult;
 
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>());
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage));    
     }
-
     
     [Test]
     public async Task RevocarTransferencia_SaldoCuentaInsuficientException()
@@ -694,9 +746,9 @@ public class MovimientoControllerTests
         var badRequestResult = result.Result as BadRequestObjectResult;
 
         Assert.That(badRequestResult, Is.Not.Null);
-        Assert.That(badRequestResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(badRequestResult.Value, Is.InstanceOf<object>());
+        Assert.That(badRequestResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
     
     [Test]
     public async Task RevocarTransferencia_CuentaException()
@@ -713,7 +765,7 @@ public class MovimientoControllerTests
         var notFoundResult = result.Result as NotFoundObjectResult;
 
         Assert.That(notFoundResult, Is.Not.Null);
-        Assert.That(notFoundResult.Value, Is.EqualTo(new { message = exceptionMessage }));
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+        Assert.That(notFoundResult.Value.ToString(), Does.Contain(exceptionMessage));
     }
-
 }

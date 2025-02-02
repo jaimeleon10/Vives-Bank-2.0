@@ -5,6 +5,7 @@ using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
+using Banco_VivesBank.Swagger.Examples.Clientes;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
@@ -15,6 +16,8 @@ namespace Banco_VivesBank.Cliente.Controller;
 
 [ApiController]
 [Route("api/clientes")]
+[Produces("application/json")] 
+[Tags("Clientes")] 
 public class ClienteController : ControllerBase
 {
     private readonly IClienteService _clienteService;
@@ -33,8 +36,22 @@ public class ClienteController : ControllerBase
         _userService = userService;
     }
     
-    
+    /// <summary>
+    /// Obtiene todos los clientes paginados y filtrados por diferentes parámetros.
+    /// </summary>
+    /// <param name="nombre">Nombre de los clientes a filtrar</param>
+    /// <param name="apellido">Apellidos de los clientes a filtrar</param>
+    /// <param name="dni">Dni por el que se quiere filtrar </param>
+    /// <param name="page">Número de página a la que se quiere acceder</param>
+    /// <param name="size">Número de clientes que puede haber por página</param>
+    /// <param name="sortBy">Parametro por la que se ordenan los clientes</param>
+    /// <param name="direction">Dirección de ordenación, ascendiente(ASC) o descendiente (DES)</param>
+    /// <returns>Devuelve un ActionResult junto con una lista de PageResponse con los clientes filtrados</returns>
+    /// <response code="200">Devuelve una lista de clientes paginados</response>
+    /// <response code="400">No se han encontrado clientes</response>
     [HttpGet]
+    [ProducesResponseType(typeof(PageResponseClienteExample), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
         [FromQuery] string? nombre = null,
@@ -70,8 +87,20 @@ public class ClienteController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Busca un cliente por su Guid
+    /// </summary>
+    /// <param name="guid">Guid, identificador único del cliente</param>
+    /// <remarks>Se debe proporcionar un Guid válido. Si el cliente no existe, se devolvera un null, una respuesta 404, no encontrado</remarks>
+    /// <returns>Devuelve un typeOf(ActionResult) junto a un typeOf(ClienteResponse) con los datos del cliente a buscar</returns>
+    /// <response code="200">Devuelve un ActionResult con lo datos del cliente con el guid especificado</response>
+    /// <response code="404">No se ha encontrado cliente con el guid especificado</response>
+    /// <response code="400">Ha ocurrido un error durante la busqueda del cliente con guid especificado</response>
     [HttpGet("{guid}")]
     [Authorize(Policy = "AdminPolicy")]
+    [ProducesResponseType(typeof(ClienteResponse),StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ClienteResponse>> GetByGuid(string guid)
     {
         try
