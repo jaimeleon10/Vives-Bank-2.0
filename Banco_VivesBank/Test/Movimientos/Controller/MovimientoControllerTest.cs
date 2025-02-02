@@ -167,6 +167,47 @@ public class MovimientoControllerTests
     }
     
     [Test]
+    public async Task GetMyMovimientos()
+    {
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Username = "Test User" };
+        _mockUserService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
+
+        var movimientos = new List<MovimientoResponse> 
+        {
+            new MovimientoResponse { Guid = "1", ClienteGuid = "clienteguid1", CreatedAt = DateTime.UtcNow.ToString() },
+            new MovimientoResponse { Guid = "2", ClienteGuid = "clienteguid2", CreatedAt = DateTime.UtcNow.ToString() }
+        };
+        _mockMovimientoService.Setup(s => s.GetMyMovimientos(user)).ReturnsAsync(movimientos); 
+
+        var result = await _controller.GetMyMovimientos();
+
+        Assert.That(result, Is.InstanceOf<ActionResult<IEnumerable<MovimientoResponse>>>());
+
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+
+        var returnedMovimientos = okResult.Value as IEnumerable<MovimientoResponse>;
+        Assert.That(returnedMovimientos, Is.Not.Null);
+        Assert.That(returnedMovimientos.Count(), Is.EqualTo(2));
+    }
+    
+    [Test]
+    public async Task GetMyMovimientosNotFound()
+    {
+        _mockUserService.Setup(s => s.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
+    
+        var result = await _controller.GetMyMovimientos();
+
+        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
+    
+        var notFoundResult = result.Result as NotFoundObjectResult;
+
+        Assert.That(notFoundResult, Is.Not.Null);
+        Assert.That(notFoundResult.Value, Is.InstanceOf<object>());
+    }
+    
+    [Test]
     public async Task CreateIngresoNomina()
     {
        
@@ -301,6 +342,22 @@ public class MovimientoControllerTests
         
         Assert.That(badRequestResult, Is.Not.Null);
         Assert.That(badRequestResult.Value, Is.TypeOf<SerializableError>());
+    }
+    
+    [Test]
+    public async Task CreateTransferenciaCuentaInvalidaException()
+    {
+        var transferenciaRequest = new TransferenciaRequest(); 
+        _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(new Banco_VivesBank.User.Models.User());
+        _mockMovimientoService.Setup(service => service.CreateTransferenciaAsync(It.IsAny<Banco_VivesBank.User.Models.User>(), It.IsAny<TransferenciaRequest>()))
+            .ThrowsAsync(new CuentaInvalidaException("Cuenta inválida"));
+
+        var result = await _controller.CreateTransferencia(transferenciaRequest);
+
+        var actionResult = result.Result as BadRequestObjectResult;
+        Assert.That(actionResult, Is.Not.Null);
+        Assert.That(actionResult.Value, Is.InstanceOf<object>());
+        Assert.That(actionResult.Value.ToString(), Does.Contain("Cuenta inválida"));
     }
     
     [Test]
