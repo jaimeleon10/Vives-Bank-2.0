@@ -339,8 +339,182 @@ public class DomiciliacionControllerTests
         Assert.That(responseList, Is.Not.Null);
         Assert.That(responseList.Count, Is.EqualTo(0));
     }
+    
+    
+    [Test]
+    public async Task CreateDomiciliacion()
+    {
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            Acreedor = "Empresa1",
+            IbanEmpresa = "ES1234567890",
+            IbanCliente = "ES0987654321",
+            Importe = 100.0,
+            Periodicidad = "Mensual"
+        };
+
+        var expectedResponse = new DomiciliacionResponse
+        {
+            Guid = "1",
+            ClienteGuid = authenticatedUser.Guid,
+            Acreedor = "Empresa1",
+            IbanEmpresa = "ES1234567890",
+            IbanCliente = "ES0987654321",
+            Importe = 100.0,
+            Periodicidad = "Mensual",
+            Activa = true,
+            FechaInicio = "01/01/2025",
+            UltimaEjecuccion = "01/02/2025"
+        };
+
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.CreateAsync(authenticatedUser, domiciliacionRequest))
+            .ReturnsAsync(expectedResponse);
+
+        var result = await _controller.CreateDomiciliacion(domiciliacionRequest);
+        var okResult = result.Result as OkObjectResult;
+        
+        Assert.That(okResult, Is.Not.Null);
+
+        var response = okResult.Value as DomiciliacionResponse;
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.Guid, Is.EqualTo(expectedResponse.Guid));
+        Assert.That(response.ClienteGuid, Is.EqualTo(expectedResponse.ClienteGuid));
+    }
+
+    [Test]
+    public async Task CreateDomiciliacion_UserNotFound()
+    {
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            Acreedor = "Empresa1",
+            IbanEmpresa = "ES1234567890",
+            IbanCliente = "ES0987654321",
+            Importe = 100.0,
+            Periodicidad = "Mensual"
+        };
+
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns((Banco_VivesBank.User.Models.User)null);
+
+        var result = await _controller.CreateDomiciliacion(domiciliacionRequest);
+        var notFoundResult = result.Result as NotFoundObjectResult;
+    
+        Assert.That(notFoundResult, Is.Not.Null);
+
+        var responseValue = notFoundResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
+            Assert.That(actualMessage, Is.EqualTo("No se ha podido identificar al usuario logeado"));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
+
+    [Test]
+    public async Task CreateDomiciliacion_Invalido()
+    {
+        _controller.ModelState.AddModelError("Acreedor", "El acreedor es un campo obligatorio");
+
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            IbanEmpresa = "ES1234567890",
+            IbanCliente = "ES0987654321",
+            Importe = 100.0,
+            Periodicidad = "Mensual"
+        };
+
+        var result = await _controller.CreateDomiciliacion(domiciliacionRequest);
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        
+        Assert.That(badRequestResult, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task CreateDomiciliacion_ClienteException()
+    {
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            Acreedor = "Empresa1",
+            IbanEmpresa = "ES1234567890",
+            IbanCliente = "ES0987654321",
+            Importe = 100.0,
+            Periodicidad = "Mensual"
+        };
+
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.CreateAsync(authenticatedUser, domiciliacionRequest))
+            .ThrowsAsync(new ClienteException("Cliente no encontrado"));
+
+        var result = await _controller.CreateDomiciliacion(domiciliacionRequest);
+        var notFoundResult = result.Result as NotFoundObjectResult;
+    
+        Assert.That(notFoundResult, Is.Not.Null);
+
+        var responseValue = notFoundResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
+            Assert.That(actualMessage, Is.EqualTo("Cliente no encontrado"));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
 
 
+    [Test]
+    public async Task CreateDomiciliacion_SaldoCuentaInsuficiente()
+    {
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        var domiciliacionRequest = new DomiciliacionRequest
+        {
+            Acreedor = "Empresa1",
+            IbanEmpresa = "ES1234567890",
+            IbanCliente = "ES0987654321",
+            Importe = 100.0,
+            Periodicidad = "Mensual"
+        };
+
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.CreateAsync(authenticatedUser, domiciliacionRequest))
+            .ThrowsAsync(new SaldoCuentaInsuficientException("Saldo insuficiente"));
+
+        var result = await _controller.CreateDomiciliacion(domiciliacionRequest);
+        var badRequestResult = result.Result as BadRequestObjectResult;
+    
+        Assert.That(badRequestResult, Is.Not.Null);
+
+        var responseValue = badRequestResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
+            Assert.That(actualMessage, Is.EqualTo("Saldo insuficiente"));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
+    
     
     [Test]
     public async Task DesactivateDomiciliacion()
@@ -418,6 +592,131 @@ public class DomiciliacionControllerTests
         if (messageProperty != null)
         {
             var actualMessage = messageProperty.GetValue(responseValue).ToString();
+            Assert.That(actualMessage, Is.EqualTo(exceptionMessage));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
+    
+    [Test]
+    public async Task DesactivateMyDomiciliacion_UserNotFound()
+    {
+        var domiciliacionGuid = "domiciliacion1";
+        var errorMessage = "No se ha podido identificar al usuario logeado";
+
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns((Banco_VivesBank.User.Models.User)null);
+
+        var result = await _controller.DesactivateMyDomiciliacion(domiciliacionGuid);
+        var notFoundResult = result.Result as NotFoundObjectResult;
+    
+        Assert.That(notFoundResult, Is.Not.Null);
+
+        var responseValue = notFoundResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
+            Assert.That(actualMessage, Is.EqualTo(errorMessage));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
+    
+    
+    [Test]
+    public async Task DesactivateMyDomiciliacion_DomiciliacionNotFound()
+    {
+        var domiciliacionGuid = "domiciliacion1";
+        var errorMessage = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}";
+
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.DesactivateMyDomiciliacionAsync(authenticatedUser, domiciliacionGuid))
+            .ReturnsAsync((DomiciliacionResponse)null);
+
+        var result = await _controller.DesactivateMyDomiciliacion(domiciliacionGuid);
+        var badRequestResult = result.Result as BadRequestObjectResult;
+    
+        Assert.That(badRequestResult, Is.Not.Null);
+
+        var responseValue = badRequestResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
+            Assert.That(actualMessage, Is.EqualTo(errorMessage));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
+    
+    [Test]
+    public async Task DesactivateMyDomiciliacion_MovimientoNoPertenecienteAlUsuarioAutenticadoException()
+    {
+        var domiciliacionGuid = "domiciliacion1";
+        var exceptionMessage = "Movimiento no perteneciente al usuario autenticado";
+
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.DesactivateMyDomiciliacionAsync(authenticatedUser, domiciliacionGuid))
+            .ThrowsAsync(new MovimientoNoPertenecienteAlUsuarioAutenticadoException(exceptionMessage));
+
+        var result = await _controller.DesactivateMyDomiciliacion(domiciliacionGuid);
+        var badRequestResult = result.Result as BadRequestObjectResult;
+
+        Assert.That(badRequestResult, Is.Not.Null);
+
+        var responseValue = badRequestResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
+            Assert.That(actualMessage, Is.EqualTo(exceptionMessage));
+        }
+        else
+        {
+            Assert.Fail("La propiedad 'message' no fue encontrada en la respuesta.");
+        }
+    }
+    
+    [Test]
+    public async Task DesactivateMyDomiciliacion_MovimientoException()
+    {
+        var domiciliacionGuid = "domiciliacion1";
+        var exceptionMessage = "Error al desactivar la domiciliación";
+
+        var authenticatedUser = new Banco_VivesBank.User.Models.User { Guid = "cliente1", Username = "usuario123" };
+        _userServiceMock.Setup(service => service.GetAuthenticatedUser())
+            .Returns(authenticatedUser);
+
+        _mockDomiciliacionService.Setup(service => service.DesactivateMyDomiciliacionAsync(authenticatedUser, domiciliacionGuid))
+            .ThrowsAsync(new MovimientoException(exceptionMessage));
+
+        var result = await _controller.DesactivateMyDomiciliacion(domiciliacionGuid);
+        var badRequestResult = result.Result as BadRequestObjectResult;
+
+        Assert.That(badRequestResult, Is.Not.Null);
+
+        var responseValue = badRequestResult.Value;
+        var messageProperty = responseValue?.GetType().GetProperty("message");
+
+        if (messageProperty != null)
+        {
+            var actualMessage = messageProperty.GetValue(responseValue)?.ToString();
             Assert.That(actualMessage, Is.EqualTo(exceptionMessage));
         }
         else
