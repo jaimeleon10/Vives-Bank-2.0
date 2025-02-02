@@ -15,7 +15,7 @@ using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NSubstitute;
+
 
 namespace Test.Cliente.Controller;
 
@@ -600,6 +600,56 @@ public class ClienteControllerTest
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido borrar el usuario con guid: nonexistent-guid }"));
     }
+
+    [Test]
+    public async Task DerechoAlOlvido_UserNotFound()
+    {
+        var user = new Banco_VivesBank.User.Models.User {Guid ="nonexistent-guid"};
+        
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User) null);
+        
+        var result = await _clienteController.DerechoAlOlvido();
+        
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido identificar al usuario logeado }"));
+    }
+
+    [Test]
+    public async Task DerechoAlOlvido_ClienteNotFound()
+    {
+        var user = new Banco_VivesBank.User.Models.User {Guid ="guid"};
+        
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        
+        _clienteServiceMock.Setup(service => service.DerechoAlOlvido(user))
+            .ReturnsAsync((string)null);
+        
+        var result = await _clienteController.DerechoAlOlvido();
+        
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha encontrado ningun cliente asociado a su usuario }"));
+    }
+
+    [Test]
+    public async Task DerechoAlOlvido_Success()
+    {
+        var user = new Banco_VivesBank.User.Models.User {Guid = "guid"};
+        
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        
+        _clienteServiceMock.Setup(service => service.DerechoAlOlvido(user))
+            .ReturnsAsync("Cliente eliminado correctamente");
+        
+        var result = await _clienteController.DerechoAlOlvido();
+        
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.EqualTo("Cliente eliminado correctamente"));
+    }
+    
+    
 
     [Test]
     public async Task UpdateMyProfilePicture()

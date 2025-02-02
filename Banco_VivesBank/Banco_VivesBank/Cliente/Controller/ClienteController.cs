@@ -11,6 +11,7 @@ using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Banco_VivesBank.Cliente.Controller;
 
@@ -51,7 +52,7 @@ public class ClienteController : ControllerBase
     /// <response code="200">Devuelve una lista de clientes paginados</response>
     /// <response code="400">No se han encontrado clientes</response>
     [HttpGet]
-    [ProducesResponseType(typeof(PageResponseClienteExample), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PageResponse<ClienteResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<List<PageResponse<ClienteResponse>>>> GetAllPaged(
@@ -257,6 +258,26 @@ public class ClienteController : ControllerBase
         if (clienteResponse is null) return NotFound(new { message = $"No se ha podido borrar el cliente autenticado"}); 
         return Ok(clienteResponse);
     }
+    
+    /// <summary>
+    /// Permite a un usuario borrar su cliente asociado y todos los datos personales
+    /// </summary>
+    /// <returns>Devuelve un mensaje confirmando que se han borrado los datos</returns>
+    /// <response code="200">Devuelve un mensaje confirmando que se han borrado los datos</response>
+    /// <response code = "404">Si no se ha podido identificar al usuario logeado o no se ha encontrado a un cliente asociado</response>
+    [HttpDelete ("derechoAlOlvido")]
+    [Authorize(Policy = "ClientePolicy")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<string>> DerechoAlOlvido()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+        
+        var response = await _clienteService.DerechoAlOlvido(userAuth);
+        if(response.IsNullOrEmpty()) return NotFound(new {message = "No se ha encontrado ningun cliente asociado a su usuario"});
+        return Ok(response);
+    }
 
     /// <summary>
     /// Cambia la foto de perfil del cliente autenticado
@@ -362,7 +383,7 @@ public class ClienteController : ControllerBase
    
     [HttpGet("movimientosPDF")]
     [Authorize(Policy = "ClientePolicy")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ClienteResponse),StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<MovimientoResponse>>> GetMovimientos()
     {

@@ -22,6 +22,9 @@ using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Banco_VivesBank.Cliente.Services;
 
+/// <summary>
+///  Servicio que gestiona las operaciones relacionadas con los clientes.
+/// </summary>
 public class ClienteService : IClienteService
 {
     private readonly IConnectionMultiplexer _redis;
@@ -46,6 +49,17 @@ public class ClienteService : IClienteService
         _ftpService = ftpService;
     }
 
+    /// <summary>
+    /// Paginacion y filtrado de clientes en la base de datos.
+    /// </summary>
+    /// <remarks>Busca los clientes dependiendo de los datos a filtrar introducidos por el cliente, se puede modificar la direccion y por que se ordenan los clientes
+    /// finalmente crea una pagina a partir de los datos de page y devuelve los datos</remarks>
+    /// <param name="nombre">Nombre a filtrar</param>
+    /// <param name="apellidos">Apellidos a filtrar</param>
+    /// <param name="dni">Dni a filtrar</param>
+    /// <param name="page">Atributos para crear la página con los clientes</param>
+    /// <returns>Un PageResponse con los datos de los clientes encontrados bajo los filtros</returns>
+    /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta ordenar por un valor no admintido</exception>
     public async Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellidos, string? dni, PageRequest page)
     {
         _logger.LogInformation("Obteniendo todos los clientes paginados y filtrados");
@@ -113,6 +127,14 @@ public class ClienteService : IClienteService
         };
     }
 
+    /// <summary>
+    /// Busca un cliente a partir de un guid.
+    /// </summary>
+    /// <remarks>Se busca primero en el cache en memoria, despues en el cache redis y finalmente en la base de datos,
+    /// los datos buscados se almacenan en ambas caches, devuelve un null si no se encuentra ningun cliente</remarks>
+    /// <param name="guid">Identificador del cliente</param>
+    /// <returns>Devuelve un ClientResponse en caso de que se encuentre</returns>
+    /// <exception cref="Exception">Lanza un excepcion genérica en caso de que ocurra algun error al serializar el cliente en redis</exception>
     public async Task<ClienteResponse?> GetByGuidAsync(string guid)
     {
 		_logger.LogInformation($"Buscando cliente con guid: {guid}");
@@ -159,6 +181,12 @@ public class ClienteService : IClienteService
         return null;
     }
 
+    /// <summary>
+    /// Busca los datos de un cliente autenticado.
+    /// </summary>
+    /// <remarks>El usuario debe estar relacionado con el cliente correspondiente, en caso de que no se encuentre un cliente asociado al usuario se devuelve un null</remarks>
+    /// <param name="userAuth">Usuario que esta buscando sus datos</param>
+    /// <returns>Devuelve los datos del cliente asociado al usuario</returns>
     public async Task<ClienteResponse?> GetMeAsync(User.Models.User userAuth)
     {
         _logger.LogInformation($"Buscando cliente autenticado");
@@ -173,6 +201,16 @@ public class ClienteService : IClienteService
         return clienteExistente.ToResponseFromEntity();
     }
 
+    /// <summary>
+    /// Crea un cliente a partir de los datos introducidos por el usuario
+    /// </summary>
+    /// <remarks>Los datos como dni, email y telefono, no pueden estar asociados a otro cliente, en ese caso se devuelve una ClienteExistsException
+    /// En caso de que el usuario ya tenga un cleiente asociado se lanza la misma excepcion
+    /// Si es correcto se guarda el cliente y se cambia el rol del usuario a Cliente, tambien se almacenan los datos del cliente en la cache </remarks>
+    /// <param name="userAuth">Usuario que esta intentando crear su cliente</param>
+    /// <param name="clienteRequest">Datos del cliente a almacenar</param>
+    /// <returns>Los datos del nuevo cliente almacenado</returns>
+    /// <exception cref="ClienteExistsException">Se lanza en caso de que el usuario ya tenga un cliente relacionado o existan dni telefono o email en otro cliente</exception>
     public async Task<ClienteResponse> CreateAsync(User.Models.User userAuth, ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
@@ -210,6 +248,14 @@ public class ClienteService : IClienteService
         return clienteModel.ToResponseFromModel();
     }
 
+    /// <summary>
+    /// Actualiza los datos de un cliente asociado al usuario autenticado a  partir de los datos introducidos
+    /// </summary>
+    /// <remarks>El usuario tiene que estar relacionado con un cliente y los datos deben de ser correctos (email, dni y telefono unicos),
+    /// en caso de que sean incorrectos lanza una excepcion ClienteExistsException</remarks>
+    /// <param name="userAuth">Usuario autenticado con rol Cliente</param>
+    /// <param name="clienteRequest">Datos a modificar del cliente</param>
+    /// <returns>Devuelve los datos del cliente modificados</returns>
     public async Task<ClienteResponse?> UpdateMeAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
         _logger.LogInformation($"Actualizando cliente autenticado");
         
@@ -266,6 +312,11 @@ public class ClienteService : IClienteService
         return clienteEntityExistente.ToResponseFromEntity();
     }
 
+    /// <summary>
+    /// Borra los datos de un cliente a partir de un guid
+    /// </summary>
+    /// <param name="guid"></param>
+    /// <returns></returns>
     public async Task<ClienteResponse?> DeleteByGuidAsync(string guid) 
     {
         _logger.LogInformation($"Borrando cliente con guid: {guid}");
@@ -305,6 +356,7 @@ public class ClienteService : IClienteService
         _logger.LogInformation($"Cliente borrado (desactivado) con guid: {guid}");
         return clienteExistenteEntity.ToResponseFromEntity();
     }
+    
     
     public async Task<ClienteResponse?> DeleteMeAsync(User.Models.User userAuth) 
     {
@@ -348,24 +400,38 @@ public class ClienteService : IClienteService
         return clienteExistenteEntity.ToResponseFromEntity();
     }
 
-    public async Task<string> DerechoAlOlvido(string userGuid)
+    public async Task<string> DerechoAlOlvido(User.Models.User userAuth)
     {
-        _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
+        _logger.LogInformation($"Borrando cliente autenticado");
         
-        var user = await _userService.GetUserModelByGuidAsync(userGuid);
-        if (user == null)
+        var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
+        if (clienteExistenteEntity == null)
         {
-            _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
-            throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+            _logger.LogInformation($"Cliente autenticado no encontrado ");
+            return null;
         }
-
-        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
         
-        cliente = await DeleteData(cliente!);
-        _context.Clientes.Update(cliente);
+        _logger.LogInformation($"Desactivando cuentas y tarjetas pertenecientes al cliente con guid {clienteExistenteEntity.Guid}");
+        var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+        foreach (var cuenta in cuentas)
+        {
+            cuenta.IsDeleted = true;
+            cuenta.UpdatedAt = DateTime.UtcNow;
+            _context.Cuentas.Update(cuenta);
+
+            if (cuenta.TarjetaId == null) continue;
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+        }
+        
+        clienteExistenteEntity = await DeleteData(clienteExistenteEntity!);
+        _context.Clientes.Update(clienteExistenteEntity);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + cliente.Guid;
+        var cacheKey = CacheKeyPrefix + clienteExistenteEntity.Guid;
         _memoryCache.Remove(cacheKey);
         await _redisDatabase.KeyDeleteAsync(cacheKey);
 
@@ -375,6 +441,7 @@ public class ClienteService : IClienteService
     
     private async Task<ClienteEntity> DeleteData(ClienteEntity entityCliente)
     {
+        
         entityCliente.Dni = entityCliente.Nombre = entityCliente.Apellidos = entityCliente.Email = entityCliente.Telefono = string.Empty;
         entityCliente.Direccion = new Direccion
         {
