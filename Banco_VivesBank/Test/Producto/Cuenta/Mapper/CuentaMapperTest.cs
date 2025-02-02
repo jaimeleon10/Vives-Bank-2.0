@@ -1,12 +1,9 @@
-﻿using NUnit.Framework;
-using System;
-using Banco_VivesBank.Cliente.Models;
+﻿using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Cuenta.Mappers;
-using Banco_VivesBank.Producto.Cuenta.Models;
-using Banco_VivesBank.Producto.ProductoBase.Models;
-using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.User.Models;
+
+namespace Test.Producto.Cuenta.Mapper;
 
 [TestFixture]
 public class CuentaMapperTests
@@ -70,15 +67,15 @@ public class CuentaMapperTests
     public void ToEntityFromModel()
     {
       
-        var cuentaModel = new Cuenta
+        var cuentaModel = new Banco_VivesBank.Producto.Cuenta.Models.Cuenta
         {
             Id = 1,
             Guid = "guid-cuenta",
             Iban = "ES1234567890",
             Saldo = 1000.0,
-            Tarjeta = new Tarjeta { Id = 1, Guid = "guid-tarjeta" },
-            Cliente = new Cliente { Id = 1, Guid = "cliente-guid" },
-            Producto = new Producto { Id = 1, Guid = "producto-guid" },
+            Tarjeta = new Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta { Id = 1, Guid = "guid-tarjeta" },
+            Cliente = new Banco_VivesBank.Cliente.Models.Cliente { Id = 1, Guid = "cliente-guid" },
+            Producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto { Id = 1, Guid = "producto-guid" },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -104,14 +101,14 @@ public class CuentaMapperTests
     [Test]
     public void ToResponseFromModel()
     {
-        var cuentaModel = new Cuenta
+        var cuentaModel = new Banco_VivesBank.Producto.Cuenta.Models.Cuenta
         {
             Guid = "guid-cuenta",
             Iban = "ES1234567890",
             Saldo = 1000.0,
-            Tarjeta = new Tarjeta { Guid = "guid-tarjeta" },
-            Cliente = new Cliente { Guid = "cliente-guid" },
-            Producto = new Producto { Guid = "producto-guid" },
+            Tarjeta = new Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta { Guid = "guid-tarjeta" },
+            Cliente = new Banco_VivesBank.Cliente.Models.Cliente { Guid = "cliente-guid" },
+            Producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto { Guid = "producto-guid" },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
