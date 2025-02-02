@@ -17,7 +17,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using StackExchange.Redis;
-using CuentaInvalidaException = Banco_VivesBank.Storage.Pdf.Exception.CuentaInvalidaException;
+using CuentaInvalidaException = Banco_VivesBank.Storage.Pdf.Exception;
 
 namespace Banco_VivesBank.Movimientos.Services.Movimientos;
 
@@ -335,7 +335,7 @@ public class MovimientoService : IMovimientoService
         if (transferenciaRequest.IbanOrigen == transferenciaRequest.IbanDestino)
         {
             _logger.LogWarning("Las cuentas de origen y destino deben ser distintas");
-            throw new CuentaInvalidaException("Las cuentas de origen y destino deben ser distintas");
+            throw new Producto.Cuenta.Exceptions.CuentaInvalidaException("Las cuentas de origen y destino deben ser distintas");
         }
         
         _logger.LogInformation("Validando existencia de la cuenta de origen");
