@@ -20,6 +20,7 @@ using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.Swagger.Examples.Clientes;
+using Banco_VivesBank.Swagger.Examples.Movimientos;
 using Banco_VivesBank.Swagger.Examples.User;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
@@ -179,7 +180,7 @@ WebApplicationBuilder InitServices()
             .ForJob(jobKey)
             .WithIdentity("DomiciliacionJob-Trigger")
             .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(3000) // TODO -> Cambiar cuando acabe el proyecto
+                .WithIntervalInSeconds(86400) // Cada 24 horas se revisan las domiciliaciones
                 .RepeatForever()));
     });
     
@@ -304,10 +305,13 @@ WebApplicationBuilder InitServices()
     // Añadir los ejemplos de las clases
     myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<ClienteResponseExample>();
     myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PageResponseClienteExample>();
-   /* myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PageResponseClienteExample>();
     myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<UserResponseExample>();
-    */
-
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<DomiciliacionResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<IngresoNominaResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<MovimientoResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PagoConTarjetaResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<TransferenciaResponseExample>();
+    
     return myBuilder;
 }
 
