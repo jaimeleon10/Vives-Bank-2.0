@@ -1,25 +1,36 @@
-using System.Text;
-using Banco_VivesBank.Cliente.Dto;
-using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Movimientos.Dto;
-using Banco_VivesBank.Movimientos.Models;
-using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Exception;
-using PdfSharp.Pdf;
+using Banco_VivesBank.Cliente.Exceptions;
 using TheArtOfDev.HtmlRenderer.PdfSharp;
+using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Cliente.Dto;
 using Path = System.IO.Path;
+using PdfSharp.Pdf;
+using System.Text;
 
 namespace Banco_VivesBank.Storage.Pdf.Services;
 
+/// <summary>
+/// Clase que proporciona servicios relacionados con la generación y almacenamiento de archivos PDF
+/// con detalles sobre transacciones y clientes.
+/// </summary>
 public class PdfStorage : IPdfStorage
 {
     private readonly ILogger<PdfStorage> _logger;
 
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="PdfStorage"/>.
+    /// </summary>
+    /// <param name="logger">Instancia del registrador para los logs.</param>
     public PdfStorage(ILogger<PdfStorage> logger)
     {
         _logger = logger;
     }
     
+    /// <summary>
+    /// Exporta un archivo PDF con el reporte de transacciones de un cliente.
+    /// </summary>
+    /// <param name="cliente">Objeto con la información del cliente.</param>
+    /// <param name="movimientos">Lista de movimientos asociados al cliente.</param>
     public void ExportPDF(ClienteResponse cliente, List<MovimientoResponse> movimientos)
     {
         if (cliente == null)
@@ -44,6 +55,12 @@ public class PdfStorage : IPdfStorage
         _logger.LogInformation("PDF generado y guardado en la carpeta data: {FilePath}", filePath);
     }
 
+    /// <summary>
+    /// Genera el contenido HTML para el reporte de transacciones de un cliente.
+    /// </summary>
+    /// <param name="cliente">Objeto con la información del cliente.</param>
+    /// <param name="movimientos">Lista de movimientos a incluir en el reporte.</param>
+    /// <returns>El contenido HTML para el reporte.</returns>
     private string GenerarHtml(ClienteResponse cliente, List<MovimientoResponse> movimientos)
     {
         return $@"
@@ -140,6 +157,11 @@ public class PdfStorage : IPdfStorage
     </html>";
     }
 
+    /// <summary>
+    /// Genera el contenido HTML para la tabla de movimientos.
+    /// </summary>
+    /// <param name="movimientos">Lista de movimientos para generar la tabla.</param>
+    /// <returns>El contenido HTML de la tabla de movimientos.</returns>
     private string GenerarTablaMovimientos(List<MovimientoResponse> movimientos)
     {
         var tablaHtml = new StringBuilder();
@@ -173,6 +195,11 @@ public class PdfStorage : IPdfStorage
         return tablaHtml.ToString();
     }
 
+    /// <summary>
+    /// Obtiene los detalles de un movimiento específico para generar el reporte.
+    /// </summary>
+    /// <param name="movimiento">El movimiento a procesar.</param>
+    /// <returns>Detalles del movimiento como tipo, origen, destino e importe.</returns>
     private (string tipo, string origen, string destino, string importe) GetDetallesMovimientos(MovimientoResponse movimiento)
     {
         return movimiento switch
@@ -205,6 +232,11 @@ public class PdfStorage : IPdfStorage
         };
     }
 
+    /// <summary>
+    /// Genera un documento PDF a partir del contenido HTML proporcionado.
+    /// </summary>
+    /// <param name="html">Contenido HTML a convertir en PDF.</param>
+    /// <returns>El documento PDF generado.</returns>
     public  PdfDocument GenerarPdf(string html)
     {
         PdfDocument pdf = PdfGenerator.GeneratePdf(html, PdfSharp.PageSize.A4);

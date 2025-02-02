@@ -1,24 +1,37 @@
-﻿using System.Net;
-using Banco_VivesBank.Config.Storage;
-using Banco_VivesBank.Config.Storage.Ftp;
+﻿using Banco_VivesBank.Storage.Ftp.Exceptions;
 using Banco_VivesBank.Config.Storage.Images;
-using Banco_VivesBank.Storage.Ftp.Exceptions;
+using Banco_VivesBank.Config.Storage.Ftp;
 using Microsoft.Extensions.Options;
 using Path = System.IO.Path;
+using System.Net;
 
 namespace Banco_VivesBank.Storage.Ftp.Service;
 
+/// <summary>
+/// Servicio para la gestión de archivos en un servidor FTP.
+/// </summary>
 public class FtpService : IFtpService
 {
     private readonly ILogger<FtpService> _logger;
     private readonly FtpConfig _ftpConfig;
 
+    /// <summary>
+    /// Constructor del servicio FTP.
+    /// </summary>
+    /// <param name="logger">Logger para registrar eventos.</param>
+    /// <param name="ftpConfig">Configuración del servidor FTP.</param>
     public FtpService(ILogger<FtpService> logger, IOptions<FtpConfig> ftpConfig)
     {
         _ftpConfig = ftpConfig.Value;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Configura una solicitud FTP.
+    /// </summary>
+    /// <param name="path">Ruta del archivo en el servidor FTP.</param>
+    /// <param name="method">Método FTP a utilizar.</param>
+    /// <returns>Objeto FtpWebRequest configurado.</returns>
     public virtual FtpWebRequest ConfigureFtpConsulta(string path, string method)
     {
         var request = (FtpWebRequest)WebRequest.Create(new Uri($"ftp://{_ftpConfig.Host}:{_ftpConfig.Port}/{path}"));
@@ -31,6 +44,11 @@ public class FtpService : IFtpService
         return request;
     }
 
+    /// <summary>
+    /// Sube un archivo al servidor FTP.
+    /// </summary>
+    /// <param name="inputStream">Stream del archivo a subir.</param>
+    /// <param name="uploadPath">Ruta de destino en el servidor FTP.</param>
     public async Task UploadFileAsync(Stream inputStream, string uploadPath)
     {
         try
@@ -72,6 +90,11 @@ public class FtpService : IFtpService
         }
     }
     
+    /// <summary>
+    /// Descarga un archivo desde el servidor FTP.
+    /// </summary>
+    /// <param name="remoteFilePath">Ruta del archivo en el servidor FTP.</param>
+    /// <param name="localFilePath">Ruta local donde se almacenará el archivo.</param>
     public async Task DownloadFileAsync(string remoteFilePath, string localFilePath)
     {
         try
@@ -97,6 +120,10 @@ public class FtpService : IFtpService
         }
     }
     
+    /// <summary>
+    /// Elimina un archivo del servidor FTP.
+    /// </summary>
+    /// <param name="remoteFilePath">Ruta del archivo en el servidor FTP.</param>
     public async Task DeleteFileAsync(string remoteFilePath)
     {
         try
@@ -115,6 +142,10 @@ public class FtpService : IFtpService
         }
     }
     
+    /// <summary>
+    /// Crea un directorio en el servidor FTP.
+    /// </summary>
+    /// <param name="directoryPath">Ruta del directorio en el servidor FTP.</param>
     public virtual async Task ChekDirectorioExiste(string directoryPath)
     {
         try
@@ -140,6 +171,11 @@ public class FtpService : IFtpService
         }
     }
     
+    /// <summary>
+    /// Verifica si un archivo existe en el servidor FTP.
+    /// </summary>
+    /// <param name="filePath">Ruta del archivo en el servidor FTP.</param>
+    /// <returns>True si el archivo existe, False en caso contrario.</returns>
     public virtual async Task<bool> CheckFileExiste(string filePath)
     {
         try
