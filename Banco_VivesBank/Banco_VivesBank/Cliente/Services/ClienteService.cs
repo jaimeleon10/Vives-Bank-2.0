@@ -461,8 +461,14 @@ public class ClienteService : IClienteService
         {
             Calle = string.Empty, Numero = string.Empty, CodigoPostal = string.Empty, Piso = string.Empty, Letra = string.Empty
         };
-        await _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
-        await _fileStorageService.DeleteFileAsync(entityCliente.FotoDni);
+        if (entityCliente.FotoPerfil != null && entityCliente.FotoPerfil != "https://example.com/fotoPerfil.jpg")
+        {
+            await _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
+        }
+        if (entityCliente.FotoDni != null && entityCliente.FotoDni != "https://example.com/fotoDni.jpg")
+        {
+            await _ftpService.DeleteFileAsync(entityCliente.FotoDni);
+        }
         entityCliente.FotoPerfil = entityCliente.FotoDni = string.Empty;
         entityCliente.IsDeleted = true;
         entityCliente.UpdatedAt = DateTime.UtcNow;
