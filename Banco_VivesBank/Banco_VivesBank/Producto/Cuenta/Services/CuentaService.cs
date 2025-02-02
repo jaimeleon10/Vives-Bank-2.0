@@ -22,6 +22,9 @@ using StackExchange.Redis;
 
 namespace Banco_VivesBank.Producto.Cuenta.Services;
 
+/// <summary>
+/// Servicio encargado de gestionar las operaciones relacionadas con las cuentas bancarias.
+/// </summary>
 public class CuentaService : ICuentaService
 {
     private readonly IConnectionMultiplexer _redis;
@@ -34,6 +37,16 @@ public class CuentaService : ICuentaService
     private readonly IDatabase _database;
     private const string CacheKeyPrefix = "Cuenta:";
 
+    /// <summary>
+    /// Inicializa una nueva instancia del servicio de cuentas.
+    /// </summary>
+    /// <param name="context">Contexto de la base de datos para interactuar con los datos persistidos.</param>
+    /// <param name="logger">Servicio de logging para registrar eventos y errores.</param>
+    /// <param name="productoService">Servicio para manejar productos asociados a las cuentas.</param>
+    /// <param name="clienteService">Servicio para gestionar clientes asociados a las cuentas.</param>
+    /// <param name="tarjetaService">Servicio para gestionar las tarjetas asociadas a las cuentas.</param>
+    /// <param name="redis">Conexión al servidor Redis para almacenamiento en caché.</param>
+    /// <param name="memoryCache">Servicio para almacenamiento en caché en memoria.</param>
     public CuentaService(GeneralDbContext context, ILogger<CuentaService> logger, IProductoService productoService, IClienteService clienteService, ITarjetaService tarjetaService, IConnectionMultiplexer redis, IMemoryCache memoryCache)
     {
         _context = context;
@@ -45,8 +58,17 @@ public class CuentaService : ICuentaService
         _memoryCache = memoryCache; 
         _database = _redis.GetDatabase();
     }
-
     
+    /// <summary>
+    /// Obtiene todas las cuentas bancarias filtradas y paginadas.
+    /// </summary>
+    /// <param name="saldoMax">Saldo máximo para filtrar las cuentas.</param>
+    /// <param name="saldoMin">Saldo mínimo para filtrar las cuentas.</param>
+    /// <param name="tipoCuenta">Tipo de cuenta para filtrar (por ejemplo, "Ahorros", "Corriente").</param>
+    /// <param name="pageRequest">Detalles de la paginación, como número de página, tamaño de página y orden.</param>
+    /// <returns>Devuelve una respuesta paginada con la lista de cuentas filtradas.</returns>
+    /// <response code="200">Devuelve la lista de cuentas filtradas y paginadas.</response>
+    /// <response code="400">Si ocurre un error durante la consulta.</response>
     public async Task<PageResponse<CuentaResponse>> GetAllAsync(double? saldoMax, double? saldoMin, string? tipoCuenta, PageRequest pageRequest)
     {
         _logger.LogInformation("Buscando todos las Cuentas en la base de datos");
@@ -111,6 +133,14 @@ public class CuentaService : ICuentaService
         return pageResponse;
     }
 
+    /// <summary>
+    /// Obtiene todas las cuentas asociadas a un cliente, utilizando su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID del cliente para el cual se buscan las cuentas asociadas.</param>
+    /// <returns>Devuelve una lista de respuestas con las cuentas asociadas al cliente especificado.</returns>
+    /// <response code="200">Devuelve la lista de cuentas asociadas al cliente.</response>
+    /// <response code="404">Si no se encuentra el cliente con el GUID proporcionado.</response>
+    /// <response code="400">Si ocurre un error al obtener las cuentas.</response>
     public async Task<IEnumerable<CuentaResponse>> GetByClientGuidAsync(string guid)
     {
         _logger.LogInformation($"Buscando todas las Cuentas del cliente con guid: {guid}");
@@ -135,6 +165,14 @@ public class CuentaService : ICuentaService
         return cuentasResponses;
     }
     
+    /// <summary>
+    /// Obtiene todas las cuentas asociadas a un cliente autenticado, utilizando su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID del cliente autenticado para el cual se buscan las cuentas asociadas.</param>
+    /// <returns>Devuelve una lista de respuestas con las cuentas asociadas al cliente autenticado.</returns>
+    /// <response code="200">Devuelve la lista de cuentas asociadas al cliente autenticado.</response>
+    /// <response code="404">Si no se encuentra el cliente con el GUID proporcionado.</response>
+    /// <response code="400">Si ocurre un error al obtener las cuentas.</response>
     public async Task<IEnumerable<CuentaResponse>> GetAllMeAsync(string guid)
     {
 
@@ -159,6 +197,16 @@ public class CuentaService : ICuentaService
         
         return cuentasResponses;
     }
+
+    /// <summary>
+    /// Obtiene una cuenta bancaria específica utilizando su GUID, primero busca en caché en memoria y Redis,
+    /// y si no se encuentra, consulta la base de datos.
+    /// </summary>
+    /// <param name="guid">El GUID de la cuenta que se va a obtener.</param>
+    /// <returns>Devuelve la respuesta de la cuenta si se encuentra o null si no se encuentra.</returns>
+    /// <response code="200">Devuelve la cuenta solicitada si se encuentra.</response>
+    /// <response code="404">Si no se encuentra la cuenta con el GUID proporcionado.</response>
+    /// <response code="500">Si ocurre un error al obtener la cuenta desde caché o base de datos.</response>
 
     public async Task<CuentaResponse?> GetByGuidAsync(string guid)
     {
@@ -233,6 +281,16 @@ public class CuentaService : ICuentaService
         return null;
     }
     
+    /// <summary>
+    /// Obtiene una cuenta bancaria asociada a un cliente autenticado utilizando su GUID y el IBAN de la cuenta.
+    /// </summary>
+    /// <param name="guid">El GUID del cliente autenticado para validar la propiedad de la cuenta.</param>
+    /// <param name="iban">El IBAN de la cuenta que se desea obtener.</param>
+    /// <returns>Devuelve la cuenta asociada al cliente si se encuentra, o null si no se encuentra.</returns>
+    /// <response code="200">Devuelve la cuenta asociada al cliente y con el IBAN proporcionado.</response>
+    /// <response code="404">Si no se encuentra la cuenta con el IBAN proporcionado.</response>
+    /// <response code="403">Si el IBAN no pertenece al cliente autenticado.</response>
+    /// <response code="400">Si ocurre un error al obtener la cuenta.</response>
     public async Task<CuentaResponse?> GetMeByIbanAsync(string guid,string iban)
     {
         _logger.LogInformation($"Buscando Cuenta por IBAN: {iban} en la base de datos");
@@ -266,6 +324,14 @@ public class CuentaService : ICuentaService
         return null;
     }
 
+    /// <summary>
+    /// Obtiene una cuenta bancaria asociada a un cliente utilizando el GUID de la tarjeta asociada a la cuenta.
+    /// </summary>
+    /// <param name="tarjetaGuid">El GUID de la tarjeta asociada a la cuenta que se desea obtener.</param>
+    /// <returns>Devuelve la cuenta asociada al GUID de la tarjeta, si se encuentra, o null si no se encuentra.</returns>
+    /// <response code="200">Devuelve la cuenta asociada al GUID de tarjeta proporcionado.</response>
+    /// <response code="404">Si no se encuentra la cuenta con el GUID de tarjeta proporcionado.</response>
+    /// <response code="400">Si ocurre un error al obtener la cuenta.</response>
     public async Task<CuentaResponse?> GetByTarjetaGuidAsync(string tarjetaGuid)
     {
         _logger.LogInformation($"Buscando cuenta por guid de tarjeta: {tarjetaGuid} en la base de datos");
@@ -285,6 +351,16 @@ public class CuentaService : ICuentaService
         return null;
     }
 
+    /// <summary>
+    /// Crea una nueva cuenta bancaria para un cliente autenticado.
+    /// </summary>
+    /// <param name="guid">El GUID del cliente para el cual se va a crear la cuenta.</param>
+    /// <param name="cuentaRequest">Objeto que contiene los detalles de la cuenta que se va a crear.</param>
+    /// <returns>Devuelve la respuesta de la cuenta creada.</returns>
+    /// <response code="201">Devuelve la cuenta creada correctamente.</response>
+    /// <response code="400">Si ocurre un error durante la creación de la cuenta, como un tipo de cuenta no existente.</response>
+    /// <response code="404">Si no se encuentra el cliente con el GUID proporcionado.</response>
+    /// <response code="500">Si ocurre un error interno al crear la cuenta o al realizar la operación en la base de datos.</response>
     public async Task<CuentaResponse> CreateAsync(string guid,CuentaRequest cuentaRequest)
     {
         _logger.LogInformation($"Creando cuenta nueva");
@@ -340,7 +416,14 @@ public class CuentaService : ICuentaService
         return cuentaResponse;
     }
     
-    
+    /// <summary>
+    /// Elimina (logico) una cuenta bancaria utilizando su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID de la cuenta que se va a eliminar.</param>
+    /// <returns>Devuelve la respuesta de la cuenta eliminada, o null si la cuenta no se encuentra.</returns>
+    /// <response code="200">Devuelve la cuenta eliminada correctamente.</response>
+    /// <response code="404">Si no se encuentra la cuenta con el GUID proporcionado.</response>
+    /// <response code="500">Si ocurre un error al eliminar la cuenta o al realizar la operación en la base de datos.</response>
     public async Task<CuentaResponse?> DeleteByGuidAsync(string guid)
     {
         _logger.LogInformation($"Eliminando cuenta {guid}");
@@ -385,6 +468,17 @@ public class CuentaService : ICuentaService
         return cuentaResponse;
     }
     
+    /// <summary>
+    /// Elimina (logicamente) una cuenta bancaria asociada al cliente autenticado utilizando el GUID del cliente y el GUID de la cuenta.
+    /// </summary>
+    /// <param name="guidClient">El GUID del cliente autenticado para validar la propiedad de la cuenta.</param>
+    /// <param name="guid">El GUID de la cuenta que se va a eliminar.</param>
+    /// <returns>Devuelve la respuesta de la cuenta eliminada, o null si la cuenta no se encuentra.</returns>
+    /// <response code="200">Devuelve la cuenta eliminada correctamente.</response>
+    /// <response code="400">Si la cuenta no pertenece al cliente autenticado.</response>
+    /// <response code="404">Si no se encuentra el cliente o la cuenta con el GUID proporcionado.</response>
+    /// <response code="500">Si ocurre un error al eliminar la cuenta o al realizar la operación en la base de datos.</response>
+
     public async Task<CuentaResponse?> DeleteMeAsync(string guidClient,string guid)
     {
         _logger.LogInformation($"Eliminando cuenta {guid}");
@@ -445,7 +539,16 @@ public class CuentaService : ICuentaService
         await WebSocketHandler.SendToCliente(cuentaExistenteEntity.Cliente.User.Username, new Notificacion { Entity = cuentaExistenteEntity.Cliente.Nombre, Data = mensaje, Tipo = Tipo.DELETE, CreatedAt = DateTime.UtcNow.ToString()});
         return cuentaResponse;
     }
+    
 
+    /// <summary>
+    /// Obtiene un modelo de cuenta bancaria utilizando su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID de la cuenta que se desea obtener.</param>
+    /// <returns>Devuelve el modelo de cuenta si se encuentra, o null si no se encuentra.</returns>
+    /// <response code="200">Devuelve el modelo de la cuenta solicitada si se encuentra.</response>
+    /// <response code="404">Si no se encuentra la cuenta con el GUID proporcionado.</response>
+    /// <response code="500">Si ocurre un error al obtener la cuenta desde la base de datos.</response>
     public async Task<Models.Cuenta?> GetCuentaModelByGuidAsync(string guid)
     {
         _logger.LogInformation($"Buscando cuenta con guid: {guid}");
@@ -469,6 +572,14 @@ public class CuentaService : ICuentaService
         return null;
     }
         
+    /// <summary>
+    /// Obtiene un modelo de cuenta bancaria utilizando su ID.
+    /// </summary>
+    /// <param name="id">El ID de la cuenta que se desea obtener.</param>
+    /// <returns>Devuelve el modelo de la cuenta si se encuentra, o null si no se encuentra.</returns>
+    /// <response code="200">Devuelve el modelo de la cuenta solicitada si se encuentra.</response>
+    /// <response code="404">Si no se encuentra la cuenta con el ID proporcionado.</response>
+    /// <response code="500">Si ocurre un error al obtener la cuenta desde la base de datos.</response>
     public async Task<Models.Cuenta?> GetCuentaModelByIdAsync(long id)
     {
         _logger.LogInformation($"Buscando usuario con id: {id}");
@@ -491,6 +602,12 @@ public class CuentaService : ICuentaService
         return null;
     }
     // hacemos un GetAllForStorage sin filtrado ni paginacion que devuelve un model
+    /// <summary>
+    /// Obtiene todas las cuentas bancarias almacenadas en la base de datos.
+    /// </summary>
+    /// <returns>Devuelve una lista de modelos de cuentas, o una lista vacía si no se encuentran cuentas.</returns>
+    /// <response code="200">Devuelve una lista de todas las cuentas almacenadas en el sistema.</response>
+    /// <response code="500">Si ocurre un error al obtener las cuentas desde la base de datos.</response>
     public async Task<List<Models.Cuenta>> GetAllForStorage()
     {
         _logger.LogInformation("Buscando todas las cuentas");

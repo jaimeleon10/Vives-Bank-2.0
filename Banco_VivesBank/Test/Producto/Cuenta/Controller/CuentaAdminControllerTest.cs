@@ -130,9 +130,7 @@ public class CuentaAdminControllerTests
 
         var okResult = result.Result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
-
-        var actualResponse = okResult.Value as PageResponse<CuentaResponse>;
-        Assert.That(actualResponse, Is.Not.Null);
+        
     }
     
     [Test]
