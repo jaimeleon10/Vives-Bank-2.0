@@ -1,142 +1,145 @@
-﻿/*using Banco_VivesBank.Cliente.Dto;
+﻿using NUnit.Framework;
+using System;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database.Entities;
-using Banco_VivesBank.Producto.Base.Dto;
 using Banco_VivesBank.Producto.Cuenta.Mappers;
-using Banco_VivesBank.Producto.Tarjeta.Dto;
-using NUnit.Framework;
-
-namespace Test.Producto.Cuenta;
+using Banco_VivesBank.Producto.Cuenta.Models;
+using Banco_VivesBank.Producto.ProductoBase.Models;
+using Banco_VivesBank.Producto.Tarjeta.Models;
 
 [TestFixture]
-public class CuentaMapperTest
+public class CuentaMapperTests
 {
+   
     [Test]
     public void ToModelFromEntity()
     {
+       
         var cuentaEntity = new CuentaEntity
         {
-            Guid = "entity-guid",
-            Iban = "ES7620770024003102575766",
-            Saldo = 1000,
-            TarjetaId = 1,
-            ClienteId = 2,
-            ProductoId = 3,
+            Id = 1,
+            Guid = "guid-cuenta",
+            Iban = "ES1234567890",
+            Saldo = 1000.0,
+            Tarjeta = new TarjetaEntity { Id = 1, Guid = "guid-tarjeta" },
+            Cliente = new ClienteEntity { Id = 1, Guid = "cliente-guid" },
+            Producto = new ProductoEntity { Id = 1, Guid = "producto-guid" },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
-        
-        var cuentaModel = CuentaMapper.ToModelFromEntity(cuentaEntity);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(cuentaModel.Guid, Is.EqualTo(cuentaEntity.Guid));
-            Assert.That(cuentaModel.Iban, Is.EqualTo(cuentaEntity.Iban));
-            Assert.That(cuentaModel.Saldo, Is.EqualTo(cuentaEntity.Saldo));
-            Assert.That(cuentaModel.TarjetaId, Is.EqualTo(cuentaEntity.TarjetaId));
-            Assert.That(cuentaModel.ClienteId, Is.EqualTo(cuentaEntity.ClienteId));
-            Assert.That(cuentaModel.ProductoId, Is.EqualTo(cuentaEntity.ProductoId));
-            Assert.That(cuentaModel.CreatedAt, Is.EqualTo(cuentaEntity.CreatedAt));
-            Assert.That(cuentaModel.UpdatedAt, Is.EqualTo(cuentaEntity.UpdatedAt));
-            Assert.That(cuentaModel.IsDeleted, Is.EqualTo(cuentaEntity.IsDeleted));
-        });
+
+      
+        var result = CuentaMapper.ToModelFromEntity(cuentaEntity);
+
+      
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Id, Is.EqualTo(cuentaEntity.Id));
+        Assert.That(result.Guid, Is.EqualTo(cuentaEntity.Guid));
+        Assert.That(result.Iban, Is.EqualTo(cuentaEntity.Iban));
+        Assert.That(result.Saldo, Is.EqualTo(cuentaEntity.Saldo));
+        Assert.That(result.Tarjeta?.Guid, Is.EqualTo(cuentaEntity.Tarjeta?.Guid)); 
+        Assert.That(result.Cliente?.Guid, Is.EqualTo(cuentaEntity.Cliente?.Guid)); 
+        Assert.That(result.Producto?.Guid, Is.EqualTo(cuentaEntity.Producto?.Guid));
+        Assert.That(result.CreatedAt, Is.EqualTo(cuentaEntity.CreatedAt));
+        Assert.That(result.UpdatedAt, Is.EqualTo(cuentaEntity.UpdatedAt));
+        Assert.That(result.IsDeleted, Is.EqualTo(cuentaEntity.IsDeleted));
     }
-    
+
+   
     [Test]
     public void ToEntityFromModel()
     {
-        var cuentaModel = new Banco_VivesBank.Producto.Cuenta.Models.Cuenta
+      
+        var cuentaModel = new Cuenta
         {
-            Guid = "model-guid",
-            Iban = "ES7620770024003102575766",
-            Saldo = 1000,
-            TarjetaId = 1,
-            ClienteId = 2,
-            ProductoId = 3,
+            Id = 1,
+            Guid = "guid-cuenta",
+            Iban = "ES1234567890",
+            Saldo = 1000.0,
+            Tarjeta = new Tarjeta { Id = 1, Guid = "guid-tarjeta" },
+            Cliente = new Cliente { Id = 1, Guid = "cliente-guid" },
+            Producto = new Producto { Id = 1, Guid = "producto-guid" },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
+
         
-        var cuentaEntity = CuentaMapper.ToEntityFromModel(cuentaModel);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(cuentaEntity.Guid, Is.EqualTo(cuentaModel.Guid));
-            Assert.That(cuentaEntity.Iban, Is.EqualTo(cuentaModel.Iban));
-            Assert.That(cuentaEntity.Saldo, Is.EqualTo(cuentaModel.Saldo));
-            Assert.That(cuentaEntity.TarjetaId, Is.EqualTo(cuentaModel.TarjetaId));
-            Assert.That(cuentaEntity.ClienteId, Is.EqualTo(cuentaModel.ClienteId));
-            Assert.That(cuentaEntity.ProductoId, Is.EqualTo(cuentaModel.ProductoId));
-            Assert.That(cuentaEntity.CreatedAt, Is.EqualTo(cuentaModel.CreatedAt));
-            Assert.That(cuentaEntity.UpdatedAt, Is.EqualTo(cuentaModel.UpdatedAt));
-            Assert.That(cuentaEntity.IsDeleted, Is.EqualTo(cuentaModel.IsDeleted));
-        });
+        var result = CuentaMapper.ToEntityFromModel(cuentaModel);
+
+       
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Id, Is.EqualTo(cuentaModel.Id));
+        Assert.That(result.Guid, Is.EqualTo(cuentaModel.Guid));
+        Assert.That(result.Iban, Is.EqualTo(cuentaModel.Iban));
+        Assert.That(result.Saldo, Is.EqualTo(cuentaModel.Saldo));
+        Assert.That(result.TarjetaId, Is.EqualTo(cuentaModel.Tarjeta.Id));
+        Assert.That(result.ClienteId, Is.EqualTo(cuentaModel.Cliente.Id));
+        Assert.That(result.ProductoId, Is.EqualTo(cuentaModel.Producto.Id));
+        Assert.That(result.CreatedAt, Is.EqualTo(cuentaModel.CreatedAt));
+        Assert.That(result.UpdatedAt, Is.EqualTo(cuentaModel.UpdatedAt));
+        Assert.That(result.IsDeleted, Is.EqualTo(cuentaModel.IsDeleted));
     }
     
     [Test]
     public void ToResponseFromModel()
     {
-        var cuentaModel = new Banco_VivesBank.Producto.Cuenta.Models.Cuenta
+        var cuentaModel = new Cuenta
         {
-            Guid = "model-guid",
-            Iban = "ES7620770024003102575766",
-            Saldo = 1000,
+            Guid = "guid-cuenta",
+            Iban = "ES1234567890",
+            Saldo = 1000.0,
+            Tarjeta = new Tarjeta { Guid = "guid-tarjeta" },
+            Cliente = new Cliente { Guid = "cliente-guid" },
+            Producto = new Producto { Guid = "producto-guid" },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
-
-        string tarjetaGuid = "tarjeta-guid";
-        string clienteGuid = "cliente-guid";
-        string productoGuid = "producto-guid";
         
-        var cuentaResponse = CuentaMapper.ToResponseFromModel(cuentaModel, tarjetaGuid, clienteGuid, productoGuid);
+        var result = CuentaMapper.ToResponseFromModel(cuentaModel);
         
-        Assert.Multiple(() =>
-        {
-            Assert.That(cuentaResponse.Guid, Is.EqualTo(cuentaModel.Guid));
-            Assert.That(cuentaResponse.Iban, Is.EqualTo(cuentaModel.Iban));
-            Assert.That(cuentaResponse.Saldo, Is.EqualTo(cuentaModel.Saldo));
-            Assert.That(cuentaResponse.TarjetaGuid, Is.EqualTo(tarjetaGuid));
-            Assert.That(cuentaResponse.ClienteGuid, Is.EqualTo(clienteGuid));
-            Assert.That(cuentaResponse.ProductoGuid, Is.EqualTo(productoGuid));
-            Assert.That(cuentaResponse.CreatedAt, Is.EqualTo(cuentaModel.CreatedAt));
-            Assert.That(cuentaResponse.UpdatedAt, Is.EqualTo(cuentaModel.UpdatedAt));
-            Assert.That(cuentaResponse.IsDeleted, Is.EqualTo(cuentaModel.IsDeleted));
-        });
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(cuentaModel.Guid));
+        Assert.That(result.Iban, Is.EqualTo(cuentaModel.Iban));
+        Assert.That(result.Saldo, Is.EqualTo(cuentaModel.Saldo));
+        Assert.That(result.TarjetaGuid, Is.EqualTo(cuentaModel.Tarjeta.Guid));
+        Assert.That(result.ClienteGuid, Is.EqualTo(cuentaModel.Cliente.Guid));
+        Assert.That(result.ProductoGuid, Is.EqualTo(cuentaModel.Producto.Guid));
+        Assert.That(result.CreatedAt, Is.EqualTo(cuentaModel.CreatedAt.ToString()));
+        Assert.That(result.UpdatedAt, Is.EqualTo(cuentaModel.UpdatedAt.ToString()));
+        Assert.That(result.IsDeleted, Is.EqualTo(cuentaModel.IsDeleted));
     }
     
     [Test]
     public void ToResponseFromEntity()
     {
+       
         var cuentaEntity = new CuentaEntity
         {
-            Guid = "entity-guid",
-            Iban = "ES7620770024003102575766",
-            Saldo = 1000,
+            Guid = "guid-cuenta",
+            Iban = "ES1234567890",
+            Saldo = 1000.0,
+            Tarjeta = new TarjetaEntity { Guid = "guid-tarjeta" },
+            Cliente = new ClienteEntity { Guid = "cliente-guid" },
+            Producto = new ProductoEntity { Guid = "producto-guid" },
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
-
-        var tarjetaResponse = new TarjetaResponse { Guid = "tarjeta-guid" };
-        var clienteResponse = new ClienteResponse { Guid = "cliente-guid" };
-        var productoResponse = new BaseResponse { Guid = "producto-guid" };
         
-        var cuentaResponse = CuentaMapper.ToResponseFromEntity(cuentaEntity, tarjetaResponse, clienteResponse, productoResponse);
+        var result = CuentaMapper.ToResponseFromEntity(cuentaEntity);
         
-        Assert.Multiple(() =>
-        {
-            Assert.That(cuentaResponse.Guid, Is.EqualTo(cuentaEntity.Guid));
-            Assert.That(cuentaResponse.Iban, Is.EqualTo(cuentaEntity.Iban));
-            Assert.That(cuentaResponse.Saldo, Is.EqualTo(cuentaEntity.Saldo));
-            Assert.That(cuentaResponse.TarjetaGuid, Is.EqualTo(tarjetaResponse.Guid));
-            Assert.That(cuentaResponse.ClienteGuid, Is.EqualTo(clienteResponse.Guid));
-            Assert.That(cuentaResponse.ProductoGuid, Is.EqualTo(productoResponse.Guid));
-            Assert.That(cuentaResponse.CreatedAt, Is.EqualTo(cuentaEntity.CreatedAt));
-            Assert.That(cuentaResponse.UpdatedAt, Is.EqualTo(cuentaEntity.UpdatedAt));
-            Assert.That(cuentaResponse.IsDeleted, Is.EqualTo(cuentaEntity.IsDeleted));
-        });
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Guid, Is.EqualTo(cuentaEntity.Guid));
+        Assert.That(result.Iban, Is.EqualTo(cuentaEntity.Iban));
+        Assert.That(result.Saldo, Is.EqualTo(cuentaEntity.Saldo));
+        Assert.That(result.TarjetaGuid, Is.EqualTo(cuentaEntity.Tarjeta.Guid));
+        Assert.That(result.ClienteGuid, Is.EqualTo(cuentaEntity.Cliente.Guid));
+        Assert.That(result.ProductoGuid, Is.EqualTo(cuentaEntity.Producto.Guid));
+        Assert.That(result.CreatedAt, Is.EqualTo(cuentaEntity.CreatedAt.ToString()));
+        Assert.That(result.UpdatedAt, Is.EqualTo(cuentaEntity.UpdatedAt.ToString()));
+        Assert.That(result.IsDeleted, Is.EqualTo(cuentaEntity.IsDeleted));
     }
-}*/
+}
