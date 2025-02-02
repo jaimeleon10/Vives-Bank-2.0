@@ -72,43 +72,40 @@ app.UseAuthorization();
 // Añadir los websockets
 app.UseWebSockets();
 
-app.UseEndpoints(endpoints =>
+app.Map("/ws/api/bancovivesbank", async context =>
 {
-    endpoints.Map("/ws/api/bancovivesbank", async context =>
+    if (!context.WebSockets.IsWebSocketRequest)
     {
-        if (!context.WebSockets.IsWebSocketRequest)
-        {
-            context.Response.StatusCode = 400;
-            await context.Response.WriteAsync("Only WebSocket requests are supported.");
-            return;
-        }
+        context.Response.StatusCode = 400;
+        await context.Response.WriteAsync("Only WebSocket requests are supported.");
+        return;
+    }
 
-        // Verifica la autenticación
-        var authHeader = context.Request.Headers["Authorization"].ToString();
+    // Verify authentication
+    var authHeader = context.Request.Headers["Authorization"].ToString();
 
-        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-        {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Unauthorized: No token provided");
-            return;
-        }
+    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Unauthorized: No token provided");
+        return;
+    }
 
-        var token = authHeader["Bearer ".Length..].Trim(); // Extraer solo el token
-        var username = ValidateToken(token);
-        if (username == null)
-        {
-            Console.WriteLine("Token inválido o expirado.");
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Unauthorized: Invalid token");
-            return;
-        }
-        Console.WriteLine($"Usuario autenticado: {username}");
+    var token = authHeader["Bearer ".Length..].Trim();
+    var username = ValidateToken(token);
+    if (username == null)
+    {
+        Console.WriteLine("Invalid or expired token.");
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Unauthorized: Invalid token");
+        return;
+    }
+    Console.WriteLine($"Authenticated user: {username}");
 
-        // Si el token es válido, aceptar el WebSocket
-        var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        var handler = new WebSocketHandler(webSocket, username);
-        await handler.Handle();
-    });
+    // If the token is valid, accept the WebSocket
+    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+    var handler = new WebSocketHandler(webSocket, username);
+    await handler.Handle();
 });
 
 // Añade los controladores a la ruta predeterminada
@@ -214,9 +211,9 @@ WebApplicationBuilder InitServices()
             Description = "API para la gestión del banco Vives-Bank",
             Contact = new OpenApiContact
             {
-                Name = "Jaime León Mulero, Natalia González Álvarez",
-                Email = "jleonmulero@gmail.com, nagonal2004@gmail.com",
-                Url = new Uri("https://github.com/jaimeleon10, https://github.com/ngalvez0910")
+                Name = "Jaime León Mulero",
+                Email = "jleonmulero@gmail.com",
+                Url = new Uri("https://github.com/jaimeleon10")
             }
         });
     });
