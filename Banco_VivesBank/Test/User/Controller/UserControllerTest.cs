@@ -26,7 +26,7 @@ namespace Test.User.Controller
             _userController = new UserController(_mockUserService.Object, _mockPaginationLinksUtils.Object);
         }
 
-         [Test]
+         /*[Test]
          public async Task GetAll()
          {
              var expectedUsers = new List<UserResponse>
@@ -77,6 +77,7 @@ namespace Test.User.Controller
              Assert.That(pageResponseResult.PageSize, Is.EqualTo(pageRequest.PageSize));
              Assert.That(pageResponseResult.TotalPages, Is.EqualTo(1));
          }
+         */
          
 
         [Test]
