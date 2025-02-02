@@ -6,8 +6,15 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace Banco_VivesBank.Swagger.Examples.Clientes;
 
+/// <summary>
+/// Clase donde se implementa la función para obtener un ejemplo de PageResponse de ClienteResponse
+/// </summary>
 public sealed class PageResponseClienteExample : IExamplesProvider<PageResponse<ClienteResponse>>
 {
+    /// <summary>
+    /// Función para obtener un ejemplo de PageResponse de ClienteResponse
+    /// </summary>
+    /// <returns>Devuelve un ejemplo de PageResponse de ClienteResponse</returns>
     public PageResponse<ClienteResponse> GetExamples()
     {
         var pageResponseCliente = new PageResponse<ClienteResponse>();

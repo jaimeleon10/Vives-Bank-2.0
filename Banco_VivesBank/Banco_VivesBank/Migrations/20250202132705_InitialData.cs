@@ -154,8 +154,8 @@ namespace Banco_VivesBank.Migrations
                 columns: new[] { "Id", "CreatedAt", "Descripcion", "Guid", "IsDeleted", "Nombre", "Tae", "TipoProducto", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1L, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(7521), "Producto para cuenta bancaria de ahorros", "yFlOirSXTaL", false, "Cuenta de ahorros", 2.5, "cuentaAhorros", new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(7521) },
-                    { 2L, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(7531), "Producto para cuenta bancaria corriente", "dEmAjXpMTmy", false, "Cuenta corriente", 1.5, "cuentaCorriente", new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(7531) }
+                    { 1L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2739), "Producto para cuenta bancaria de ahorros", "yFlOirSXTaL", false, "Cuenta de ahorros", 2.5, "cuentaAhorros", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2739) },
+                    { 2L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2749), "Producto para cuenta bancaria corriente", "dEmAjXpMTmy", false, "Cuenta corriente", 1.5, "cuentaCorriente", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2749) }
                 });
 
             migrationBuilder.InsertData(
@@ -163,8 +163,8 @@ namespace Banco_VivesBank.Migrations
                 columns: new[] { "Id", "CreatedAt", "Cvv", "FechaVencimiento", "Guid", "IsDeleted", "LimiteDiario", "LimiteMensual", "LimiteSemanal", "Numero", "Pin", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1L, new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(1945), "298", "04/27", "HGyMfulgniP", false, 500.0, 10000.0, 2500.0, "0606579225434779", "1234", new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(1945) },
-                    { 2L, new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(2003), "425", "06/26", "W71vOHuFzS4", false, 100.0, 2500.0, 1500.0, "0751528101703123", "4321", new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(2004) }
+                    { 1L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(7213), "298", "04/27", "HGyMfulgniP", false, 500.0, 10000.0, 2500.0, "0606579225434779", "1234", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(7214) },
+                    { 2L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(7367), "425", "06/26", "W71vOHuFzS4", false, 100.0, 2500.0, 1500.0, "0751528101703123", "4321", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(7368) }
                 });
 
             migrationBuilder.InsertData(
@@ -172,10 +172,10 @@ namespace Banco_VivesBank.Migrations
                 columns: new[] { "Id", "CreatedAt", "Guid", "IsDeleted", "Password", "Role", "UpdatedAt", "Username" },
                 values: new object[,]
                 {
-                    { 1L, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4443), "vz2AWLK8YPS", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 1, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4444), "pedrito" },
-                    { 2L, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4467), "6t8gVeTQt2w", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 1, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4467), "anita" },
-                    { 3L, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4473), "u6b6NDClz5o", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 2, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4473), "admin" },
-                    { 4L, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4478), "03IBwamDHa5", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 0, new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(4479), "user" }
+                    { 1L, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9750), "vz2AWLK8YPS", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 1, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9750), "pedrito" },
+                    { 2L, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9771), "6t8gVeTQt2w", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 1, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9772), "anita" },
+                    { 3L, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9777), "u6b6NDClz5o", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 2, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9777), "admin" },
+                    { 4L, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9782), "03IBwamDHa5", false, "$2a$11$H8eSJTQ0cZjHNmozhjcW6ep/5jUQDnt7FrUmgbNKxww897iMniVfe", 0, new DateTime(2025, 2, 2, 13, 27, 5, 571, DateTimeKind.Utc).AddTicks(9783), "user" }
                 });
 
             migrationBuilder.InsertData(
@@ -183,8 +183,8 @@ namespace Banco_VivesBank.Migrations
                 columns: new[] { "Id", "Calle", "CodigoPostal", "Letra", "Numero", "Piso", "Apellidos", "CreatedAt", "Dni", "Email", "FotoDni", "FotoPerfil", "Guid", "IsDeleted", "Nombre", "Telefono", "UpdatedAt", "user_id" },
                 values: new object[,]
                 {
-                    { 1L, "Calle Uno", "28001", "A", "123", "1", "Picapiedra", new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(6959), "12345678Z", "pedro.picapiedra@gmail.com", "https://example.com/fotoDniPedro.jpg", "https://example.com/fotoPerfilPedro.jpg", "GbJtJkggUOM", false, "Pedro", "612345678", new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(6960), 1L },
-                    { 2L, "Calle Dos", "28002", "B", "456", "2", "Martinez", new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(6978), "21240915R", "ana.martinez@gmail.com", "https://example.com/fotoDniAna.jpg", "https://example.com/fotoPerfilAna.jpg", "JdHsgzoHlrb", false, "Ana", "623456789", new DateTime(2025, 2, 1, 15, 17, 3, 481, DateTimeKind.Utc).AddTicks(6979), 2L }
+                    { 1L, "Calle Uno", "28001", "A", "123", "1", "Picapiedra", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2171), "12345678Z", "pedro.picapiedra@gmail.com", "https://example.com/fotoDniPedro.jpg", "https://example.com/fotoPerfilPedro.jpg", "GbJtJkggUOM", false, "Pedro", "612345678", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2172), 1L },
+                    { 2L, "Calle Dos", "28002", "B", "456", "2", "Martinez", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2189), "21240915R", "ana.martinez@gmail.com", "https://example.com/fotoDniAna.jpg", "https://example.com/fotoPerfilAna.jpg", "JdHsgzoHlrb", false, "Ana", "623456789", new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(2190), 2L }
                 });
 
             migrationBuilder.InsertData(
@@ -192,8 +192,8 @@ namespace Banco_VivesBank.Migrations
                 columns: new[] { "Id", "cliente_id", "CreatedAt", "Guid", "Iban", "IsDeleted", "producto_id", "Saldo", "tarjeta_id", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1L, 1L, new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(1402), "VWt47641yDI", "ES7730046576085345979538", false, 1L, 5000.0, 1L, new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(1403) },
-                    { 2L, 2L, new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(1422), "oVUzRuFwMlf", "ES2114656261103572788444", false, 2L, 7000.0, 2L, new DateTime(2025, 2, 1, 15, 17, 3, 482, DateTimeKind.Utc).AddTicks(1422) }
+                    { 1L, 1L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(6622), "VWt47641yDI", "ES7730046576085345979538", false, 1L, 5000.0, 1L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(6623) },
+                    { 2L, 2L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(6646), "oVUzRuFwMlf", "ES2114656261103572788444", false, 2L, 7000.0, 2L, new DateTime(2025, 2, 2, 13, 27, 5, 572, DateTimeKind.Utc).AddTicks(6646) }
                 });
 
             migrationBuilder.CreateIndex(

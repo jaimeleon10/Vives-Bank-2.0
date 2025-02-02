@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Producto.Tarjeta.Dto;
+using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
@@ -44,7 +44,7 @@ public class TarjetaController : ControllerBase
     /// <returns>Una lista paginada de tarjetas.</returns>
     [SwaggerOperation(Summary = "Obtiene una lista paginada de todas las tarjetas.")]
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<IEnumerable<PageResponse<Models.Tarjeta>>>> GetAllTarjetas(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
@@ -76,7 +76,7 @@ public class TarjetaController : ControllerBase
     /// <param name="guid">El GUID de la tarjeta a obtener.</param>
     /// <returns>La tarjeta correspondiente, o un mensaje de error si no se encuentra.</returns>
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     [SwaggerOperation(Summary = "Obtiene una tarjeta por su GUID.")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByGuid(string guid)
     {
@@ -91,7 +91,7 @@ public class TarjetaController : ControllerBase
     /// <param name="numeroTarjeta">El número de la tarjeta a obtener.</param>
     /// <returns>La tarjeta correspondiente, o un mensaje de error si no se encuentra.</returns>
     [HttpGet("numero/{numeroTarjeta}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     [SwaggerOperation(Summary = "Obtiene una tarjeta por su número.")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByNumeroTarjeta(string numeroTarjeta)
     {
@@ -106,6 +106,7 @@ public class TarjetaController : ControllerBase
     /// <param name="dto">Los datos necesarios para crear la tarjeta.</param>
     /// <returns>La tarjeta creada.</returns>
     [HttpPost]
+    [Authorize(Policy = "ClientePolicy")]
     [SwaggerOperation(Summary = "Crea una nueva tarjeta.")]
     public async Task<ActionResult<Models.Tarjeta>> CreateTarjeta([FromBody] TarjetaRequest dto)
     {
@@ -141,6 +142,7 @@ public class TarjetaController : ControllerBase
     /// <param name="dto">Los datos a actualizar.</param>
     /// <returns>La tarjeta actualizada.</returns>
     [HttpPut("{id}")]
+    [Authorize(Policy = "ClientePolicy")]
     [SwaggerOperation(Summary = "Actualiza una tarjeta existente.")]
     public async Task<ActionResult<TarjetaResponse>> UpdateTarjeta(string id, [FromBody] TarjetaRequestUpdate dto)
     {
@@ -155,7 +157,6 @@ public class TarjetaController : ControllerBase
         try
         {
             _cardLimitValidators.ValidarLimite(dto.LimiteDiario, dto.LimiteSemanal, dto.LimiteMensual);
-            
             
             var tarjeta = await _tarjetaService.GetByGuidAsync(id);
             if (tarjeta == null) return NotFound($"La tarjeta con id: {id} no se ha encontrado");
@@ -174,7 +175,7 @@ public class TarjetaController : ControllerBase
     /// <param name="guid">El GUID de la tarjeta a eliminar.</param>
     /// <returns>El resultado de la eliminación.</returns>
     [HttpDelete("{guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "AdminPolicy")]
     [SwaggerOperation(Summary = "Elimina una tarjeta por su GUID.")]
     public async Task<ActionResult<TarjetaResponse>> DeleteTarjeta(string guid)
     {
