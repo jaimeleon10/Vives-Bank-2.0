@@ -13,6 +13,9 @@ using StackExchange.Redis;
 
 namespace Banco_VivesBank.Producto.ProductoBase.Services;
 
+/// <summary>
+/// Servicio que gestiona las operaciones relacionadas con productos.
+/// </summary>
 public class ProductoService : IProductoService
 {
     private readonly IConnectionMultiplexer _redis;
@@ -22,6 +25,13 @@ public class ProductoService : IProductoService
     private readonly IDatabase _database;
     private const string CacheKeyPrefix = "Producto:"; 
     
+    /// <summary>
+    /// Constructor del servicio ProductoService.
+    /// </summary>
+    /// <param name="context">Contexto de base de datos.</param>
+    /// <param name="logger">Instancia de logger para registrar eventos.</param>
+    /// <param name="redis">Conexión a Redis.</param>
+    /// <param name="memoryCache">Instancia de memoria caché.</param>
     public ProductoService(GeneralDbContext context, ILogger<ProductoService> logger, IConnectionMultiplexer redis, 
         IMemoryCache memoryCache)
     {
@@ -32,6 +42,11 @@ public class ProductoService : IProductoService
         _database = _redis.GetDatabase();  
     }
 
+    /// <summary>
+    /// Obtiene todos los productos de forma paginada.
+    /// </summary>
+    /// <param name="page">Detalles de la paginación.</param>
+    /// <returns>Una página con los productos y detalles de la paginación.</returns>
     public async Task<PageResponse<ProductoResponse>> GetAllPagedAsync(PageRequest page)
     {
         _logger.LogInformation("Obteniendo todos los productos paginados y filtrados");
@@ -73,6 +88,11 @@ public class ProductoService : IProductoService
         };
     }
 
+    /// <summary>
+    /// Obtiene un producto por su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID del producto.</param>
+    /// <returns>El producto correspondiente al GUID, o null si no se encuentra.</returns>
     public async Task<ProductoResponse?> GetByGuidAsync(string guid)
     {
         _logger.LogDebug($"Obteniendo el producto con guid: {guid}");
@@ -121,6 +141,11 @@ public class ProductoService : IProductoService
         return null;
     }
 
+    /// <summary>
+    /// Obtiene un producto por su tipo.
+    /// </summary>
+    /// <param name="tipo">El tipo de producto.</param>
+    /// <returns>El producto correspondiente al tipo, o null si no se encuentra.</returns>
     public async Task<ProductoResponse?> GetByTipoAsync(string tipo)
     {
         _logger.LogInformation($"Buscando producto por tipo: {tipo}");
@@ -137,6 +162,11 @@ public class ProductoService : IProductoService
         return null;
     }
 
+    /// <summary>
+    /// Crea un nuevo producto base.
+    /// </summary>
+    /// <param name="productoRequest">Los detalles del producto a crear.</param>
+    /// <returns>El producto creado.</returns>
     public async Task<ProductoResponse> CreateAsync(ProductoRequest productoRequest)
     {
         _logger.LogInformation("Creando un nuevo producto base");
@@ -168,6 +198,12 @@ public class ProductoService : IProductoService
         return baseModel.ToResponseFromModel();
     }
 
+    /// <summary>
+    /// Actualiza un producto existente por su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID del producto a actualizar.</param>
+    /// <param name="productoRequestUpdate">Los detalles para actualizar el producto.</param>
+    /// <returns>El producto actualizado.</returns>
     public async Task<ProductoResponse?> UpdateAsync(string guid, ProductoRequestUpdate productoRequestUpdate)
     {
         _logger.LogInformation($"Actualizando producto con guid: {guid}");
@@ -211,6 +247,10 @@ public class ProductoService : IProductoService
         return baseEntityExistente.ToResponseFromEntity();
     }
 
+    /// <summary>
+    /// Elimina un producto de forma lógica (cambia el campo IsDeleted a true).
+    /// </summary>
+    /// <param name="guid">El GUID del producto a eliminar.</param>
     public async Task<ProductoResponse?> DeleteByGuidAsync(string guid)
     {
         _logger.LogInformation($"Aplicando borrado logico a producto con guid: {guid}");
@@ -238,6 +278,11 @@ public class ProductoService : IProductoService
         return baseExistenteEntity.ToResponseFromEntity();
     }
     
+    /// <summary>
+    /// Obtiene el modelo base de un producto por su GUID.
+    /// </summary>
+    /// <param name="guid">El GUID del producto.</param>
+    /// <returns>El modelo base del producto correspondiente al GUID.</returns>
     public async Task<ProductoBase.Models.Producto?> GetBaseModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando producto con guid: {guid}");
@@ -252,7 +297,12 @@ public class ProductoService : IProductoService
         _logger.LogInformation($"producto no encontrado con guid: {guid}");
         return null;
     }
-        
+    
+    /// <summary>
+    /// Obtiene el modelo base de un producto por su ID.
+    /// </summary>
+    /// <param name="id">El ID del producto.</param>
+    /// <returns>El modelo base del producto correspondiente al ID.</returns>    
     public async Task<ProductoBase.Models.Producto?> GetBaseModelById(long id)
     {
         _logger.LogInformation($"Buscando producto con id: {id}");
@@ -268,7 +318,10 @@ public class ProductoService : IProductoService
         return null;
     }
     
-    //Acemos un GetAllByStorage que es un get all pero sin filtrado ni paginacion que devuelve en modelo
+    /// <summary>
+    /// Obtiene todos los productos sin paginación ni filtrado.
+    /// </summary>
+    /// <returns>Una lista con todos los productos.</returns>
     public async Task<IEnumerable<ProductoBase.Models.Producto>> GetAllForStorage()
     {
         _logger.LogInformation("Obteniendo todos los productos");
