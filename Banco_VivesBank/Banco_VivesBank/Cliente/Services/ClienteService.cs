@@ -22,6 +22,9 @@ using Role = Banco_VivesBank.User.Models.Role;
 
 namespace Banco_VivesBank.Cliente.Services;
 
+/// <summary>
+///  Servicio que gestiona las operaciones relacionadas con los clientes.
+/// </summary>
 public class ClienteService : IClienteService
 {
     private readonly IConnectionMultiplexer _redis;
@@ -46,6 +49,17 @@ public class ClienteService : IClienteService
         _ftpService = ftpService;
     }
 
+    /// <summary>
+    /// Paginacion y filtrado de clientes en la base de datos.
+    /// </summary>
+    /// <remarks>Busca los clientes dependiendo de los datos a filtrar introducidos por el cliente, se puede modificar la direccion y por que se ordenan los clientes
+    /// finalmente crea una pagina a partir de los datos de page y devuelve los datos</remarks>
+    /// <param name="nombre">Nombre a filtrar</param>
+    /// <param name="apellidos">Apellidos a filtrar</param>
+    /// <param name="dni">Dni a filtrar</param>
+    /// <param name="page">Atributos para crear la página con los clientes</param>
+    /// <returns>Un PageResponse con los datos de los clientes encontrados bajo los filtros</returns>
+    /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta ordenar por un valor no admintido</exception>
     public async Task<PageResponse<ClienteResponse>> GetAllPagedAsync(string? nombre, string? apellidos, string? dni, PageRequest page)
     {
         _logger.LogInformation("Obteniendo todos los clientes paginados y filtrados");
@@ -113,6 +127,14 @@ public class ClienteService : IClienteService
         };
     }
 
+    /// <summary>
+    /// Busca un cliente a partir de un guid.
+    /// </summary>
+    /// <remarks>Se busca primero en el cache en memoria, despues en el cache redis y finalmente en la base de datos,
+    /// los datos buscados se almacenan en ambas caches, devuelve un null si no se encuentra ningun cliente</remarks>
+    /// <param name="guid">Identificador del cliente</param>
+    /// <returns>Devuelve un ClientResponse en caso de que se encuentre</returns>
+    /// <exception cref="Exception">Lanza un excepcion genérica en caso de que ocurra algun error al serializar el cliente en redis</exception>
     public async Task<ClienteResponse?> GetByGuidAsync(string guid)
     {
 		_logger.LogInformation($"Buscando cliente con guid: {guid}");
@@ -159,6 +181,12 @@ public class ClienteService : IClienteService
         return null;
     }
 
+    /// <summary>
+    /// Busca los datos de un cliente autenticado.
+    /// </summary>
+    /// <remarks>El usuario debe estar relacionado con el cliente correspondiente, en caso de que no se encuentre un cliente asociado al usuario se devuelve un null</remarks>
+    /// <param name="userAuth">Usuario que esta buscando sus datos</param>
+    /// <returns>Devuelve los datos del cliente asociado al usuario</returns>
     public async Task<ClienteResponse?> GetMeAsync(User.Models.User userAuth)
     {
         _logger.LogInformation($"Buscando cliente autenticado");
@@ -173,6 +201,16 @@ public class ClienteService : IClienteService
         return clienteExistente.ToResponseFromEntity();
     }
 
+    /// <summary>
+    /// Crea un cliente a partir de los datos introducidos por el usuario
+    /// </summary>
+    /// <remarks>Los datos como dni, email y telefono, no pueden estar asociados a otro cliente, en ese caso se devuelve una ClienteExistsException
+    /// En caso de que el usuario ya tenga un cleiente asociado se lanza la misma excepcion
+    /// Si es correcto se guarda el cliente y se cambia el rol del usuario a Cliente, tambien se almacenan los datos del cliente en la cache </remarks>
+    /// <param name="userAuth">Usuario que esta intentando crear su cliente</param>
+    /// <param name="clienteRequest">Datos del cliente a almacenar</param>
+    /// <returns>Los datos del nuevo cliente almacenado</returns>
+    /// <exception cref="ClienteExistsException">Se lanza en caso de que el usuario ya tenga un cliente relacionado o existan dni telefono o email en otro cliente</exception>
     public async Task<ClienteResponse> CreateAsync(User.Models.User userAuth, ClienteRequest clienteRequest)
     {
         _logger.LogInformation("Creando cliente");
@@ -210,6 +248,14 @@ public class ClienteService : IClienteService
         return clienteModel.ToResponseFromModel();
     }
 
+    /// <summary>
+    /// Actualiza los datos de un cliente asociado al usuario autenticado a  partir de los datos introducidos
+    /// </summary>
+    /// <remarks>El usuario tiene que estar relacionado con un cliente y los datos deben de ser correctos (email, dni y telefono unicos),
+    /// en caso de que sean incorrectos lanza una excepcion ClienteExistsException</remarks>
+    /// <param name="userAuth">Usuario autenticado con rol Cliente</param>
+    /// <param name="clienteRequest">Datos a modificar del cliente</param>
+    /// <returns>Devuelve los datos del cliente modificados</returns>
     public async Task<ClienteResponse?> UpdateMeAsync(User.Models.User userAuth, ClienteRequestUpdate clienteRequest){
         _logger.LogInformation($"Actualizando cliente autenticado");
         
@@ -266,6 +312,11 @@ public class ClienteService : IClienteService
         return clienteEntityExistente.ToResponseFromEntity();
     }
 
+    /// <summary>
+    /// Borra los datos de un cliente a partir de un guid
+    /// </summary>
+    /// <param name="guid">Identificador</param>
+    /// <returns>Devuelve los datos del cliente con el atributo IsDeleted con valor true</returns>
     public async Task<ClienteResponse?> DeleteByGuidAsync(string guid) 
     {
         _logger.LogInformation($"Borrando cliente con guid: {guid}");
@@ -306,6 +357,11 @@ public class ClienteService : IClienteService
         return clienteExistenteEntity.ToResponseFromEntity();
     }
     
+    /// <summary>
+    /// Permite a un usuario borrar su cliente asociado, junto a sus tarjetas y cuentas
+    /// </summary>
+    /// <param name="userAuth">Usuario con rol Cliente autenticado</param>
+    /// <returns>Los datos del cliente a borrar</returns>
     public async Task<ClienteResponse?> DeleteMeAsync(User.Models.User userAuth) 
     {
         _logger.LogInformation($"Borrando cliente autenticado");
@@ -347,25 +403,44 @@ public class ClienteService : IClienteService
         _logger.LogInformation($"Cliente borrado (desactivado) con guid: {clienteExistenteEntity.Guid}");
         return clienteExistenteEntity.ToResponseFromEntity();
     }
-
-    public async Task<string> DerechoAlOlvido(string userGuid)
+    /// <summary>
+    /// Borra los datos de un cliente, si el usuario esta autenticado y tiene rol de cliente
+    /// </summary>
+    /// <remarks>Se eliminan tambien los datos en las caches y se ponen en blanco todos los campos</remarks>
+    /// <param name="userAuth">Usuario autenticado</param>
+    /// <returns>Devuelve un mensaje confirmando que sus datos han sido borrados</returns>
+    public async Task<string> DerechoAlOlvido(User.Models.User userAuth)
     {
-        _logger.LogInformation($"Borrando cliente del usuario con guid: {userGuid}");
+        _logger.LogInformation($"Borrando cliente autenticado");
         
-        var user = await _userService.GetUserModelByGuidAsync(userGuid);
-        if (user == null)
+        var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == userAuth.Guid);
+        if (clienteExistenteEntity == null)
         {
-            _logger.LogInformation($"Usuario no encontrado con guid: {userGuid}");
-            throw new UserNotFoundException($"Usuario no encontrado con guid: {userGuid}");
+            _logger.LogInformation($"Cliente autenticado no encontrado ");
+            return null;
         }
-
-        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
         
-        cliente = await DeleteData(cliente!);
-        _context.Clientes.Update(cliente);
+        _logger.LogInformation($"Desactivando cuentas y tarjetas pertenecientes al cliente con guid {clienteExistenteEntity.Guid}");
+        var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+        foreach (var cuenta in cuentas)
+        {
+            cuenta.IsDeleted = true;
+            cuenta.UpdatedAt = DateTime.UtcNow;
+            _context.Cuentas.Update(cuenta);
+
+            if (cuenta.TarjetaId == null) continue;
+            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+            tarjetaExistente!.IsDeleted = true;
+            tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
+            
+            _context.Tarjetas.Update(tarjetaExistente);
+        }
+        
+        clienteExistenteEntity = await DeleteData(clienteExistenteEntity!);
+        _context.Clientes.Update(clienteExistenteEntity);
         await _context.SaveChangesAsync();
         
-        var cacheKey = CacheKeyPrefix + cliente.Guid;
+        var cacheKey = CacheKeyPrefix + clienteExistenteEntity.Guid;
         _memoryCache.Remove(cacheKey);
         await _redisDatabase.KeyDeleteAsync(cacheKey);
 
@@ -373,21 +448,38 @@ public class ClienteService : IClienteService
         return "Datos del cliente eliminados de la base de datos";
     }
     
+    /// <summary>
+    /// Borra los datos de un cliente
+    /// </summary>
+    /// <param name="entityCliente">Cliente a borrar</param>
+    /// <returns>Devuelve a un cliente con todos sus datos borrados excepto el id y el guid y sus fechas de creacion y actualizacion</returns>
     private async Task<ClienteEntity> DeleteData(ClienteEntity entityCliente)
     {
+        
         entityCliente.Dni = entityCliente.Nombre = entityCliente.Apellidos = entityCliente.Email = entityCliente.Telefono = string.Empty;
         entityCliente.Direccion = new Direccion
         {
             Calle = string.Empty, Numero = string.Empty, CodigoPostal = string.Empty, Piso = string.Empty, Letra = string.Empty
         };
-        await _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
-        await _fileStorageService.DeleteFileAsync(entityCliente.FotoDni);
+        if (entityCliente.FotoPerfil != null && entityCliente.FotoPerfil != "https://example.com/fotoPerfil.jpg")
+        {
+            await _fileStorageService.DeleteFileAsync(entityCliente.FotoPerfil);
+        }
+        if (entityCliente.FotoDni != null && entityCliente.FotoDni != "https://example.com/fotoDni.jpg")
+        {
+            await _ftpService.DeleteFileAsync(entityCliente.FotoDni);
+        }
         entityCliente.FotoPerfil = entityCliente.FotoDni = string.Empty;
         entityCliente.IsDeleted = true;
         entityCliente.UpdatedAt = DateTime.UtcNow;
         return entityCliente;
     }
     
+    /// <summary>
+    /// Valida si el DNI introducido ya existe en la base de datos
+    /// </summary>
+    /// <param name="dni"></param>
+    /// <exception cref="ClienteExistsException">En caso de que exista en otro cliente</exception>
     private void ValidateDniExistente(string dni)
     {
         _logger.LogInformation("Validando Dni");
@@ -398,6 +490,11 @@ public class ClienteService : IClienteService
         }
     }
     
+    /// <summary>
+    /// Valida si el email introducido ya existe en la base de datos
+    /// </summary>
+    /// <param name="email"></param>
+    /// <exception cref="ClienteExistsException">En caso de que exista en otro cliente</exception>
     private void ValidateEmailExistente(string email)
     {
         _logger.LogInformation("Validando email");
@@ -408,6 +505,11 @@ public class ClienteService : IClienteService
         }
     }
     
+    /// <summary>
+    /// Valida si el telefono introducido ya existe en la base de datos
+    /// </summary>
+    /// <param name="telefono"></param>
+    /// <exception cref="ClienteExistsException">En caso de que exista en otro cliente </exception>
     private void ValidateTelefonoExistente(string telefono)
     {
         _logger.LogInformation("Validando teléfono");
@@ -418,6 +520,15 @@ public class ClienteService : IClienteService
         }
     }
     
+    /// <summary>
+    /// Actualiza la foto de perfil de un cliente
+    /// </summary>
+    /// <remarks>Se elimina la imagen anterior que tenia en el perfil si no era la predeterminada, existen muchos casos en los que no se permite
+    /// el almacenamiento del fichero entre ellos que no sea una imagen, estos se controlan en el servicio de imagenes</remarks>
+    /// <param name="userAuth">Usuario autenticado con rol de Cliente</param>
+    /// <param name="fotoPerfil">Imagen nueva para el perfil del cliente</param>
+    /// <returns>Los datos del cliente con la nueva imagen actualizada</returns>
+    /// <exception cref="FileStorageException">En caso de que exista algun error al intentar almacenar la imagen</exception>
     public async Task<ClienteResponse?> UpdateFotoPerfil(User.Models.User userAuth, IFormFile fotoPerfil)
     {
         _logger.LogInformation($"Actualizando foto de perfil del cliente autenticado");
@@ -466,6 +577,13 @@ public class ClienteService : IClienteService
         return clienteEntityExistente.ToResponseFromEntity();
     }
 
+    /// <summary>
+    /// Guarda la foto del DNI de un cliente
+    /// </summary>
+    /// <param name="userAuth">Usuario autenticado con rol de Cliente</param>
+    /// <param name="fotoDni">Fichero con la imagen de dni a actualizar</param>
+    /// <returns>Devuelve los datos del cliente </returns>
+    /// <exception cref="InvalidOperationException">En caso de que ocurra algun error al intentar almacenarlo en el FTP</exception>
     public async Task<ClienteResponse?> UpdateFotoDni(User.Models.User userAuth, IFormFile fotoDni)
     {
         _logger.LogInformation($"Actualizando foto del DNI del cliente autenticado");
@@ -522,7 +640,11 @@ public class ClienteService : IClienteService
         _logger.LogInformation($"Foto del DNI del cliente con guid {clienteEntityExistente.Guid} actualizada correctamente.");
         return clienteEntityExistente.ToResponseFromEntity();
     }
-    
+    /// <summary>
+    /// Descarga la foto de perfil de un cliente
+    /// </summary>
+    /// <param name="guid">Identificador del cliente</param>
+    /// <returns>Devuelve un Stream con la imagen de la foto de perfil</returns> 
     public async Task<Stream> GetFotoDniAsync(string guid)
     {
         _logger.LogInformation($"Buscando foto DNI del cliente con guid: {guid}");
@@ -550,6 +672,10 @@ public class ClienteService : IClienteService
         }
     }
     
+    /// <summary>
+    /// Metodo que devuelve todos los clientes en la base de datos, los mapea a modelos y los devuelve
+    /// </summary>
+    /// <returns></returns>
     public async Task<IEnumerable<Models.Cliente>> GetAllForStorage()
     {
         _logger.LogInformation("Buscando todos los clientes en la base de datos");
@@ -557,6 +683,11 @@ public class ClienteService : IClienteService
         return clientes.Select(c => ClienteMapper.ToModelFromEntity(c));
     }
 
+    /// <summary>
+    /// Metodo que devuelve un cliente a partir de un guid
+    /// </summary>
+    /// <param name="guid">Identificador</param>
+    /// <returns>El cliente con el guid asociado</returns>
     public async Task<Models.Cliente?> GetClienteModelByGuid(string guid)
     {
         _logger.LogInformation($"Buscando Cliente con guid: {guid}");
@@ -570,6 +701,11 @@ public class ClienteService : IClienteService
         return null;
     }
 
+    /// <summary>
+    /// Devuelve un modelo Cliente a partir de un id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<Models.Cliente?> GetClienteModelById(long id)
     {
         _logger.LogInformation($"Buscando Cliente con id: {id}");

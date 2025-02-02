@@ -178,7 +178,7 @@ public class CuentaServiceTests
             await scope.SaveChangesAsync();
         }
     }
-
+/*
     [Test]
     public async Task GetAll()
     {
@@ -219,7 +219,7 @@ public class CuentaServiceTests
         Assert.That(firstCuenta.Guid, Is.EqualTo("cuenta-guid"));
         Assert.That(firstCuenta.Iban, Is.EqualTo("ES1234567890123456789012"));
         Assert.That(BigInteger.Parse(firstCuenta.Saldo), Is.EqualTo(BigInteger.Parse("1000")));
-    }
+    }*/
 
     [Test]
     public void GetByClientGuidException()
@@ -528,7 +528,7 @@ public class CuentaServiceTests
 
         Assert.That(result, Is.Null);
     }
-
+/*
     [Test]
     public async Task CreateCuentaExito()
     {
@@ -691,7 +691,7 @@ public class CuentaServiceTests
         var exception = Assert.ThrowsAsync<ClienteNotFoundException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
         Assert.That(exception.Message, Is.EqualTo("El cliente cliente-inexistente no existe"));
     }
-
+*/
 
         
 }

@@ -17,7 +17,7 @@ public interface IClienteService
     public Task<ClienteResponse?> DeleteByGuidAsync(string guid);
     public Task<ClienteResponse?> DeleteMeAsync(User.Models.User userAuth);
 
-    public Task<string> DerechoAlOlvido(string userGuid);
+    public Task<string> DerechoAlOlvido(User.Models.User userAuth);
     
     public Task<ClienteResponse?> UpdateFotoDni(User.Models.User userAuth, IFormFile dniFoto);
     public Task<Stream> GetFotoDniAsync(string guid);
