@@ -1,7 +1,8 @@
 using Banco_VivesBank.Storage.Zip.Exceptions;
 using Banco_VivesBank.Storage.Zip.Services;
-using GraphQL;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Zip.Controller;
 

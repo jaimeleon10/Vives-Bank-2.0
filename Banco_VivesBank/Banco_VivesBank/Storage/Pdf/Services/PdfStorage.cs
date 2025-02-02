@@ -7,6 +7,7 @@ using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Exception;
 using PdfSharp.Pdf;
 using TheArtOfDev.HtmlRenderer.PdfSharp;
+using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Pdf.Services;
 
