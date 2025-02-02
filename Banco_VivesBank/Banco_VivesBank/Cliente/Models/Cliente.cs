@@ -6,6 +6,9 @@ using Banco_VivesBank.Utils.Generators;
 
 namespace Banco_VivesBank.Cliente.Models;
 
+/// <summary>
+///  Representa un cliente del banco
+/// </summary>
 public class Cliente
 {
     public long Id { get; set; }

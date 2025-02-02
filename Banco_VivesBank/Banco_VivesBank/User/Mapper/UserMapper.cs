@@ -4,6 +4,9 @@ using Banco_VivesBank.User.Models;
 
 namespace Banco_VivesBank.User.Mapper
 {
+    /// <summary>
+    /// Mapea los objetos de usuario entre los modelos, entidades y DTOs.
+    /// </summary>
     public static class UserMapper
     {
         public static Models.User ToModelFromRequest(this UserRequest userRequest)

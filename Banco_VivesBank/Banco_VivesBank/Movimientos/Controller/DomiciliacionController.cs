@@ -11,6 +11,8 @@ namespace Banco_VivesBank.Movimientos.Controller;
 
 [ApiController]
 [Route("api/domiciliaciones")]
+[Produces("application/json")] 
+[Tags("Domiciliaciones")] 
 public class DomiciliacionController : ControllerBase
 {
     private readonly IDomiciliacionService _domiciliacionService;
@@ -22,15 +24,31 @@ public class DomiciliacionController : ControllerBase
         _userService = userService;
     }
 
+    /// <summary>
+    /// Obtiene todas las domiciliaciones
+    /// </summary>
+    /// <returns>Devuelve un ActionResult junto con una lista de domiciliaciones</returns>
+    /// <response code="200">Devuelve una lista de domiciliaciones</response>
     [HttpGet]
     [Authorize(Policy = "AdminPolicy")]    
+    [ProducesResponseType(typeof(IEnumerable<DomiciliacionResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetAllDomiciliaciones()
     {
         return Ok(await _domiciliacionService.GetAllAsync());
     }
     
+    /// <summary>
+    /// Obtiene una domiciliación a través de su GUID
+    /// </summary>
+    /// <param name="domiciliacionGuid">GUID de la domiciliación que se busca</param>
+    /// <returns>Devuelve un ActionResult junto con la domiciliación buscada</returns>
+    /// <response code="200">Devuelve la domiciliación</response>
+    /// <response code="404">No se han encontrado la domiciliación</response>
     [HttpGet("{domiciliacionGuid}")]
     [Authorize(Policy = "AdminPolicy")]    
+    [ProducesResponseType(typeof(DomiciliacionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DomiciliacionResponse>> GetDomiciliacionByGuid(string domiciliacionGuid)
     {
         try
@@ -45,15 +63,33 @@ public class DomiciliacionController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Obtiene las domiciliaciones pertenecientes a un cliente a través de su GUID
+    /// </summary>
+    /// <param name="clienteGuid">GUID del cliente del cual sacar sus domiciliaciones</param>
+    /// <returns>Devuelve un ActionResult junto con la lista de domiciliaciones del cliente</returns>
+    /// <response code="200">Devuelve una lista de domiciliaciones</response>
     [HttpGet("cliente/{clienteGuid}")]
     [Authorize(Policy = "AdminPolicy")]    
+    [ProducesResponseType(typeof(IEnumerable<DomiciliacionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetDomiciliacionesByClienteGuid(string clienteGuid)
     {
         return Ok(await _domiciliacionService.GetByClienteGuidAsync(clienteGuid));
     }
     
+    /// <summary>
+    /// Obtiene los domiciliaciones del cliente autenticado
+    /// </summary>
+    /// <returns>Devuelve un ActionResult junto con la lista de domiciliaciones del cliente autenticado</returns>
+    /// <response code="200">Devuelve una lista de domiciliaciones</response>
+    /// <response code="404">No se ha podido identificar el cliente autenticado</response>
     [HttpGet("me")]
     [Authorize(Policy = "ClientePolicy")]    
+    [ProducesResponseType(typeof(IEnumerable<DomiciliacionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetMyDomiciliaciones()
     {
         var userAuth = _userService.GetAuthenticatedUser();
@@ -62,8 +98,21 @@ public class DomiciliacionController : ControllerBase
         return Ok(await _domiciliacionService.GetMyDomiciliaciones(userAuth));
     }
 
+    /// <summary>
+    /// Crea un movimiento de domiciliación
+    /// </summary>
+    /// <param name="domiciliacionRequest">Modelo de solicitud con los datos de la domiciliación</param>
+    /// <returns>Devuelve un ActionResult junto con la domiciliación</returns>
+    /// <response code="200">Devuelve la domiciliación</response>
+    /// <response code="404">No se ha podido identificar el cliente autenticado</response>
+    /// <response code="404">Cliente no encontrado</response>
+    /// <response code="404">Saldo de la cuenta insuficiente</response>
+    /// <response code="400">Error a la hora de actualizar el saldo de la cuenta</response>
     [HttpPost]
-    [Authorize(Policy = "ClientePolicy")]    
+    [Authorize(Policy = "ClientePolicy")]  
+    [ProducesResponseType(typeof(DomiciliacionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DomiciliacionResponse>> CreateDomiciliacion([FromBody] DomiciliacionRequest domiciliacionRequest)
     {
         if (!ModelState.IsValid)
@@ -96,8 +145,19 @@ public class DomiciliacionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Desactiva una domiciliación
+    /// </summary>
+    /// <param name="domiciliacionGuid">GUID de la domiciliación</param>
+    /// <returns>Devuelve un ActionResult junto con la domiciliación</returns>
+    /// <response code="200">Devuelve la domiciliación</response>
+    /// <response code="404">No se ha encontrado la domiciliación</response>
+    /// <response code="400">Error a la hora de actualizar la cuenta</response>
     [HttpDelete("{domiciliacionGuid}")]
     [Authorize(Policy = "AdminPolicy")]    
+    [ProducesResponseType(typeof(DomiciliacionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DomiciliacionResponse?>> DesactivateDomiciliacion(string domiciliacionGuid)
     {
         try
@@ -112,8 +172,20 @@ public class DomiciliacionController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Desactiva una domiciliación propia
+    /// </summary>
+    /// <param name="domiciliacionGuid">GUID de la domiciliación</param>
+    /// <returns>Devuelve un ActionResult junto con la domiciliación</returns>
+    /// <response code="200">Devuelve la domiciliación</response>
+    /// <response code="400">Domiciliacion no perteneciente al cliente autenticado</response>
+    /// <response code="404">No se ha encontrado la domiciliación</response>
+    /// <response code="400">Error a la hora de actualizar la cuenta</response>
     [HttpDelete("me/{domiciliacionGuid}")]
     [Authorize(Policy = "ClientePolicy")]    
+    [ProducesResponseType(typeof(DomiciliacionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DomiciliacionResponse?>> DesactivateMyDomiciliacion(string domiciliacionGuid)
     {
         try

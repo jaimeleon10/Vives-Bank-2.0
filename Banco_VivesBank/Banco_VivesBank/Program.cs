@@ -18,8 +18,11 @@ using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
+using Banco_VivesBank.Swagger.Examples.Clientes;
+using Banco_VivesBank.Swagger.Examples.Movimientos;
+using Banco_VivesBank.Swagger.Examples.User;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
-using Banco_VivesBank.Utils.Auth;
 using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Websockets;
@@ -30,10 +33,11 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Quartz;
-using Quartz.Spi;
 using Serilog;
 using Serilog.Core;
 using StackExchange.Redis;
+using Swashbuckle.AspNetCore.Filters;
+using Path = System.IO.Path;
 
 var environment = InitLocalEnvironment();
 
@@ -55,7 +59,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Prueba Swagger API v1");
+    });
 }
 
 // Habilita redirección HTTPS si está habilitado
@@ -71,43 +78,40 @@ app.UseAuthorization();
 // Añadir los websockets
 app.UseWebSockets();
 
-app.UseEndpoints(endpoints =>
+app.Map("/ws/api/bancovivesbank", async context =>
 {
-    endpoints.Map("/ws/api/bancovivesbank", async context =>
+    if (!context.WebSockets.IsWebSocketRequest)
     {
-        if (!context.WebSockets.IsWebSocketRequest)
-        {
-            context.Response.StatusCode = 400;
-            await context.Response.WriteAsync("Only WebSocket requests are supported.");
-            return;
-        }
+        context.Response.StatusCode = 400;
+        await context.Response.WriteAsync("Only WebSocket requests are supported.");
+        return;
+    }
 
-        // Verifica la autenticación
-        var authHeader = context.Request.Headers["Authorization"].ToString();
+    // Verify authentication
+    var authHeader = context.Request.Headers["Authorization"].ToString();
 
-        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-        {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Unauthorized: No token provided");
-            return;
-        }
+    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Unauthorized: No token provided");
+        return;
+    }
 
-        var token = authHeader["Bearer ".Length..].Trim(); // Extraer solo el token
-        var username = ValidateToken(token);
-        if (username == null)
-        {
-            Console.WriteLine("Token inválido o expirado.");
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Unauthorized: Invalid token");
-            return;
-        }
-        Console.WriteLine($"Usuario autenticado: {username}");
+    var token = authHeader["Bearer ".Length..].Trim();
+    var username = ValidateToken(token);
+    if (username == null)
+    {
+        Console.WriteLine("Invalid or expired token.");
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Unauthorized: Invalid token");
+        return;
+    }
+    Console.WriteLine($"Authenticated user: {username}");
 
-        // Si el token es válido, aceptar el WebSocket
-        var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        var handler = new WebSocketHandler(webSocket, username);
-        await handler.Handle();
-    });
+    // If the token is valid, accept the WebSocket
+    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+    var handler = new WebSocketHandler(webSocket, username);
+    await handler.Handle();
 });
 
 // Añade los controladores a la ruta predeterminada
@@ -175,7 +179,7 @@ WebApplicationBuilder InitServices()
             .ForJob(jobKey)
             .WithIdentity("DomiciliacionJob-Trigger")
             .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(3000) // TODO -> Cambiar cuando acabe el proyecto
+                .WithIntervalInSeconds(86400) // Cada 24 horas se revisan las domiciliaciones
                 .RepeatForever()));
     });
     
@@ -213,11 +217,15 @@ WebApplicationBuilder InitServices()
             Description = "API para la gestión del banco Vives-Bank",
             Contact = new OpenApiContact
             {
-                Name = "Jaime León Mulero, Natalia González Álvarez",
-                Email = "jleonmulero@gmail.com, nagonal2004@gmail.com",
-                Url = new Uri("https://github.com/jaimeleon10, https://github.com/ngalvez0910")
+                Name = "Jaime León Mulero",
+                Email = "jleonmulero@gmail.com",
+                Url = new Uri("https://github.com/jaimeleon10")
             }
         });
+        c.ExampleFilters();  //Habilita los ejemplos de las clases
+        var xmlFile = Path.Combine(AppContext.BaseDirectory, "Banco_VivesBank.xml");
+           
+        c.IncludeXmlComments(xmlFile);
     });
 
     // redis 
@@ -292,7 +300,17 @@ WebApplicationBuilder InitServices()
     });
     
     myBuilder.Services.AddScoped<IJwtService, JwtService>();
-
+    
+    // Añadir los ejemplos de las clases
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<ClienteResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PageResponseClienteExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<UserResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<DomiciliacionResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<IngresoNominaResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<MovimientoResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PagoConTarjetaResponseExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<TransferenciaResponseExample>();
+    
     return myBuilder;
 }
 
@@ -321,6 +339,8 @@ Logger InitLogConfig()
         .ReadFrom.Configuration(configuration)
         .CreateLogger();
 }
+
+
 
 void TryConnectionDataBase()
 {

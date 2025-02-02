@@ -26,8 +26,17 @@ public class ProductoController : ControllerBase
         _paginationLinksUtils = pagination;
     }
     
+    /// <summary>
+    /// Obtiene todos los productos paginados y ordenados según los parámetros especificados.
+    /// </summary>
+    /// <param name="page">Número de la página a la que se quiere acceder</param>
+    /// <param name="size">Número de productos por página</param>
+    /// <param name="sortBy">Parámetro por el que se ordenan los productos</param>
+    /// <param name="direction">Dirección de ordenación, ascendente (asc) o descendente (desc)</param>
+    /// <returns>Devuelve un ActionResult con una lista paginada de productos</returns>
+    /// <response code="200">Devuelve una lista de productos paginados</response>
+    /// <response code="400">Ocurrió un error en la solicitud</response>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<PageResponse<ProductoResponse>>>> GetAll(
         [FromQuery] int page = 0,
         [FromQuery] int size = 10,
@@ -52,8 +61,14 @@ public class ProductoController : ControllerBase
         return Ok(pageResult);
     }
 
+    /// <summary>
+    /// Obtiene un producto específico por su identificador único (GUID).
+    /// </summary>
+    /// <param name="guid">Identificador único del producto</param>
+    /// <returns>Devuelve un ActionResult con los detalles del producto</returns>
+    /// <response code="200">Devuelve el producto encontrado</response>
+    /// <response code="404">No se encontró un producto con el GUID proporcionado</response>
     [HttpGet("{guid}")]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> GetByGuid(string guid)
     {
         try
@@ -70,6 +85,13 @@ public class ProductoController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Crea un nuevo producto en el sistema.
+    /// </summary>
+    /// <param name="request">Objeto con los datos necesarios para crear el producto.</param>
+    /// <returns>Devuelve un ActionResult con el producto creado o un mensaje de error en caso de fallo.</returns>
+    /// <response code="200">Devuelve el producto creado con éxito.</response>
+    /// <response code="400">En caso de error de validación o excepciones específicas del producto.</response>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> Create([FromBody] ProductoRequest request)
@@ -89,6 +111,15 @@ public class ProductoController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Actualiza un producto existente en el sistema.
+    /// </summary>
+    /// <param name="guid">Identificador único del producto que se quiere actualizar.</param>
+    /// <param name="request">Objeto con los datos actualizados del producto.</param>
+    /// <returns>Devuelve un ActionResult con el producto actualizado o un mensaje de error si no se encuentra el producto.</returns>
+    /// <response code="200">Devuelve el producto actualizado con éxito.</response>
+    /// <response code="400">En caso de error de validación o de producto específico.</response>
+    /// <response code="404">Cuando no se encuentra el producto con el identificador especificado.</response>
     [HttpPut("{guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> Update(string guid, [FromBody] ProductoRequestUpdate request)
@@ -110,6 +141,13 @@ public class ProductoController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Elimina un producto en el sistema mediante su identificador único.
+    /// </summary>
+    /// <param name="guid">Identificador único del producto a eliminar.</param>
+    /// <returns>Devuelve un ActionResult con el producto eliminado o un mensaje de error si no se encuentra el producto.</returns>
+    /// <response code="200">Devuelve el producto eliminado con éxito.</response>
+    /// <response code="404">Cuando no se encuentra el producto con el identificador especificado.</response>
     [HttpDelete("{guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductoResponse>> DeleteByGuid(string guid)
@@ -119,6 +157,14 @@ public class ProductoController : ControllerBase
         return Ok(baseByGuid);
     }
     
+    /// <summary>
+    /// Importa productos desde un archivo CSV al sistema.
+    /// </summary>
+    /// <param name="file">Archivo CSV que contiene los datos de los productos a importar.</param>
+    /// <returns>Devuelve un ActionResult con la lista de productos creados o un mensaje de error en caso de fallo.</returns>
+    /// <response code="200">Devuelve la lista de productos creados con éxito.</response>
+    /// <response code="400">En caso de errores con el archivo CSV o si no se pueden importar productos.</response>
+    /// <response code="500">Cuando ocurre un error interno durante el procesamiento del archivo.</response>
     [HttpPost("import")]
     //[Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<ProductoResponse>>> ImportFromCsv(IFormFile file)
@@ -174,6 +220,12 @@ public class ProductoController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Exporta todos los productos del sistema a un archivo CSV.
+    /// </summary>
+    /// <returns>Devuelve un archivo CSV con los productos exportados o un mensaje en caso de que no haya productos para exportar.</returns>
+    /// <response code="200">Devuelve el archivo CSV con los productos exportados.</response>
+    /// <response code="500">Cuando ocurre un error interno al exportar los productos.</response>
     [HttpGet("export")]
     //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportToCsv()

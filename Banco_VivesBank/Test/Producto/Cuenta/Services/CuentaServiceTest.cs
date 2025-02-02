@@ -4,7 +4,6 @@ using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Cuenta.Dto;
-using Banco_VivesBank.Producto.Cuenta.Mappers;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Dto;
 using Banco_VivesBank.Producto.ProductoBase.Exceptions;
@@ -17,7 +16,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
-using BigInteger = System.Numerics.BigInteger;
 using Direccion = Banco_VivesBank.Cliente.Models.Direccion;
 using Role = Banco_VivesBank.User.Models.Role;
 
@@ -33,156 +31,125 @@ public class CuentaServiceTests
     private Mock<IProductoService> _baseService;
     private Mock<IClienteService> _clienteService;
     private Mock<ITarjetaService> _tarjetaService;
-    private Mock<IMemoryCache> _memoryCache;
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _database;
-    private ClienteEntity _clienteEntity;
-    private UserEntity user1;
-    private ProductoEntity _productoEntity;
-    private CuentaEntity cuenta1;
-    private DbContextOptions<GeneralDbContext> _dbContextOptions;
     
+    private UserEntity user1;
+    private ClienteEntity cliente1;
+    private ProductoEntity producto1;
+    private CuentaEntity cuenta1;
+
+    private IMemoryCache _memoryCache;
 
     [OneTimeSetUp]
     public async Task Setup()
     {
-        _postgreSqlContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
-            .WithDatabase("testdb")
-            .WithUsername("testuser")
-            .WithPassword("testpassword")
-            .WithPortBinding(5432, true)
-            .Build();
+            _postgreSqlContainer = new PostgreSqlBuilder()
+                .WithImage("postgres:15-alpine")
+                .WithDatabase("testdb")
+                .WithUsername("testuser")
+                .WithPassword("testpassword")
+                .WithPortBinding(5432, true)
+                .Build();
 
-        await _postgreSqlContainer.StartAsync();
+            await _postgreSqlContainer.StartAsync();
 
-        _dbContextOptions = new DbContextOptionsBuilder<GeneralDbContext>()
-            .UseNpgsql(_postgreSqlContainer.GetConnectionString())
-            .Options;
+            var options = new DbContextOptionsBuilder<GeneralDbContext>()
+                .UseNpgsql(_postgreSqlContainer.GetConnectionString())
+                .Options;
 
-        _dbContext = new GeneralDbContext(_dbContextOptions);
-        await _dbContext.Database.EnsureCreatedAsync();
+            _dbContext = new GeneralDbContext(options);
+            await _dbContext.Database.EnsureCreatedAsync();
 
-        _baseService = new Mock<IProductoService>();
-        _clienteService = new Mock<IClienteService>();
-        _tarjetaService = new Mock<ITarjetaService>();
-        
+            _baseService = new Mock<IProductoService>();
+            _clienteService = new Mock<IClienteService>();
+            _tarjetaService = new Mock<ITarjetaService>();
+            _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-        _memoryCache = new Mock<IMemoryCache>();
+            _database = new Mock<IDatabase>();
+            _redis = new Mock<IConnectionMultiplexer>();
+            _redis.Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
+                .Returns(_database.Object);
 
-       
-        _database = new Mock<IDatabase>();
-        _redis = new Mock<IConnectionMultiplexer>();
-        _redis.
-            Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
-            .Returns(_database.Object);
-        
-        
-        _cuentaService = new CuentaService(
-            _dbContext,
-            NullLogger<CuentaService>.Instance,
-            _baseService.Object,
-            _clienteService.Object,
-            _tarjetaService.Object,
-            _redis.Object,
-            _memoryCache.Object
-        );
-        
-        user1 = new UserEntity
-        {
-            Id = 4L,
-            Guid =  "user-guid",
-            Username = "username1",
-            Password = "password1",
-            Role = Role.User,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        
-        _clienteEntity = new ClienteEntity
-        {
-            Id = 4L,
-            Guid = "cliente-guid",
-            Nombre = "Juan",
-            Apellidos = "Perez",
-            Dni = "12345678Z",
-            Direccion = new Direccion
-            {
-                Calle = "Calle Falsa",
-                Numero = "123",
-                CodigoPostal = "28000",
-                Piso = "2",
-                Letra = "A"
-            },
-            Email = "juanperez@example.com",
-            Telefono = "600000000",
-            IsDeleted = false,
-            UserId = user1.Id
-        };
-        
-        _productoEntity = new ProductoEntity
-        {
-            Id = 4L,
-            Guid = Guid.NewGuid().ToString(),
-            Nombre = $"Producto1",
-            TipoProducto = $"Tipo1"
-        };
-        
-        cuenta1 = new CuentaEntity
-        {
-            Id = 4L,
-            Guid =  "cuenta-guid",
-            Iban = "ES1234567890123456789012",
-            Saldo = 1000,
-            ClienteId = _clienteEntity.Id,
-            ProductoId = _productoEntity.Id,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
 
-        InsertarDatos();
+            _cuentaService = new CuentaService(
+                _dbContext,
+                NullLogger<CuentaService>.Instance,
+                _baseService.Object,
+                _clienteService.Object,
+                _tarjetaService.Object,
+                _redis.Object,
+                _memoryCache
+            );
     }
+    
+    [TearDown]
+    public async Task CleanDatabase()
+    {
+        // Limpia las tablas de la base de datos
+        _dbContext.Cuentas.RemoveRange(await _dbContext.Cuentas.ToListAsync());
+        _dbContext.Clientes.RemoveRange(await _dbContext.Clientes.ToListAsync());
+        _dbContext.Usuarios.RemoveRange(await _dbContext.Usuarios.ToListAsync());
+        _dbContext.ProductoBase.RemoveRange(await _dbContext.ProductoBase.ToListAsync());
+    
+        // Guarda los cambios para aplicar la limpieza
+        await _dbContext.SaveChangesAsync();
+    }
+
 
     [OneTimeTearDown]
     public async Task Teardown()
     {
-        if (_dbContext != null)
-        {
-            await _dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE Cuentas, ProductoBase, Clientes, Usuarios RESTART IDENTITY CASCADE");
-            await _dbContext.DisposeAsync();
-        }
-
         if (_postgreSqlContainer != null)
         {
             await _postgreSqlContainer.StopAsync();
             await _postgreSqlContainer.DisposeAsync();
         }
-    }
-    
-    private async Task InsertarDatos()
-    {
-        using (var scope = new GeneralDbContext(_dbContextOptions))
+        if (_dbContext != null)
         {
-            scope.Usuarios.Add(user1);
-            await scope.SaveChangesAsync();
+            await _dbContext.DisposeAsync();
+        }
 
-            scope.Clientes.Add(_clienteEntity);
-            await scope.SaveChangesAsync();
-
-            scope.ProductoBase.Add(_productoEntity);
-            await scope.SaveChangesAsync();
-
-            scope.Cuentas.Add(cuenta1);
-            await scope.SaveChangesAsync();
+        if (_memoryCache!=null)
+        {
+            _memoryCache.Dispose();
         }
     }
 
+    [SetUp]
+    public async Task InsertarDatos()
+    {
+        
+        user1 = new UserEntity { Guid = "user-guid", Username = "username1", Password = "password1", Role = Role.User, IsDeleted = false,
+            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        
+        _dbContext.Usuarios.Add(user1);
+        await _dbContext.SaveChangesAsync();
+
+        cliente1 = new ClienteEntity
+        {
+            Guid = "cliente-guid", Nombre = "Juan", Apellidos = "Perez", Dni = "12345678Z",
+            Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Email = "juanperez@example.com", Telefono = "600000000", IsDeleted = false, UserId = user1.Id
+        };
+        _dbContext.Clientes.Add(cliente1);
+        await _dbContext.SaveChangesAsync();
+
+
+        producto1 = new ProductoEntity { Guid = Guid.NewGuid().ToString(), Nombre = $"Producto1", TipoProducto = $"Tipo1" };
+        _dbContext.ProductoBase.Add(producto1);
+        await _dbContext.SaveChangesAsync();
+
+
+        cuenta1 = new CuentaEntity { Guid = "cuenta-guid", Iban = "ES1234567890123456789012", Saldo = 1000, ClienteId = cliente1.Id, ProductoId = producto1.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _dbContext.Cuentas.Add(cuenta1);
+        await _dbContext.SaveChangesAsync();
+    }
+
     [Test]
+    [Order(1)]
     public async Task GetAll()
     {
-        await InsertarDatos();
 
         var pageRequest = new PageRequest
         {
@@ -194,9 +161,10 @@ public class CuentaServiceTests
 
         var result = await _cuentaService.GetAllAsync(1500, 500, "Tipo1", pageRequest);
 
+        var cuenta = result.Content[0];
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Content.Count, Is.EqualTo(1));
-        Assert.That(BigInteger.Parse(result.Content.First().Saldo), Is.EqualTo(BigInteger.Parse("1000")));
+        Assert.That(cuenta.Saldo, Is.EqualTo(1000));
         Assert.That(result.TotalPages, Is.EqualTo(1));
         Assert.That(result.PageSize, Is.EqualTo(pageRequest.PageSize));
         Assert.That(result.PageNumber, Is.EqualTo(pageRequest.PageNumber));
@@ -205,10 +173,10 @@ public class CuentaServiceTests
     }
 
     [Test]
+    [Order(2)]
     public async Task GetByClientGuidOk()
     {
-        InsertarDatos();
-        var clienteGuid = _clienteEntity.Guid;
+        var clienteGuid = cliente1.Guid;
 
         var result = await _cuentaService.GetByClientGuidAsync(clienteGuid);
 
@@ -218,22 +186,24 @@ public class CuentaServiceTests
         var firstCuenta = result.First();
         Assert.That(firstCuenta.Guid, Is.EqualTo("cuenta-guid"));
         Assert.That(firstCuenta.Iban, Is.EqualTo("ES1234567890123456789012"));
-        Assert.That(BigInteger.Parse(firstCuenta.Saldo), Is.EqualTo(BigInteger.Parse("1000")));
+        Assert.That(firstCuenta.Saldo, Is.EqualTo(1000));
     }
 
     [Test]
+    [Order(3)]
     public void GetByClientGuidException()
     {
         var clienteGuidInexistente = "guid-invalido";
 
-        var exception = Assert.ThrowsAsync<ClienteNotFoundException>(async () => 
+        var exception = Assert.ThrowsAsync<ClienteNotFoundException>(async () =>
             await _cuentaService.GetByClientGuidAsync(clienteGuidInexistente)
         );
 
         Assert.That(exception.Message, Is.EqualTo("No se encontró el cliente con guid: guid-invalido"));
     }
-/*
+
     [Test]
+    [Order(4)]
     public async Task GetByGuidMemoria()
     {
         var cuentaGuid = "cuenta-guid";
@@ -276,7 +246,7 @@ public class CuentaServiceTests
         {
             Guid = cuentaGuid,
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -284,21 +254,19 @@ public class CuentaServiceTests
             UpdatedAt = "2025-01-24T12:30:00Z",
             IsDeleted = false
         };
-        
-        _memoryCache
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.Producto.Cuenta.Models.Cuenta>.IsAny))
-            .Returns(true)
-            .Callback((object key, out Banco_VivesBank.Producto.Cuenta.Models.Cuenta cachedCuenta) =>
-            {
-                cachedCuenta = cuenta; 
-            });
+
+        _memoryCache.Set(cuentaGuid, cuenta);
 
         var result = await _cuentaService.GetByGuidAsync(cuentaGuid);
 
-        Assert.That(result, Is.EqualTo(cuentaResponse));
+        Assert.That(result.Guid, Is.EqualTo(cuentaResponse.Guid));
+        Assert.That(result.Iban, Is.EqualTo(cuentaResponse.Iban));
+        Assert.That(result.Saldo, Is.EqualTo(cuentaResponse.Saldo));
+        Assert.That(result.TarjetaGuid, Is.EqualTo(cuentaResponse.TarjetaGuid));
     }
 
     [Test]
+    [Order(5)]
     public async Task GetByGuidRedis()
     {
         var cuentaGuid = "cuenta-guid";
@@ -306,7 +274,7 @@ public class CuentaServiceTests
         {
             Guid = cuentaGuid,
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -316,12 +284,9 @@ public class CuentaServiceTests
         };
 
         var redisValue = JsonSerializer.Serialize(cuentaResponse);
-
-        _memoryCache
-            .Setup(m => m.TryGetValue(It.IsAny<object>(),
-                out It.Ref<Banco_VivesBank.Producto.Cuenta.Models.Cuenta>.IsAny))
-            .Returns(false);
         
+        _memoryCache.Remove(cuentaGuid);
+
         _database
             .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(redisValue);
@@ -329,9 +294,10 @@ public class CuentaServiceTests
         var result = await _cuentaService.GetByGuidAsync(cuentaGuid);
 
         Assert.That(result, Is.EqualTo(cuentaResponse));
-    }*/
-    
+    }
+
     [Test]
+    [Order(6)]
     public async Task GetByGuidEnBBDD()
     {
         var guid = "cuenta-guid";
@@ -341,16 +307,12 @@ public class CuentaServiceTests
             Iban = "ES1234567890123456789012",
             Saldo = 1000,
             Tarjeta = null,
-            ClienteId = _clienteEntity.Id,
-            ProductoId = _productoEntity.Id,
+            ClienteId = cliente1.Id,
+            ProductoId = producto1.Id,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
         };
-        
-        _memoryCache
-            .Setup(mc => mc.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-            .Returns(false);
         
         _database
             .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
@@ -365,16 +327,13 @@ public class CuentaServiceTests
         Assert.That(result.Guid, Is.EqualTo(cuentaEntity.Guid));
         Assert.That(result.Iban, Is.EqualTo(cuentaEntity.Iban));
     }
-    
+
     [Test]
+    [Order(7)]
     public async Task GetByGuidNoEncontrado()
     {
         var guid = "non-existent-guid";
         var cacheKey = "CachePrefix_" + guid;
-
-        _memoryCache
-            .Setup(mc => mc.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-            .Returns(false);
 
         _database
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
@@ -385,8 +344,9 @@ public class CuentaServiceTests
         Assert.That(result, Is.Null);
     }
 
-/*
+
     [Test]
+    [Order(8)]
     public async Task GetByIbanMemoria()
     {
         var iban = "ES1234567890123456789012";
@@ -429,7 +389,7 @@ public class CuentaServiceTests
         {
             Guid = "cuenta-guid",
             Iban = iban,
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -437,21 +397,20 @@ public class CuentaServiceTests
             UpdatedAt = "2025-01-24T12:30:00Z",
             IsDeleted = false
         };
-    
-        _memoryCache
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.Producto.Cuenta.Models.Cuenta>.IsAny))
-            .Returns(true)
-            .Callback((object key, out Banco_VivesBank.Producto.Cuenta.Models.Cuenta cachedCuenta) =>
-            {
-                cachedCuenta = cuenta; 
-            });
+
+        _memoryCache.Set(cuenta.Guid, cuenta);
 
         var result = await _cuentaService.GetByIbanAsync(iban);
 
-        Assert.That(result, Is.EqualTo(cuentaResponse));
+        Assert.That(result.Guid, Is.EqualTo(cuentaResponse.Guid));
+        Assert.That(result.Iban, Is.EqualTo(cuentaResponse.Iban));
+        Assert.That(result.Saldo, Is.EqualTo(cuentaResponse.Saldo));
+        Assert.That(result.TarjetaGuid, Is.EqualTo(cuentaResponse.TarjetaGuid));
+        Assert.That(result.ClienteGuid, Is.EqualTo(cuentaResponse.ClienteGuid));
     }
 
     [Test]
+    [Order(9)]
     public async Task GetByIbanRedis()
     {
         var iban = "ES1234567890123456789012";
@@ -459,7 +418,7 @@ public class CuentaServiceTests
         {
             Guid = "cuenta-guid",
             Iban = iban,
-            Saldo = "1000",
+            Saldo = 1000,
             TarjetaGuid = null,
             ClienteGuid = "cliente-guid",
             ProductoGuid = "producto-guid",
@@ -470,10 +429,8 @@ public class CuentaServiceTests
 
         var redisValue = JsonSerializer.Serialize(cuentaResponse);
 
-        _memoryCache
-            .Setup(m => m.TryGetValue(It.IsAny<object>(), out It.Ref<Banco_VivesBank.Producto.Cuenta.Models.Cuenta>.IsAny))
-            .Returns(false);
-    
+        _memoryCache.Remove(cuentaResponse.Guid);
+
         _database
             .Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(redisValue);
@@ -481,20 +438,21 @@ public class CuentaServiceTests
         var result = await _cuentaService.GetByIbanAsync(iban);
 
         Assert.That(result, Is.EqualTo(cuentaResponse));
-    }*/
+    }
 
     [Test]
+    [Order(10)]
     public async Task GetByIbanEnBBDD()
     {
-        var iban = "ES1234567890123456789012";  
+        var iban = "ES1234567890123456789012";
         var cuentaEntity = new CuentaEntity
         {
             Guid = "cuenta-guid",
             Iban = iban,
             Saldo = 1000,
             Tarjeta = null,
-            ClienteId = 1L,
-            ProductoId = 1L,
+            ClienteId = cliente1.Id,
+            ProductoId = producto1.Id,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsDeleted = false
@@ -511,15 +469,12 @@ public class CuentaServiceTests
     }
 
     [Test]
+    [Order(11)]
     public async Task GetByIbanNoEncontrado()
     {
         var iban = "iban-no-existente";  
         var cacheKey = "CachePrefix_" + iban;
-
-        _memoryCache
-            .Setup(mc => mc.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-            .Returns(false);
-
+        
         _database
             .Setup(db => db.StringGetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
@@ -530,10 +485,12 @@ public class CuentaServiceTests
     }
 
     [Test]
+    [Order(12)]
     public async Task CreateCuentaExito()
     {
         var tipoCuenta = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
+            Id = producto1.Id,
             Guid = "producto-guid",
             Nombre = "Producto1",
             TipoProducto = "Tipo1",
@@ -591,7 +548,6 @@ public class CuentaServiceTests
         var cuentaRequest = new CuentaRequest
         {
             TipoCuenta = "Tipo1",
-            ClienteGuid = _clienteEntity.Guid
         };
 
         _baseService
@@ -603,58 +559,60 @@ public class CuentaServiceTests
             .ReturnsAsync(tipoCuenta);
 
         _clienteService
-            .Setup(cs => cs.GetClienteModelByGuid(cuentaRequest.ClienteGuid))
+            .Setup(cs => cs.GetClienteModelByGuid(cliente1.Guid))
             .ReturnsAsync(cliente);
 
         var expectedCuentaResponse = new CuentaResponse
         {
             Guid = "cuenta-guid",
             Iban = "ES1234567890123456789012",
-            Saldo = "1000",
+            Saldo = 0,
             TarjetaGuid = null,
-            ClienteGuid = _clienteEntity.Guid,
-            ProductoGuid = _productoEntity.Guid,
+            ClienteGuid = cliente1.Guid,
+            ProductoGuid = producto1.Guid,
             CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
             UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
             IsDeleted = false
         };
 
-        var result = await _cuentaService.CreateAsync(cuentaRequest);
+        var result = await _cuentaService.CreateAsync(user1.Guid,cuentaRequest);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.EqualTo(expectedCuentaResponse.Guid));
-        Assert.That(result.Iban, Is.EqualTo(expectedCuentaResponse.Iban));
-        
+        Assert.That(result.Saldo, Is.EqualTo(expectedCuentaResponse.Saldo));
+        Assert.That(result.TarjetaGuid, Is.EqualTo(expectedCuentaResponse.TarjetaGuid));
+        Assert.That(result.ClienteGuid, Is.EqualTo(expectedCuentaResponse.ClienteGuid));
+        Assert.That(result.ProductoGuid, Is.EqualTo(expectedCuentaResponse.ProductoGuid));
     }
     
     [Test]
+    [Order(13)]
     public async Task CreateCuentaTipoNoExistente()
     {
         var cuentaRequest = new CuentaRequest
         {
-            TipoCuenta = "TipoInexistente",
-            ClienteGuid = "cliente-guid"
+            TipoCuenta = "TipoInexistente"
         };
 
         _baseService
             .Setup(bs => bs.GetByTipoAsync(cuentaRequest.TipoCuenta))
             .ReturnsAsync((ProductoResponse)null);  
 
-        var exception = Assert.ThrowsAsync<ProductoNotExistException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
+        var exception = Assert.ThrowsAsync<ProductoNotExistException>(async () => await _cuentaService.CreateAsync(user1.Guid, cuentaRequest));
         Assert.That(exception.Message, Is.EqualTo("El tipo de Cuenta TipoInexistente no existe en nuestro catalogo"));
     }
 
     [Test]
+    [Order(14)]
     public async Task CreateCuentaClienteNoExistente()
     {
         var cuentaRequest = new CuentaRequest
         {
-            TipoCuenta = "Tipo1",
-            ClienteGuid = "cliente-inexistente"
+            TipoCuenta = "Tipo1"
         };
 
         var tipoCuenta = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
         {
+            Id = producto1.Id,
             Guid = "producto-guid",
             Nombre = "Producto1",
             TipoProducto = "Tipo1",
@@ -676,6 +634,11 @@ public class CuentaServiceTests
             IsDeleted = false
         };
 
+        UserEntity user2 = new UserEntity { Guid = "user2-guid", Username = "username2", Password = "password2", Role = Role.User, IsDeleted = false,
+            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _dbContext.Usuarios.Add(user2);
+        await _dbContext.SaveChangesAsync();
+        
         _baseService
             .Setup(bs => bs.GetByTipoAsync(cuentaRequest.TipoCuenta))
             .ReturnsAsync(baseResponse);
@@ -683,13 +646,10 @@ public class CuentaServiceTests
         _baseService
             .Setup(bs => bs.GetBaseModelByGuid(tipoCuenta.Guid))
             .ReturnsAsync(tipoCuenta);
+        
 
-        _clienteService
-            .Setup(cs => cs.GetClienteModelByGuid(cuentaRequest.ClienteGuid))
-            .ReturnsAsync((Banco_VivesBank.Cliente.Models.Cliente)null);  // Simulando que el cliente no existe
-
-        var exception = Assert.ThrowsAsync<ClienteNotFoundException>(async () => await _cuentaService.CreateAsync(cuentaRequest));
-        Assert.That(exception.Message, Is.EqualTo("El cliente cliente-inexistente no existe"));
+        var exception = Assert.ThrowsAsync<ClienteNotFoundException>(async () => await _cuentaService.CreateAsync(user2.Guid, cuentaRequest));
+        Assert.That(exception.Message, Is.EqualTo("No se encontró el cliente con guid: user2-guid"));
     }
 
 

@@ -26,7 +26,7 @@ namespace Test.User.Controller
             _userController = new UserController(_mockUserService.Object, _mockPaginationLinksUtils.Object);
         }
 
-        /* [Test]
+         /*[Test]
          public async Task GetAll()
          {
              var expectedUsers = new List<UserResponse>
@@ -63,10 +63,10 @@ namespace Test.User.Controller
              var result = await _userController.Getall(null, null, page, size, sortBy, direction);
 
              Assert.That(result, Is.Not.Null);
-             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+             Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
 
              var okResult = result.Result as OkObjectResult;
-             Assert.That(okResult, Is.Not.Null);
+             Assert.That(okResult, Is.Null);
 
              var pageResponseResult = okResult.Value as PageResponse<UserResponse>;
              Assert.That(pageResponseResult, Is.Not.Null);
@@ -78,6 +78,7 @@ namespace Test.User.Controller
              Assert.That(pageResponseResult.TotalPages, Is.EqualTo(1));
          }
          */
+         
 
         [Test]
         public async Task GetUserByGuid()
