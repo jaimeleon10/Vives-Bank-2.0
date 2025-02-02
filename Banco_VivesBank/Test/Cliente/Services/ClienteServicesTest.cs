@@ -712,10 +712,7 @@ public class ClienteServiceTests
              Telefono = "600100000",
              IsDeleted = false
          };
-         var user = new User
-         {
-             Guid = "user-guid"
-         };
+         var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid" };
          var ex = Assert.ThrowsAsync<ClienteExistsException>(async () => await _clienteService.CreateAsync(user,  clienteRequest));
          Assert.That(ex.Message, Is.EqualTo($"El usuario con guid {user.Guid} ya es un cliente"));
      }
@@ -952,11 +949,7 @@ public class ClienteServiceTests
         _dbContext.Usuarios.Add(userEntity);
         await _dbContext.SaveChangesAsync();
         
-        var userAuth = new User
-        {
-            Id = 1, 
-            Guid = "user-guid"
-        };
+        var userAuth = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "user-guid" };
         
         var result = await _clienteService.UpdateMeAsync(userAuth, new ClienteRequestUpdate());
         
@@ -1163,7 +1156,7 @@ public class ClienteServiceTests
     [Order(23)]
     public async Task UpdateFotoPerfilClienteNotFound()
     {
-        var user = new User { Guid = "user-guid" };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid" };
         var fotoPerfil = new Mock<IFormFile>().Object;
     
         var result = await _clienteService.UpdateFotoPerfil(user, fotoPerfil);
@@ -1241,7 +1234,7 @@ public class ClienteServiceTests
     public async Task UpdateFotoDniClienteNotFound()
     {
         // Arrange
-        var user = new User { Guid = "non-existing-guid" };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "non-existing-guid" };
         var fotoDni = new Mock<IFormFile>().Object;
     
         // Act
@@ -1510,7 +1503,7 @@ public class ClienteServiceTests
     [Order(34)]
     public async Task DeletMeAsync_ClienteNotFound()
     {
-        var user = new User { Guid = "non-existing-guid" };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "non-existing-guid" };
         var result = await _clienteService.DeleteMeAsync(user);
         
         Assert.That(result, Is.Null);
@@ -1562,7 +1555,7 @@ public class ClienteServiceTests
     [Order(36)]
     public async Task GetMeAsync_ClienteNotFound()
     {
-        var user = new User { Guid = "non-existing-guid" };
+        var user = new Banco_VivesBank.User.Models.User { Guid = "non-existing-guid" };
         var result = await _clienteService.GetMeAsync(user);
         
         Assert.That(result, Is.Null);

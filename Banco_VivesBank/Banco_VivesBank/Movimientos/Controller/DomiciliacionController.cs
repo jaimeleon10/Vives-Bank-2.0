@@ -54,7 +54,7 @@ public class DomiciliacionController : ControllerBase
     
     [HttpGet("me")]
     [Authorize(Policy = "ClientePolicy")]    
-    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetMyDomiciliaciones()
+    public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetMyDomiciliaciones()
     {
         var userAuth = _userService.GetAuthenticatedUser();
         if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});

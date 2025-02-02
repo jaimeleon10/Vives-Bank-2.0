@@ -3,6 +3,7 @@ using Banco_VivesBank.Config.Storage.Images;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Microsoft.Extensions.Options;
 using Exception = System.Exception;
+using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Images.Service;
 

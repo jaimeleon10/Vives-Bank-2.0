@@ -108,10 +108,10 @@ public class ProductoMapperTests
         Assert.That(model.Tae, Is.EqualTo(result.Tae));
         Assert.That(model.TipoProducto, Is.EqualTo(result.TipoProducto));
         
-        var formattedCreatedAt = model.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        var formattedCreatedAt = model.CreatedAt.ToString();
         Assert.That(formattedCreatedAt, Is.EqualTo(result.CreatedAt));
 
-        var formattedUpdatedAt = model.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        var formattedUpdatedAt = model.UpdatedAt.ToString();
         Assert.That(formattedUpdatedAt, Is.EqualTo(result.UpdatedAt));
         
         Assert.That(model.IsDeleted, Is.EqualTo(result.IsDeleted));
@@ -140,10 +140,10 @@ public class ProductoMapperTests
         Assert.That(entity.Tae, Is.EqualTo(result.Tae));
         Assert.That(entity.TipoProducto, Is.EqualTo(result.TipoProducto));
 
-        var formattedCreatedAt = entity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        var formattedCreatedAt = entity.CreatedAt.ToString();
         Assert.That(formattedCreatedAt, Is.EqualTo(result.CreatedAt));
 
-        var formattedUpdatedAt = entity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+        var formattedUpdatedAt = entity.UpdatedAt.ToString();
         Assert.That(formattedUpdatedAt, Is.EqualTo(result.UpdatedAt));
 
         Assert.That(entity.IsDeleted, Is.EqualTo(result.IsDeleted));
@@ -190,10 +190,10 @@ public class ProductoMapperTests
             Assert.That(entities[i].Tae, Is.EqualTo(results[i].Tae));
             Assert.That(entities[i].TipoProducto, Is.EqualTo(results[i].TipoProducto));
             
-            var formattedCreatedAt = entities[i].CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+            var formattedCreatedAt = entities[i].CreatedAt.ToString();
             Assert.That(formattedCreatedAt, Is.EqualTo(results[i].CreatedAt));
 
-            var formattedUpdatedAt = entities[i].UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss");
+            var formattedUpdatedAt = entities[i].UpdatedAt.ToString();
             Assert.That(formattedUpdatedAt, Is.EqualTo(results[i].UpdatedAt));
             
             Assert.That(entities[i].IsDeleted, Is.EqualTo(results[i].IsDeleted));

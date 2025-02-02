@@ -20,7 +20,7 @@ public class ProductoRequest
     [Required(ErrorMessage = "El campo TAE es obligatorio")]
     public double Tae { get; set; }
 
-    [DefaultValue(false)]
+    [System.ComponentModel.DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
 }
 

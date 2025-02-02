@@ -15,6 +15,7 @@ using Banco_VivesBank.Storage.Zip.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Zip.Services;
 
