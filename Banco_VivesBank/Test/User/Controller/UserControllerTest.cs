@@ -1,4 +1,4 @@
-﻿using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Controller;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;

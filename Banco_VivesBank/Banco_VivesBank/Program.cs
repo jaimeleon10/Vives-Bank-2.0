@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Config.Storage;
@@ -12,6 +13,7 @@ using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.Cuenta.Services;
 using Banco_VivesBank.Producto.ProductoBase.Services;
+using Banco_VivesBank.Producto.ProductoBase.Storage;
 using Banco_VivesBank.Producto.Tarjeta.Services;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Pdf.Services;
@@ -22,6 +24,7 @@ using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Auth;
 using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
+using Banco_VivesBank.Websockets;
 using GraphiQl;
 using GraphQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -68,6 +71,48 @@ app.UseRouting();
 // Añadir para la autorización
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Añadir los websockets
+app.UseWebSockets();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.Map("/ws/api/bancovivesbank", async context =>
+    {
+        if (!context.WebSockets.IsWebSocketRequest)
+        {
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsync("Only WebSocket requests are supported.");
+            return;
+        }
+
+        // Verifica la autenticación
+        var authHeader = context.Request.Headers["Authorization"].ToString();
+
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Unauthorized: No token provided");
+            return;
+        }
+
+        var token = authHeader["Bearer ".Length..].Trim(); // Extraer solo el token
+        var username = ValidateToken(token);
+        if (username == null)
+        {
+            Console.WriteLine("Token inválido o expirado.");
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Unauthorized: Invalid token");
+            return;
+        }
+        Console.WriteLine($"Usuario autenticado: {username}");
+
+        // Si el token es válido, aceptar el WebSocket
+        var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        var handler = new WebSocketHandler(webSocket, username);
+        await handler.Handle();
+    });
+});
 
 // Añade los controladores a la ruta predeterminada
 app.MapControllers();
@@ -383,5 +428,29 @@ void RunInitMongoScript()
     if (process.ExitCode != 0)
     {
         throw new Exception("🔴 Error al ejecutar el script initMongoData.js");
+    }
+}
+
+string? ValidateToken(string token)
+{
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes("ClaveSecretaSuperSegura123JamasLaDescubriraNadieEnElPlanetaTierra!?159");
+
+    try
+    {
+        var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        }, out SecurityToken validatedToken);
+
+        return principal.Identity?.Name;
+    }
+    catch
+    {
+        return null;
     }
 }

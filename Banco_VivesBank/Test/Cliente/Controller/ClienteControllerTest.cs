@@ -5,6 +5,7 @@ using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
+using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Services;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
@@ -205,6 +206,8 @@ public class ClienteControllerTest
 
         var clienteResult = okResult.Value as ClienteResponse;
         Assert.That(clienteResult, Is.EqualTo(response));
+        
+        _clienteServiceMock.Verify(service => service.GetByGuidAsync("guid"), Times.Once);
     }
     
     [Test]
@@ -220,6 +223,97 @@ public class ClienteControllerTest
         Assert.That(notFoundResult?.Value.ToString(), Is.EqualTo("{ message = No se ha encontrado cliente con guid: nonexistent-guid }"));
     }
 
+    [Test]
+    public async Task GetByGuid_BadRequest()
+    {
+        _clienteServiceMock.Setup(service => service.GetByGuidAsync(It.IsAny<string>())).ThrowsAsync(new Exception("Error"));
+        
+        var result = await _clienteController.GetByGuid("guid");
+        
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        
+        Assert.That(badRequestResult.Value.ToString(), Is.EqualTo("{ message = Ha ocurrido un error durante la busqueda del cliente con guid guid, details = Error }"));
+    }
+
+    [Test]
+    public async Task GetMe()
+    {
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = "userGuid", Username = "usernameTest", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        var clienteResponse = new ClienteResponse
+        {
+            Guid = "guid",
+            Nombre = "nombreTest",
+            Apellidos =  "apellidosTest",
+            Direccion = new Direccion {
+                Calle = "calleTest",
+                Numero = "numeroTest",
+                CodigoPostal = "codigoPostalTest",
+                Piso = "pisoTest",
+                Letra = "letraTest"
+            },
+            Email = "emailTest",
+            Telefono = "telefonoTest",
+            FotoPerfil = "fotoPerfilTest",
+            FotoDni = "fotoDniTest",
+            UserResponse = new UserResponse
+            {
+                Guid = "userGuid",
+                Username = "usernameTest",
+                Role = "roleTest",
+                CreatedAt = "createdAtTest",
+                UpdatedAt = "updatedAtTest",
+                IsDeleted = false
+            },
+            CreatedAt = "createdAtTest",
+            UpdatedAt = "updatedAtTest",
+            IsDeleted = false
+        };
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.GetMeAsync(user)).ReturnsAsync(clienteResponse);
+        
+        var result = await _clienteController.GetMe();
+        
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.EqualTo(clienteResponse));
+        
+        _clienteServiceMock.Verify(service => service.GetMeAsync(user), Times.Once);
+        _userService.Verify(auth => auth.GetAuthenticatedUser(), Times.Once);
+    }
+    
+    [Test]
+    public async Task GetMe_UserNotFound()
+    {
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
+        
+        var result = await _clienteController.GetMe();
+        
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido identificar al usuario logeado }"));
+        
+        _userService.Verify(auth => auth.GetAuthenticatedUser(), Times.Once);
+        _clienteServiceMock.Verify(service => service.GetMeAsync(It.IsAny<Banco_VivesBank.User.Models.User>()), Times.Never);
+    }
+    
+    [Test]
+    public async Task GetMe_ClientNotFound()
+    {
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = "userGuid", Username = "usernameTest", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.GetMeAsync(user)).ReturnsAsync((ClienteResponse)null);
+        
+        var result = await _clienteController.GetMe();
+        
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha encontrado el cliente autenticado }"));
+        
+        _userService.Verify(auth => auth.GetAuthenticatedUser(), Times.Once);
+        _clienteServiceMock.Verify(service => service.GetMeAsync(user), Times.Once);
+    }
+    
     [Test]
     public async Task Create()
     {
@@ -267,7 +361,7 @@ public class ClienteControllerTest
             IsDeleted = false
         };
 
-        var user = new User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
             Guid = "userGuid",
@@ -308,7 +402,7 @@ public class ClienteControllerTest
             Nombre = "nombreTest",
             Apellidos = "apellidosTest"
         };
-        var user = new User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
             Guid = "userGuid",
@@ -337,8 +431,8 @@ public class ClienteControllerTest
             Apellidos = "apellidosTest"
         };
 
-        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((User)null);
-        _clienteServiceMock.Setup(service => service.CreateAsync(It.IsAny<User>(), It.IsAny<ClienteRequest>()))
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
+        _clienteServiceMock.Setup(service => service.CreateAsync(It.IsAny<Banco_VivesBank.User.Models.User>(), It.IsAny<ClienteRequest>()))
             .ThrowsAsync(new UserException("Usuario no encontrado"));
 
         var result = await _clienteController.Create(clienteRequest);
@@ -384,7 +478,7 @@ public class ClienteControllerTest
             UpdatedAt = "2024-01-10",
             IsDeleted = false
         };
-        var user = new User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
             Guid = "userGuid",
@@ -427,7 +521,7 @@ public class ClienteControllerTest
             Nombre = "NuevoNombre",
             Apellidos = "NuevoApellido"
         };
-        var user = new User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
             Guid = "userGuid",
@@ -445,7 +539,7 @@ public class ClienteControllerTest
 
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido actualizar el cliente correspondiente al usuario con guid userGuid }"));
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido actualizar el cliente autenticado }"));
     }
 
     [Test]
@@ -458,8 +552,8 @@ public class ClienteControllerTest
             Apellidos = "NuevoApellido"
         };
         
-        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(new User());
-        _clienteServiceMock.Setup(service => service.UpdateMeAsync(It.IsAny<User>(),clienteRequestUpdate))
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(new Banco_VivesBank.User.Models.User());
+        _clienteServiceMock.Setup(service => service.UpdateMeAsync(It.IsAny<Banco_VivesBank.User.Models.User>(),clienteRequestUpdate))
             .ThrowsAsync(new ClienteException("Error al actualizar el cliente"));
 
         var result = await _clienteController.UpdateMe(clienteRequestUpdate);
@@ -540,7 +634,7 @@ public class ClienteControllerTest
             UpdatedAt = "updatedAtTest",
             IsDeleted = false
         };
-        var user = new User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
             Guid = "userGuid",
@@ -570,7 +664,7 @@ public class ClienteControllerTest
         var guid = "invalid-guid";
         var file = CreateMockFile("foto_perfil.jpg", "image/.jpeg");
 
-        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((User)null);
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
         
 
         var result = await _clienteController.UpdateMyProfilePicture(file);
@@ -578,6 +672,26 @@ public class ClienteControllerTest
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido identificar al usuario logeado }"));
+    }
+    
+    
+    [Test]
+    public async Task UpdateMyProfilePicture_BadRequest()
+    {
+        var guid = "cliente-guid";
+        var mockFile = CreateMockFile("foto_perfil.jpg", "image/jpeg");
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = guid, Username = "juan", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock
+            .Setup(service => service.UpdateFotoPerfil(user, mockFile))
+            .ThrowsAsync(new FileStorageException("Storage error"));
+
+        var result = await _clienteController.UpdateMyProfilePicture(mockFile);
+
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var objectResult = result.Result as ObjectResult;
+        Assert.That(objectResult.StatusCode, Is.EqualTo(400));
+        Assert.That(objectResult.Value.ToString(), Is.EqualTo("{ message = Storage error }"));
     }
 
     [Test]
@@ -613,7 +727,7 @@ public class ClienteControllerTest
             UpdatedAt = "updatedAtTest",
             IsDeleted = false
         };
-        var user = new User
+        var user = new Banco_VivesBank.User.Models.User
         {
             Id = 1,
             Guid = "userGuid",
@@ -644,11 +758,11 @@ public class ClienteControllerTest
         var guid = "cliente-guid";
         var mockFile = CreateMockFile("foto_dni.jpg", "image/jpeg");
         var expectedResponse = new ClienteResponse { Guid = guid, Nombre = "Juan" };
-        var user = new User{Id = 1, Guid = guid, Username = "juan", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = guid, Username = "juan", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
         
         _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
         _clienteServiceMock
-            .Setup(service => service.UpdateFotoDni(It.IsAny<User>(), It.IsAny<IFormFile>()))
+            .Setup(service => service.UpdateFotoDni(It.IsAny<Banco_VivesBank.User.Models.User>(), It.IsAny<IFormFile>()))
             .ReturnsAsync(expectedResponse);
 
         var result = await _clienteController.UpdateMyDniPicture(mockFile);
@@ -675,7 +789,7 @@ public class ClienteControllerTest
     {
         var guid = "cliente-guid";
         var mockFile = CreateMockFile("foto_dni.jpg", "image/jpeg");
-        var user = new User{Id = 1, Guid = guid, Username = "juan", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = guid, Username = "juan", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
         _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
         _clienteServiceMock
             .Setup(service => service.UpdateFotoDni(user, mockFile))
@@ -711,9 +825,7 @@ public class ClienteControllerTest
     {
         var guid = "non-existent-guid";
 
-        _clienteServiceMock
-            .Setup(service => service.GetFotoDniAsync(guid))
-            .ReturnsAsync((Stream)null);
+        _clienteServiceMock.Setup(service => service.GetFotoDniAsync(guid)).ReturnsAsync((Stream)null);
 
         var result = await _clienteController.GetFotoDni(guid);
 
@@ -740,46 +852,92 @@ public class ClienteControllerTest
         Assert.That(objectResult.Value.ToString(), Is.EqualTo("{ message = Error al recuperar la foto del DNI., details = Error inesperado al obtener la foto }"));
     }
 
-    // [Test]
-    // public async Task GetMovimientosClienteNotFound()
-    // {
-    //     var guid = "non-existent-guid";
-    //
-    //     _clienteServiceMock
-    //         .Setup(service => service.GetByGuidAsync(guid))
-    //         .ReturnsAsync((ClienteResponse)null);
-    //
-    //     var result = await _clienteController.GetMovimientos(guid);
-    //
-    //     Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
-    //     var notFoundResult = result.Result as NotFoundObjectResult;
-    //     Assert.That(notFoundResult.Value, Is.EqualTo($"No se ha encontrado cliente con guid: {guid}"));
-    // }
+    [Test]
+    public async Task DeleteMe()
+    {
+        var clientResponse = new ClienteResponse { Guid = "cliente", Nombre = "nombreTest", IsDeleted = false };
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(new Banco_VivesBank.User.Models.User());
+        
+        _clienteServiceMock.Setup(service => service.DeleteMeAsync(It.IsAny<Banco_VivesBank.User.Models.User>()))
+            .ReturnsAsync(clientResponse);
+        
+        var result = await _clienteController.DeleteMe();
+        
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult.Value, Is.EqualTo( clientResponse));
+    }
+    
+    [Test]
+    public async Task DeleteMe_UserNotFound()
+    {
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
+        
+        var result = await _clienteController.DeleteMe();
+        
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido identificar al usuario logeado }"));
+    }
+    
+    [Test]
+    public async Task DeleteMe_ClienteNotFound()
+    {
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = "userGuid", Username = "usernameTest", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.DeleteMeAsync(user)).ReturnsAsync((ClienteResponse)null);
+        
+        var result = await _clienteController.DeleteMe();
+        
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido borrar el cliente autenticado }"));
+    }
 
-    // [Test]
-    // public async Task GetMovimientosSinMovimientos()
-    // {
-    //     var guid = "cliente-guid";
-    //     var clienteResponse = new ClienteResponse
-    //     {
-    //         Guid = guid,
-    //         Nombre = "NombreTest"
-    //     };
-    //
-    //     _clienteServiceMock
-    //         .Setup(service => service.GetByGuidAsync(guid))
-    //         .ReturnsAsync(clienteResponse);
-    //
-    //     _movimientoService
-    //         .Setup(service => service.GetByClienteGuidAsync(guid))
-    //         .ReturnsAsync(new List<MovimientoResponse>());
-    //
-    //     var result = await _clienteController.GetMovimientos(guid);
-    //
-    //     Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
-    //     var notFoundResult = result.Result as NotFoundObjectResult;
-    //     Assert.That(notFoundResult.Value, Is.EqualTo($"No se han encontrado movimientos del cliente con guid: {guid}"));
-    // }
+    [Test]
+    public async Task GetMovimientos_UserNotFound()
+    {
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User)null);
+    
+        var result = await _clienteController.GetMovimientos();
+    
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha podido identificar al usuario logeado }"));
+    }
+    
+    [Test]
+    public async Task GetMovimientos_ClienteNotFound()
+    {
+        var user = new Banco_VivesBank.User.Models.User{Id = 1, Guid = "userGuid", Username = "usernameTest", Role = Role.Cliente, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false};
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(user);
+        _clienteServiceMock.Setup(service => service.GetMeAsync(user)).ReturnsAsync((ClienteResponse)null);
+    
+        var result = await _clienteController.GetMovimientos();
+    
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha encontrado el cliente autenticado }"));
+    }
+
+    [Test]
+    public async Task GetMovimientosSinMovimientos()
+    {
+        _userService.Setup(auth => auth.GetAuthenticatedUser()).Returns(new Banco_VivesBank.User.Models.User());
+        
+        _clienteServiceMock.Setup(service => service.GetMeAsync(It.IsAny<Banco_VivesBank.User.Models.User>()))
+            .ReturnsAsync(new ClienteResponse { Guid = "cliente-guid" });
+    
+        _movimientoService
+            .Setup(service => service.GetByClienteGuidAsync("cliente-guid"))
+            .ReturnsAsync(new List<MovimientoResponse>());
+    
+        var result = await _clienteController.GetMovimientos();
+    
+        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se han encontrado movimientos del cliente con guid: cliente-guid }"));
+    }
 
     /*[Test]
     public async Task GetMovimientos()
@@ -795,6 +953,7 @@ public class ClienteControllerTest
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-25",
                 Domiciliacion = null,
@@ -804,9 +963,13 @@ public class ClienteControllerTest
             },
             new MovimientoResponse
             {
+                Guid = "git_mov_2",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-24",
-                Domiciliacion = new DomiciliacionResponse(),
+                Domiciliacion = new DomiciliacionResponse()
+                {
+                    Guid = "git_dom_1",
+                },
                 IngresoNomina = null,
                 PagoConTarjeta = null,
                 Transferencia = null
@@ -848,6 +1011,7 @@ public class ClienteControllerTest
         {
             new MovimientoResponse
             {
+                Guid = "git_mov_1",
                 ClienteGuid = guid,
                 CreatedAt = "2025-01-25",
                 Domiciliacion = null,

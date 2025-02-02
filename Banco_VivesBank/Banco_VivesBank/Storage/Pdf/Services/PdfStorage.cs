@@ -1,8 +1,9 @@
-﻿using System.Text;
+using System.Text;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Exception;
 using PdfSharp.Pdf;
 using TheArtOfDev.HtmlRenderer.PdfSharp;

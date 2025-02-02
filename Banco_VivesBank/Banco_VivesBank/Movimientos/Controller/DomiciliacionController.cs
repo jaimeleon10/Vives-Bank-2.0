@@ -54,7 +54,7 @@ public class DomiciliacionController : ControllerBase
     
     [HttpGet("me")]
     [Authorize(Policy = "ClientePolicy")]    
-    public async Task<ActionResult<IEnumerable<MovimientoResponse>>> GetMyDomiciliaciones()
+    public async Task<ActionResult<IEnumerable<DomiciliacionResponse>>> GetMyDomiciliaciones()
     {
         var userAuth = _userService.GetAuthenticatedUser();
         if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
@@ -104,7 +104,7 @@ public class DomiciliacionController : ControllerBase
         {
             var domiciliacion = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacionGuid);
             if (domiciliacion != null) return Ok(domiciliacion);
-            return BadRequest(new { message = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"});
+            return NotFound(new { message = $"No se ha encontrado domiciliacion con guid {domiciliacionGuid}"});
         }
         catch (MovimientoException e)
         {

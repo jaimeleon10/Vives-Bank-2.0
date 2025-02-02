@@ -21,7 +21,7 @@ public static class MovimientoMapper
             IngresoNomina = ingresoNominaResponse,
             PagoConTarjeta = pagoConTarjetaResponse,
             Transferencia = transferenciaResponse,
-            CreatedAt = movimiento.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss")
+            CreatedAt = movimiento.CreatedAt.ToString()
         };
     }
 }

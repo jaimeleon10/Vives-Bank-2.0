@@ -33,7 +33,7 @@ public class MovimientoMapperTests
 
         var ingresoNominaResponse = new IngresoNominaResponse { };
         var pagoConTarjetaResponse = new PagoConTarjetaResponse { };
-        var transferenciaResponse = new TransferenciaResponse {  };
+        var transferenciaResponse = new TransferenciaResponse { };
         
         var result = movimiento.ToResponseFromModel(domiciliacionResponse, ingresoNominaResponse, pagoConTarjetaResponse, transferenciaResponse);
         
@@ -54,7 +54,8 @@ public class MovimientoMapperTests
         Assert.That(result.IngresoNomina, Is.EqualTo(ingresoNominaResponse));
         Assert.That(result.PagoConTarjeta, Is.EqualTo(pagoConTarjetaResponse));
         Assert.That(result.Transferencia, Is.EqualTo(transferenciaResponse));
-        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss")));
+        
+        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")));
     }
 
     [Test]
@@ -100,13 +101,13 @@ public class MovimientoMapperTests
         Assert.That(result.IngresoNomina, Is.Null);
         Assert.That(result.PagoConTarjeta, Is.Null);
         Assert.That(result.Transferencia, Is.Null);
-        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss")));
+        
+        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")));
     }
 
     [Test]
     public void ToResponseFromModel_DomiciliacionSinTodosLosCampos()
     {
-      
         var movimiento = new Movimiento
         {
             Guid = Guid.NewGuid().ToString(),
@@ -165,10 +166,10 @@ public class MovimientoMapperTests
             FechaInicio = DateTime.UtcNow.ToString("dd/MM/yyyy"),
             UltimaEjecuccion = DateTime.UtcNow.ToString("dd/MM/yyyy")
         };
-        
+
         var result = movimiento.ToResponseFromModel(domiciliacionResponse, null, null, null);
-        
+
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss")));
+        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy H:mm:ss")));
     }
 }
