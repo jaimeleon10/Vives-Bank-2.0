@@ -35,6 +35,7 @@ using Serilog;
 using Serilog.Core;
 using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
+using Path = System.IO.Path;
 
 var environment = InitLocalEnvironment();
 
