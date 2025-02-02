@@ -611,7 +611,6 @@ public class ClienteServiceTests
     // [Order(6)]
     // public async Task Create()
     // {
-    //     _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
     //     var userEntity = new UserEntity
     //     {
     //         Id = 1,
@@ -623,7 +622,6 @@ public class ClienteServiceTests
     //         CreatedAt = DateTime.UtcNow,
     //         UpdatedAt = DateTime.UtcNow
     //     };
-    //     
     //     
     //     _dbContext.Usuarios.Add(userEntity);
     //     await _dbContext.SaveChangesAsync();
@@ -648,11 +646,8 @@ public class ClienteServiceTests
     //     _redisDatabase
     //         .Setup(db => db.StringSetAsync(It.Is<RedisKey>(key => key == cacheKey), It.IsAny<RedisValue>(), TimeSpan.FromMinutes(30), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
     //         .ReturnsAsync(true);
-    //    
-    //     var entidadUsuario = _dbContext.Usuarios.FirstOrDefault(u => u.Id == userEntity.Id);
-    //     var user = entidadUsuario.ToModelFromEntity();
     //     
-    //     var result = await _clienteService.CreateAsync(user , clienteRequest);
+    //     var result = await _clienteService.CreateAsync(userEntity.ToModelFromEntity() , clienteRequest);
     //     
     //     Assert.That(result, Is.Not.Null);
     //     Assert.That(result.Dni, Is.EqualTo(clienteRequest.Dni));
@@ -1049,18 +1044,15 @@ public class ClienteServiceTests
     
     [Test]
     [Order(17)]
-    public async Task DerechoAlOlvido_NotFoundUser()
+    public async Task DerechoAlOlvido_ClienteNotFound()
     {
         // Arrange
-        var userGuid = Guid.NewGuid().ToString();
-        _userServiceMock
-            .Setup(us => us.GetUserModelByGuidAsync(userGuid))
-            .ReturnsAsync((Banco_VivesBank.User.Models.User?)null);
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid" };
+       
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
-            await _clienteService.DerechoAlOlvido(userGuid));
-        Assert.That($"Usuario no encontrado con guid: {userGuid}", Is.EqualTo(ex.Message));
+        var result = await _clienteService.DerechoAlOlvido(user);
+        Assert.That(result , Is.EqualTo(null));
     }
     
     [Test]
@@ -1069,6 +1061,7 @@ public class ClienteServiceTests
     {
         // Arrange
         var user1 = new UserEntity{Id = 1, Guid = "user-guid", Username ="user1", Password = "password", IsDeleted = false};
+        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid" };
         await _dbContext.Usuarios.AddAsync(user1);
         await _dbContext.SaveChangesAsync();
         var cliente = new ClienteEntity { Nombre = "Cliente 1", Guid = "guid", Dni = "12345678Z", Apellidos = "Perez", Email = "example", Direccion = new Direccion { Calle = "Calle", Numero = "1", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Telefono = "600000000", UserId = user1.Id};
@@ -1076,14 +1069,8 @@ public class ClienteServiceTests
         await _dbContext.Clientes.AddAsync(cliente);
         await _dbContext.SaveChangesAsync();
         
-        var user = new Banco_VivesBank.User.Models.User { Guid = "user-guid", Id = 1 };
-
-        _userServiceMock
-            .Setup(us => us.GetUserModelByGuidAsync("user-guid"))
-            .ReturnsAsync(user);
-
         // Act
-        var result = await _clienteService.DerechoAlOlvido("user-guid");
+        var result = await _clienteService.DerechoAlOlvido(user);
 
         // Assert
         Assert.That("Datos del cliente eliminados de la base de datos", Is.EqualTo(result));

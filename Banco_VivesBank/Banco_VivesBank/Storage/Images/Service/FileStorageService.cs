@@ -1,23 +1,34 @@
-﻿using Banco_VivesBank.Config.Storage;
+﻿using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Config.Storage.Images;
-using Banco_VivesBank.Storage.Images.Exceptions;
 using Microsoft.Extensions.Options;
-using Exception = System.Exception;
 using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Images.Service;
 
+/// <summary>
+/// Servicio para la gestión del almacenamiento de archivos.
+/// </summary>
 public class FileStorageService : IFileStorageService
 {
     private readonly FileStorageConfig _fileStorageConfig;
     private readonly ILogger _logger;
 
+    /// <summary>
+    /// Constructor del servicio de almacenamiento de archivos.
+    /// </summary>
+    /// <param name="fileStorageConfig">Configuración del almacenamiento de archivos.</param>
+    /// <param name="logger">Logger para registrar eventos.</param>
     public FileStorageService(IOptions<FileStorageConfig> fileStorageConfig, ILogger<FileStorageService> logger)
     {
         _logger = logger;
         _fileStorageConfig = fileStorageConfig.Value;
     }
 
+    /// <summary>
+    /// Guarda un archivo en el almacenamiento.
+    /// </summary>
+    /// <param name="file">Archivo a almacenar.</param>
+    /// <returns>Nombre del archivo guardado.</returns>
     public async Task<string> SaveFileAsync(IFormFile file)
     {
         _logger.LogInformation($"Saving file: {file.FileName}");
@@ -49,6 +60,11 @@ public class FileStorageService : IFileStorageService
         return fileName;
     }
 
+    /// <summary>
+    /// Obtiene un archivo del almacenamiento.
+    /// </summary>
+    /// <param name="fileName">Nombre del archivo a recuperar.</param>
+    /// <returns>Stream del archivo solicitado.</returns>
     public async Task<FileStream> GetFileAsync(string fileName)
     {
         _logger.LogInformation($"Getting file: {fileName}");
@@ -72,6 +88,11 @@ public class FileStorageService : IFileStorageService
         }
     }
 
+    /// <summary>
+    /// Elimina un archivo del almacenamiento.
+    /// </summary>
+    /// <param name="fileName">Nombre del archivo a eliminar.</param>
+    /// <returns>True si el archivo fue eliminado correctamente, false en caso contrario.</returns>
     public async Task<bool> DeleteFileAsync(string fileName)
     {
         _logger.LogInformation($"Deleting file: {fileName}");

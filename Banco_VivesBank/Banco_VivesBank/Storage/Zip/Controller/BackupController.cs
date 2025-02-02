@@ -6,6 +6,10 @@ using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Zip.Controller;
 
+/// <summary>
+/// Controlador que maneja las operaciones de exportación e importación de archivos ZIP 
+/// relacionados con el respaldo de datos en el sistema.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class BackupController : ControllerBase
@@ -15,6 +19,11 @@ public class BackupController : ControllerBase
     private readonly string _dataDirectory;
     private readonly string _backupFilePath;
 
+    /// <summary>
+    /// Constructor del controlador, que inicializa los servicios necesarios y las rutas de archivo.
+    /// </summary>
+    /// <param name="logger">Instancia de registro de eventos de la aplicación.</param>
+    /// <param name="backupService">Instancia del servicio encargado de la exportación e importación de archivos ZIP.</param>
     public BackupController(
         ILogger<BackupService> logger, 
         IBackupService backupService)
@@ -29,9 +38,22 @@ public class BackupController : ControllerBase
         Directory.CreateDirectory(Path.GetDirectoryName(_backupFilePath)!);
     }
 
+    /// <summary>
+    /// Obtiene la ruta del directorio de datos.
+    /// </summary>
+    /// <returns>Ruta del directorio de datos.</returns>
     protected virtual string GetDataDirectory() => _dataDirectory;
+    /// <summary>
+    /// Obtiene la ruta del archivo de respaldo ZIP.
+    /// </summary>
+    /// <returns>Ruta del archivo de respaldo ZIP.</returns>
     protected virtual string GetBackupFilePath() => _backupFilePath;
 
+    /// <summary>
+    /// Exporta los datos del sistema a un archivo ZIP.
+    /// Requiere que el usuario tenga el rol de "Admin".
+    /// </summary>
+    /// <returns>Resultado de la operación HTTP (OK si es exitoso, error en caso contrario).</returns>
     [HttpGet("exportar-zip")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -72,6 +94,11 @@ public class BackupController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Importa datos desde un archivo ZIP al sistema.
+    /// Requiere que el usuario tenga el rol de "Admin".
+    /// </summary>
+    /// <returns>Resultado de la operación HTTP (OK si es exitoso, error en caso contrario).</returns>
     [HttpGet("importar-zip")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]

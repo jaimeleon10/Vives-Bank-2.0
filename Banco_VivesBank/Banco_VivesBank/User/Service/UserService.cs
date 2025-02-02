@@ -40,6 +40,15 @@ namespace Banco_VivesBank.User.Service
             _redisDatabase = _redis.GetDatabase();
         }
         
+        /// <summary>
+        /// Paginacion y filtrado de Usuarios en la base de datos.
+        /// </summary>
+        /// <remarks>Busca todos los usuarios en la base de datos y los filtros para el username y el role
+        /// finalmente crea una pagina a partir de los datos de page y devuelve los datos</remarks>
+        /// <param name="username">Nombre de usuario del usuario</param>
+        /// <param name="role">Role que tiene el usuario</param>
+        /// <returns>Un PageResponse con los datos de los usuarios encontrados bajo los filtros</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta ordenar por un valor no admintido</exception>
         public async Task<PageResponse<UserResponse>> GetAllAsync(string? username, Role? role, PageRequest pageRequest)
         {
             _logger.LogInformation("Buscando todos los usuarios en la base de datos");
@@ -99,6 +108,14 @@ namespace Banco_VivesBank.User.Service
             return usersEntities.Select(UserMapper.ToModelFromEntity).ToList();
         }
 
+        
+        /// <summary>
+        /// Búsqueda de un usuario por su guid
+        /// </summary>
+        /// <remarks>Busca un usuario en la base de datos por su guid y lo devuelve en un UserResponse</remarks>
+        /// <param name="guid">Guid del usuario</param>
+        /// <returns>Un UserResponse con los datos del cliente encontrado   </returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se busca un id que no esta asociado a ningun usuario</exception>
         public async Task<UserResponse?> GetByGuidAsync(string guid)
         {
             _logger.LogInformation($"Buscando usuario con guid: {guid}");
@@ -152,6 +169,13 @@ namespace Banco_VivesBank.User.Service
             return null;
         }
 
+        /// <summary>
+        /// Búsqueda de un usuario por su nombre de usuario.
+        /// </summary>
+        /// <remarks>Busca un usuario en la base de datos por su nombre de usuario y lo devuelve en un UserResponse</remarks>
+        /// <param name="username">Nombre de usuario del usuario</param>
+        /// <returns>Un UserResponse con los datos del usuario encontrado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta buscar un username que no esta registrado</exception>
         public async Task<UserResponse?> GetByUsernameAsync(string username)
         {
             _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
@@ -166,7 +190,13 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
             return null;
         }
-        
+        /// <summary>
+        /// Búsqueda de un usuario por su nombre de usuario.
+        /// </summary>
+        /// <remarks>Busca un usuario en la base de datos por su nombre de usuario y lo devuelve en un UserResponse</remarks>
+        /// <param name="username">Nombre de usuario del usuario</param>
+        /// <returns>Un UserResponse con los datos del usuario encontrado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta buscar un username que no esta registrado</exception>
         public async Task<Models.User?> GetUserModelByGuidAsync(string guid)
         {
             _logger.LogInformation($"Buscando usuario con guid: {guid}");
@@ -211,7 +241,14 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario no encontrado con id: {userAuth.Guid}");
             return null;
         }
-
+        /// <summary>
+        /// Creación de un usuario.
+        /// </summary>
+        /// <remarks>Crea un usuario en la base de datos a partir de los datos de un UserRequest</remarks>
+        /// <param name="userRequest">Datos del usuario a crear</param>
+        /// <returns>Un UserResponse con los datos del usuario creado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta crear un usuario con un nombre de usuario que ya esta registrado</exception>
+        /// <exception cref="InvalidOperationException"> Se lanza una exepcion cuando las contraseñas no coinciden</exception>
         public async Task<UserResponse> CreateAsync(UserRequest userRequest)
         {
             _logger.LogInformation("Creando Usuario");
@@ -249,7 +286,13 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation("Usuario creado con éxito");
             return userModel.ToResponseFromModel();
         }
-
+        /// <summary>
+        /// Actualización de la contraseña de un usuario.
+        /// </summary>
+        /// <remarks>Actualiza la contraseña de un usuario en la base de datos</remarks>
+        /// <param name="user">Usuario a actualizar</param>
+        /// <returns>Un UserResponse con los datos del usuario actualizado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando la contraseña antigua no coincide con la contraseña actual</exception>
         public async Task<UserResponse> UpdatePasswordAsync(Models.User user, UpdatePasswordRequest updatePasswordRequest)
         {
             if (!BCrypt.Net.BCrypt.Verify(updatePasswordRequest.OldPassword, user.Password))
@@ -271,7 +314,13 @@ namespace Banco_VivesBank.User.Service
             
             return userEntity.ToResponseFromEntity();
         }
-
+        /// <summary>
+        /// Actualización de un usuario.
+        /// </summary>
+        /// <remarks>Actualiza un usuario en la base de datos a partir de los datos de un UserRequestUpdate</remarks>
+        /// <param name="guid">Guid del usuario a actualizar</param>
+        /// <returns>Un UserResponse con los datos del usuario actualizado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta actualizar un usuario que no esta registrado</exception>
         public async Task<UserResponse?> UpdateAsync(string guid, UserRequestUpdate userRequestUpdate)
         {
             _logger.LogInformation($"Actualizando usuario con guid: {guid}");
@@ -302,7 +351,13 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario actualizado con guid: {guid}");
             return userEntityExistente.ToResponseFromEntity();
         }
-
+        /// <summary>
+        /// Borrado de un usuario.
+        /// </summary>
+        /// <remarks>Desactiva un usuario en la base de datos a partir de su guid</remarks>
+        /// <param name="guid">Guid del usuario a borrar</param>
+        /// <returns>Un UserResponse con los datos del usuario desactivado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta borrar un usuario que no esta registrado</exception>
         public async Task<UserResponse?> DeleteByGuidAsync(string guid)
         {
             _logger.LogInformation($"Borrando Usuario con guid: {guid}");
@@ -359,7 +414,13 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario borrado (desactivado) con id: {guid}");
             return userExistenteEntity.ToResponseFromEntity();
         }
-
+        /// <summary>
+        /// Autenticación de un usuario.
+        /// </summary>
+        /// <remarks>Busca un usuario en la base de datos por su nombre de usuario y verifica la contraseña</remarks>
+        /// <param name="username">Nombre de usuario del usuario</param>
+        /// <returns>Un UserResponse con los datos del usuario encontrado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta autenticar un usuario con credenciales inválidas</exception>
         public string Authenticate(string username, string password)
         {
             _logger.LogInformation($"Buscando usuario para realizar login");
@@ -374,7 +435,13 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario encontrado y verificado, generando Token");
             return _jwtService.GenerateToken(user.ToModelFromEntity());
         }
-        
+        /// <summary>
+        /// Búsqueda de un usuario autenticado.
+        /// </summary>
+        /// <remarks>Busca un usuario en la base de datos por su nombre de usuario y lo devuelve en un UserResponse</remarks>
+        /// <param name="username">Nombre de usuario del usuario</param>
+        /// <returns>Un UserResponse con los datos del usuario encontrado</returns>
+        /// <exception cref="InvalidOperationException"> Se lanza la excepcion cuando se intenta buscar un usuario autenticado que no esta registrado</exception>
         public Models.User? GetAuthenticatedUser()
         {
             _logger.LogInformation("Buscando usuario autenticado");

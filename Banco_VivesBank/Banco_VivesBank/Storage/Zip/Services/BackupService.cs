@@ -19,6 +19,11 @@ using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Zip.Services;
 
+/// <summary>
+/// Servicio encargado de realizar exportación e importación de datos en formato ZIP.
+/// Exporta entidades de la base de datos a archivos JSON y luego los empaqueta en un archivo ZIP.
+/// También permite importar datos desde un archivo ZIP y almacenar los datos en la base de datos.
+/// </summary>
 public class BackupService : IBackupService
 {
     private readonly GeneralDbContext _context;
@@ -27,6 +32,14 @@ public class BackupService : IBackupService
     private readonly IMongoCollection<Domiciliacion> _domiciliacionCollection;
     private readonly IStorageJson _storageJson;
     
+    /// <summary>
+    /// Constructor de la clase BackupService.
+    /// Inicializa las dependencias necesarias para la exportación e importación de datos.
+    /// </summary>
+    /// <param name="logger">Instancia de ILogger para registrar eventos.</param>
+    /// <param name="context">Instancia del contexto de la base de datos relacional.</param>
+    /// <param name="storageJson">Instancia del servicio de almacenamiento de archivos JSON.</param>
+    /// <param name="movimientosDatabaseSettings">Configuración para conectarse a la base de datos de MongoDB.</param>
     public BackupService(
         ILogger<BackupService> logger, GeneralDbContext context,
         IStorageJson storageJson, IOptions<MovimientosMongoConfig> movimientosDatabaseSettings
@@ -41,6 +54,12 @@ public class BackupService : IBackupService
         _domiciliacionCollection = mongoDatabase.GetCollection<Domiciliacion>(movimientosDatabaseSettings.Value.DomiciliacionesCollectionName);
     }
     
+    /// <summary>
+    /// Exporta los datos de la base de datos y los guarda en un archivo ZIP.
+    /// Los datos son exportados a JSON y luego comprimidos en el archivo ZIP.
+    /// </summary>
+    /// <param name="sourceDirectory">Directorio donde se guardarán los archivos JSON temporalmente.</param>
+    /// <param name="zipFilePath">Ruta del archivo ZIP que se generará.</param>
     public async Task ExportToZip(string sourceDirectory, string zipFilePath)
     {
         _logger.LogInformation("Iniciando la Exportación de datos a ZIP...");
@@ -88,6 +107,17 @@ public class BackupService : IBackupService
         }
     }
 
+    /// <summary>
+    /// Exporta los datos de las entidades a archivos JSON en el directorio especificado.
+    /// </summary>
+    /// <param name="sourceDirectory">Directorio donde se guardarán los archivos JSON.</param>
+    /// <param name="usuarios">Lista de usuarios a exportar.</param>
+    /// <param name="clientes">Lista de clientes a exportar.</param>
+    /// <param name="productos">Lista de productos a exportar.</param>
+    /// <param name="cuentas">Lista de cuentas a exportar.</param>
+    /// <param name="tarjetas">Lista de tarjetas a exportar.</param>
+    /// <param name="movimientos">Lista de movimientos a exportar.</param>
+    /// <param name="domiciliaciones">Lista de domiciliaciones a exportar.</param>
     public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios,  
         List<Cliente.Models.Cliente> clientes, List<ProductoEntity> productos, 
         List<Cuenta> cuentas, List<Tarjeta> tarjetas, List<Movimiento> movimientos, 
@@ -102,6 +132,11 @@ public class BackupService : IBackupService
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "domiciliaciones.json")), domiciliaciones ?? new List<Domiciliacion>());
     }
 
+    /// <summary>
+    /// Agrega los archivos JSON y los avatares al archivo ZIP.
+    /// </summary>
+    /// <param name="sourceDirectory">Directorio donde se encuentran los archivos JSON y los avatares.</param>
+    /// <param name="zipFilePath">Ruta del archivo ZIP que se generará.</param>
     public void AgregarArchivosAlZip(string sourceDirectory, string zipFilePath)
     {
         using (var zipArchive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
@@ -126,6 +161,10 @@ public class BackupService : IBackupService
         }
     }
 
+    /// <summary>
+    /// Elimina los archivos temporales generados durante la exportación.
+    /// </summary>
+    /// <param name="sourceDirectory">Directorio donde se encuentran los archivos temporales.</param>
     public void EliminarArchivosTemporales(string sourceDirectory)
     {
         string[] archivos = { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" };
@@ -140,6 +179,16 @@ public class BackupService : IBackupService
         }
     }
     
+    /// <summary>
+    /// Importa datos desde un archivo ZIP a la base de datos y el sistema de almacenamiento.
+    /// El archivo ZIP debe contener archivos JSON con datos de diversas entidades (usuarios, clientes, productos, etc.).
+    /// Además, puede incluir archivos de avatares que serán copiados al directorio correspondiente.
+    /// </summary>
+    /// <param name="zipFilePath">Ruta del archivo ZIP a importar.</param>
+    /// <param name="destinationDirectory">Directorio donde se extraerán los archivos temporales del ZIP.</param>
+    /// <exception cref="ArgumentException">Si el archivo ZIP o el directorio de destino son nulos o vacíos.</exception>
+    /// <exception cref="ImportFromZipException">Si hay un problema al encontrar o procesar el archivo ZIP, o si los datos no son válidos.</exception>
+    /// <returns>Una tarea asincrónica que realiza la importación de datos.</returns>
     public async Task ImportFromZip(string zipFilePath, string destinationDirectory)
     {
         _logger.LogInformation("Iniciando la importación de datos desde ZIP...");
@@ -316,6 +365,16 @@ public class BackupService : IBackupService
         }
     }
     
+    /// <summary>
+    /// Guarda un conjunto de entidades en la base de datos, verificando que no existan duplicados.
+    /// Se usa el identificador (id) o el GUID para comprobar si una entidad ya existe en la base de datos.
+    /// </summary>
+    /// <typeparam name="TEntity">Tipo de las entidades que se van a almacenar (por ejemplo, UserEntity, ClienteEntity).</typeparam>
+    /// <param name="entidades">Lista de entidades a guardar en la base de datos.</param>
+    /// <param name="dbSet">DbSet del contexto de la base de datos en el que se van a guardar las entidades.</param>
+    /// <param name="selectorId">Función para obtener el identificador único de la entidad (id).</param>
+    /// <param name="selectorGuid">Función para obtener el GUID único de la entidad.</param>
+    /// <returns>Una tarea asincrónica que realiza la operación de guardar las entidades.</returns>
     public async Task SaveEntidadesSiNoExistenAsync<TEntity>(
         IEnumerable<TEntity> entidades, 
         DbSet<TEntity> dbSet, 
@@ -363,6 +422,14 @@ public class BackupService : IBackupService
         }
     }
     
+    /// <summary>
+    /// Guarda un conjunto de entidades en MongoDB, verificando que no existan duplicados basados en el GUID.
+    /// </summary>
+    /// <typeparam name="TEntity">Tipo de las entidades que se van a almacenar (por ejemplo, Movimiento, Domiciliacion).</typeparam>
+    /// <param name="entidades">Lista de entidades a guardar en MongoDB.</param>
+    /// <param name="collection">Colección de MongoDB en la que se van a guardar las entidades.</param>
+    /// <param name="selectorId">Función para obtener el identificador único de la entidad (GUID).</param>
+    /// <returns>Una tarea asincrónica que realiza la operación de guardar las entidades.</returns>
     public async Task SaveSiNoExistenAsyncMongo<TEntity>(
         IEnumerable<TEntity> entidades, 
         IMongoCollection<TEntity> collection, 

@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Banco_VivesBank.Cliente.Models;
 
+/// <summary>
+/// Dirección de un cliente
+/// </summary>
 [Owned] 
 public class Direccion
 {
