@@ -4,7 +4,9 @@ using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.User.Dto;
 
 namespace Banco_VivesBank.Cliente.Mapper;
-
+/// <summary>
+/// Mapea los objetos Cliente de la capa de datos a los de la capa de negocio y viceversa
+/// </summary>
 public static class ClienteMapper
 {
     public static Models.Cliente ToModelFromEntity(this ClienteEntity entity)

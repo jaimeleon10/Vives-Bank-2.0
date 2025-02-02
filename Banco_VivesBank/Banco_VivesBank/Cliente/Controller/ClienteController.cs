@@ -265,7 +265,7 @@ public class ClienteController : ControllerBase
     /// <returns>Devuelve un mensaje confirmando que se han borrado los datos</returns>
     /// <response code="200">Devuelve un mensaje confirmando que se han borrado los datos</response>
     /// <response code = "404">Si no se ha podido identificar al usuario logeado o no se ha encontrado a un cliente asociado</response>
-    [HttpDelete ("derechoAlOlvido")]
+    [HttpDelete ("DerechoAlOlvido")]
     [Authorize(Policy = "ClientePolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
