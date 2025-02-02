@@ -1,13 +1,11 @@
-using System.Text;
-using Banco_VivesBank.Cliente.Dto;
-using Banco_VivesBank.Cliente.Exceptions;
-using Banco_VivesBank.Movimientos.Dto;
-using Banco_VivesBank.Movimientos.Models;
-using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Storage.Pdf.Exception;
-using PdfSharp.Pdf;
+using Banco_VivesBank.Cliente.Exceptions;
 using TheArtOfDev.HtmlRenderer.PdfSharp;
+using Banco_VivesBank.Movimientos.Dto;
+using Banco_VivesBank.Cliente.Dto;
 using Path = System.IO.Path;
+using PdfSharp.Pdf;
+using System.Text;
 
 namespace Banco_VivesBank.Storage.Pdf.Services;
 

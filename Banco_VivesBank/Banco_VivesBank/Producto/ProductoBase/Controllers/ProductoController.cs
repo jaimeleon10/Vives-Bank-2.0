@@ -1,7 +1,7 @@
-using Banco_VivesBank.Producto.Base.Storage;
 using Banco_VivesBank.Producto.ProductoBase.Dto;
 using Banco_VivesBank.Producto.ProductoBase.Exceptions;
 using Banco_VivesBank.Producto.ProductoBase.Services;
+using Banco_VivesBank.Producto.ProductoBase.Storage;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -120,7 +120,7 @@ public class ProductoController : ControllerBase
     }
     
     [HttpPost("import")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<ProductoResponse>>> ImportFromCsv(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -153,7 +153,8 @@ public class ProductoController : ControllerBase
                     Nombre = product.Nombre,
                     Descripcion = product.Descripcion,
                     TipoProducto = product.TipoProducto,
-                    Tae = product.Tae
+                    Tae = product.Tae,
+                    IsDeleted = false
                 };
 
                 var response = await _productoService.CreateAsync(request);
@@ -174,7 +175,7 @@ public class ProductoController : ControllerBase
     }
 
     [HttpGet("export")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportToCsv()
     {
         try
