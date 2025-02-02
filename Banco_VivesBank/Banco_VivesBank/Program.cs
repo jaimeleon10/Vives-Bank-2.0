@@ -20,6 +20,8 @@ using Banco_VivesBank.Storage.Images.Service;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.Storage.Zip.Services;
 using Banco_VivesBank.Swagger.Examples.Clientes;
+using Banco_VivesBank.Swagger.Examples.User;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Auth.Jwt;
 using Banco_VivesBank.Utils.Pagination;
@@ -302,6 +304,9 @@ WebApplicationBuilder InitServices()
     // Añadir los ejemplos de las clases
     myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<ClienteResponseExample>();
     myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PageResponseClienteExample>();
+   /* myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<PageResponseClienteExample>();
+    myBuilder.Services.AddSwaggerExamplesFromAssemblyOf<UserResponseExample>();
+    */
 
     return myBuilder;
 }
