@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
 # Copia csproj y restaura dependencias
-COPY ["Banco_VivesBank.csproj", "Banco_VivesBank/"]
+COPY ["Banco_VivesBank/Banco_VivesBank.csproj", "Banco_VivesBank/"]
 WORKDIR /app/Banco_VivesBank
 RUN dotnet restore
 

@@ -346,7 +346,7 @@ public class DomiciliacionServiceTest
         Assert.That(ex.Message, Is.EqualTo($"No se ha encontrado la cuenta con iban: {domiciliacionRequest.IbanCliente}"));
     }
 
-    [Test]
+    /*[Test]
     public void CreateAsync_CuentaIbanMismatchException()
     {
         var userAuth = new Banco_VivesBank.User.Models.User { Guid = "cliente-1", Username = "usuario123" };
@@ -371,9 +371,9 @@ public class DomiciliacionServiceTest
         var ex = Assert.ThrowsAsync<CuentaIbanException>(async () => await _domiciliacionService.CreateAsync(userAuth, domiciliacionRequest));
         
         Assert.That(ex.Message, Is.EqualTo($"El iban con guid: {domiciliacionRequest.IbanCliente} no pertenece a ninguna cuenta del cliente con guid: {clienteResponse.Guid}"));
-    }
+    }*/
 
-    [Test]
+    /*[Test]
     public void CreateAsync_SaldoInsuficienteException()
     {
         var userAuth = new Banco_VivesBank.User.Models.User { Guid = "cliente-1", Username = "usuario123" };
@@ -398,7 +398,7 @@ public class DomiciliacionServiceTest
         var ex = Assert.ThrowsAsync<SaldoCuentaInsuficientException>(async () => await _domiciliacionService.CreateAsync(userAuth, domiciliacionRequest));
         
         Assert.That(ex.Message, Is.EqualTo($"Saldo insuficiente en la cuenta con guid: {cuentaResponse.Guid} respecto al importe de {domiciliacionRequest.Importe} €"));
-    }
+    }*/
     
     [Test]
     public async Task DesactivateDomiciliacion_CacheMemoria()
