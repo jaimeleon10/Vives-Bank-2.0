@@ -232,7 +232,7 @@ public class TarjetaControllerTest
         Assert.That(result.Result , Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(result.Value, Is.EqualTo("No se ha podido identificar al usuario logeado"));
-    }*/
+    }
 
     [Test]
     public async Task CreateWithInvalidPin()

@@ -2,6 +2,7 @@
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Services;
@@ -98,14 +99,13 @@ public class TarjetaServiceTest
         producto = new ProductoEntity { Guid = Guid.NewGuid().ToString(), Nombre = $"Producto1", TipoProducto = $"Tipo1" };
         _dbContext.ProductoBase.Add(producto);
         await _dbContext.SaveChangesAsync();
-
-
-        cuenta = new CuentaEntity { Guid = "cuenta-guid", Iban = "ES1234567890123456789012", Saldo = 1000, ClienteId = cliente.Id, ProductoId = producto.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-        _dbContext.Cuentas.Add(cuenta);
-        await _dbContext.SaveChangesAsync();
         
         tarjeta = new TarjetaEntity { Guid = "tarjeta-guid", Numero = "1234567890123456", Cvv = "123", FechaVencimiento = "01/23", Pin = "1234", LimiteDiario = 1000, LimiteSemanal = 2000, LimiteMensual = 3000, IsDeleted = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         _dbContext.Tarjetas.Add(tarjeta);
+        await _dbContext.SaveChangesAsync();
+        
+        cuenta = new CuentaEntity { Guid = "cuenta-guid", Iban = "ES1234567890123456789012", Saldo = 1000, ClienteId = cliente.Id, ProductoId = producto.Id, TarjetaId = tarjeta.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _dbContext.Cuentas.Add(cuenta);
         await _dbContext.SaveChangesAsync();
     }
     
@@ -213,12 +213,12 @@ public class TarjetaServiceTest
         var tarjetaNoExiste = await _tarjetaService.GetByNumeroTarjetaAsync(numero);
         Assert.That(tarjetaNoExiste, Is.Null);
     }
-    
+
 
     [Test]
     public async Task Create()
     {
-        
+
         var nuevaCuenta = new CuentaEntity
         {
             Guid = "CuentaGuidTest",
@@ -233,7 +233,7 @@ public class TarjetaServiceTest
         };
         await _dbContext.AddAsync(nuevaCuenta);
         await _dbContext.SaveChangesAsync();
-        
+
         var tarjetaRequest = new TarjetaRequest
         {
             CuentaGuid = "CuentaGuidTest",
@@ -243,14 +243,82 @@ public class TarjetaServiceTest
             LimiteMensual = 9000
         };
 
-       var userModel = user.ToModelFromEntity();
-       
-        var tarjeta = await _tarjetaService.CreateAsync(tarjetaRequest,  userModel);
-        
+        var userModel = user.ToModelFromEntity();
+
+        var tarjeta = await _tarjetaService.CreateAsync(tarjetaRequest, userModel);
+
         Assert.That(tarjeta.Pin, Is.EqualTo("1234"));
         Assert.That(tarjeta.LimiteDiario, Is.EqualTo(1000));
+        Assert.That(tarjeta.LimiteSemanal, Is.EqualTo(3000));
+        Assert.That(tarjeta.LimiteMensual, Is.EqualTo(9000));
     }
-/*
+
+    [Test]
+    public async Task Create_CuentaAEnlazarConTarjetaNoEncontrada()
+    {
+        var guid = "Guid-Prueba";
+        var tarjetaRequest = new TarjetaRequest
+        {
+            CuentaGuid = guid,
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
+        };
+        
+        var userModel = user.ToModelFromEntity();
+        
+        var ex = Assert.ThrowsAsync<CuentaNotFoundException>(() => _tarjetaService.CreateAsync(tarjetaRequest, userModel));
+        Assert.That(ex.Message, Is.EqualTo("Cuenta no encontrada"));
+    }
+
+    [Test]
+    public async Task Create_CuentaNoPerteneceAUsuario()
+    {
+        var otroUsuario = new UserEntity { Guid = "user-guid2", Username = "username2", Password = "password2", Role = Role.Cliente, IsDeleted = false,
+            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _dbContext.Usuarios.Add(otroUsuario);
+        await _dbContext.SaveChangesAsync();
+        var otroCliente = new ClienteEntity { Guid = "cliente-guid2", Nombre = "Juan", Apellidos = "Perez", Dni = "12345678Z",
+            Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" },
+            Email = "otrousuario@example.com", UserId = otroUsuario.Id, Telefono = "600000000", IsDeleted = false };
+        _dbContext.Clientes.Add(otroCliente);
+        await _dbContext.SaveChangesAsync();
+        
+        var tarjetaRequest = new TarjetaRequest
+        {
+            CuentaGuid = cuenta.Guid,
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
+        };
+        
+        var userModel = otroUsuario.ToModelFromEntity();
+        
+        var ex = Assert.ThrowsAsync<CuentaNotFoundException>(() => _tarjetaService.CreateAsync(tarjetaRequest, userModel));
+        
+        Assert.That(ex.Message, Is.EqualTo("El cliente no tiene la cuenta"));
+        
+    }
+
+    [Test]
+    public async Task Create_CuentaYaTieneTarjetaAsignada()
+    {
+        var tarjetaRequest = new TarjetaRequest
+        {
+            CuentaGuid = cuenta.Guid,
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
+        };
+        
+        var ex = Assert.ThrowsAsync<CuentaException>(() => _tarjetaService.CreateAsync(tarjetaRequest, user.ToModelFromEntity()));
+        
+        Assert.That(ex.Message, Is.EqualTo("La cuenta con guid cuenta-guid ya tiene una tarjeta asociada"));
+    }
+
     [Test]
     public async Task Update()
     {
@@ -261,30 +329,16 @@ public class TarjetaServiceTest
             LimiteSemanal = 3000,
             LimiteMensual = 9000
         };
-
-        var guid = "NuevoGuid";
-        var tarjeta = new TarjetaEntity
-        {
-            Guid = guid,
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 3000,
-            LimiteMensual = 9000,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        
         var serializedUser = JsonSerializer.Serialize(tarjeta);
-        _dbContext.Tarjetas.Add(tarjeta);
-        await _dbContext.SaveChangesAsync();
+        
         _memoryCache.Set("tarjetaTest", serializedUser, TimeSpan.FromMinutes(30));
-        var tarjetaActualizada = await _tarjetaService.UpdateAsync(guid, tarjetaRequest);
+        var tarjetaActualizada = await _tarjetaService.UpdateAsync(tarjeta.Guid, tarjetaRequest, user.ToModelFromEntity());
 
         Assert.That(tarjetaActualizada.Pin, Is.EqualTo("1234"));
         Assert.That(tarjetaActualizada.LimiteDiario, Is.EqualTo(1000));
+        Assert.That(tarjetaActualizada.LimiteSemanal, Is.EqualTo(3000));
+        Assert.That(tarjetaActualizada.LimiteMensual, Is.EqualTo(9000));
     }
 
     [Test]
@@ -301,7 +355,7 @@ public class TarjetaServiceTest
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
 
         // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _tarjetaService.UpdateAsync("non-existing-guid", tarjetaRequest);
+        var tarjetaNoExiste = await _tarjetaService.UpdateAsync("non-existing-guid", tarjetaRequest, user.ToModelFromEntity());
         Assert.That(tarjetaNoExiste, Is.Null);
     }
     
@@ -316,30 +370,9 @@ public class TarjetaServiceTest
             LimiteMensual = 3000
         };
         
-        var guid = "NuevoGuid";
-        var tarjeta = new TarjetaEntity
-        {
-            Guid = guid,
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 3000,
-            LimiteMensual = 9000,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        _dbContext.Tarjetas.Add(tarjeta);
-        await _dbContext.SaveChangesAsync();
-
-        var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
-
-        // Test con tarjeta que no existe
-        Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(guid, tarjetaRequest));
+        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(tarjeta.Guid, tarjetaRequest, user.ToModelFromEntity()));
         
-        
+        Assert.That(ex.Message, Is.EqualTo("Error con los limites de gasto de la tarjeta, el diario debe ser superior a 0"));
     }
     
     [Test]
@@ -352,30 +385,10 @@ public class TarjetaServiceTest
             LimiteSemanal = 2000,
             LimiteMensual = 3000
         };
+
+        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(tarjeta.Guid, tarjetaRequest, user.ToModelFromEntity()));
         
-        var guid = "NuevoGuid";
-        var tarjeta = new TarjetaEntity
-        {
-            Guid = guid,
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 3000,
-            LimiteMensual = 9000,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        _dbContext.Tarjetas.Add(tarjeta);
-        await _dbContext.SaveChangesAsync();
-
-        var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
-
-        // Test con tarjeta que no existe
-        Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(guid, tarjetaRequest));
-
+        Assert.That(ex.Message, Is.EqualTo("Error con los limites de gasto de la tarjeta, el semanal debe ser superior 3 veces al diario"));
     }
 
     [Test]
@@ -388,32 +401,11 @@ public class TarjetaServiceTest
             LimiteSemanal = 5000,
             LimiteMensual = 3000
         };
+        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(tarjeta.Guid, tarjetaRequest, user.ToModelFromEntity()));
         
-        var guid = "NuevoGuid";
-        var tarjeta = new TarjetaEntity
-        {
-            Guid = guid,
-            Numero = "1234567890123456",
-            Cvv = "123",
-            FechaVencimiento = "01/23",
-            Pin = "1234",
-            LimiteDiario = 1000,
-            LimiteSemanal = 3000,
-            LimiteMensual = 9000,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-        _dbContext.Tarjetas.Add(tarjeta);
-        await _dbContext.SaveChangesAsync();
-
-        var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
-
-        // Test con tarjeta que no existe
-        Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.UpdateAsync(guid, tarjetaRequest));
-
+        Assert.That(ex.Message, Is.EqualTo("Error con los limites de gasto de la tarjeta, el mensual debe ser superior 3 veces al semanal"));
     }
-    
+    /*
     [Test]
     public async Task Delete()
     {
