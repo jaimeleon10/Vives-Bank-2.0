@@ -1,10 +1,13 @@
-﻿using Banco_VivesBank.Database;
+﻿using System.Security.Claims;
+using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Tarjeta.Controllers;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Mappers;
 using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.User.Models;
+using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Utils.Validators;
@@ -24,6 +27,7 @@ public class TarjetaControllerTest
     private Mock<ITarjetaService> _tarjetaService;
     private TarjetaController _tarjetaController;
     private Mock<PaginationLinksUtils> _paginationLinksUtils;
+    private Mock<IUserService> _userService;
     
     [OneTimeSetUp]
     public async Task Setup()
@@ -47,11 +51,13 @@ public class TarjetaControllerTest
         
         _tarjetaService = new Mock<ITarjetaService>();
         _paginationLinksUtils = new Mock<PaginationLinksUtils>();
+        _userService = new Mock<IUserService>();
         
         _tarjetaController = new TarjetaController(
             _tarjetaService.Object,
             NullLogger<CardLimitValidators>.Instance,
-            _paginationLinksUtils.Object
+            _paginationLinksUtils.Object,
+            _userService.Object
         );
     }
     
@@ -175,16 +181,57 @@ public class TarjetaControllerTest
             LimiteSemanal = 3000,
             LimiteMensual = 9000
         };
+        
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "guid-prueba" , Role = Role.Cliente };
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
         // Act
-        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).
+        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest,user )).
             ReturnsAsync(tarjetaRequest.ToModelFromRequest().ToResponseFromModel);
         var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
         
-
         // Assert
         Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
         var returnValue = (result.Result as OkObjectResult)?.Value as TarjetaResponse;
         Assert.That(returnValue, Is.Not.Null);
+    }
+/*
+    [Test]
+    public async Task CreateTarjeta_InvalidUserAdmin()
+    {
+        var tarjetaRequest = new TarjetaRequest
+        {
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
+        };
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "guid-prueba", Role = Role.Admin, Username = "admin" };
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
+        
+        var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
+        
+        Assert.That(result.Result , Is.TypeOf<BadRequestObjectResult>());
+        var badRequestresut = result.Result as BadRequestObjectResult;
+        Assert.That(result.Value, Is.EqualTo("El usuario es administrador. Un administrador no puede crear una tarjeta"));
+    }
+
+    [Test]
+    public async Task CreateTarjeta_NotFoundUser()
+    {
+        var tarjetaRequest = new TarjetaRequest
+        {
+            Pin = "1234",
+            LimiteDiario = 1000,
+            LimiteSemanal = 3000,
+            LimiteMensual = 9000
+        };
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns((Banco_VivesBank.User.Models.User?)null);
+        
+        var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
+        
+        Assert.That(result.Result , Is.TypeOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(result.Value, Is.EqualTo("No se ha podido identificar al usuario logeado"));
     }
 
     [Test]
@@ -198,8 +245,9 @@ public class TarjetaControllerTest
             LimiteMensual = 3000
         };
         // Act
-        
-        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).ReturnsAsync((TarjetaResponse)null);
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "guid-prueba" , Role = Role.Cliente };
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
+        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest, user))!.ReturnsAsync((TarjetaResponse)null);
         
         var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
 
@@ -218,16 +266,17 @@ public class TarjetaControllerTest
             LimiteMensual = 0
         };
         // Act
-        
-        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest)).ReturnsAsync((TarjetaResponse)null);
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "guid-prueba" , Role = Role.Cliente };
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
+        _tarjetaService.Setup(s => s.CreateAsync(tarjetaRequest, user)).ReturnsAsync((TarjetaResponse)null);
         
         var result = await _tarjetaController.CreateTarjeta(tarjetaRequest);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());    
     }
-
-    /*[Test]
+/*
+    [Test]
     public async Task UpdateCard()
     {
 
@@ -257,9 +306,9 @@ public class TarjetaControllerTest
         Assert.That(returnValue.LimiteSemanal, Is.EqualTo(tarjetaRequest.LimiteSemanal));
         Assert.That(returnValue.LimiteMensual, Is.EqualTo(tarjetaRequest.LimiteMensual));
 
-    }*/
+    }
 
-    /*[Test]
+    [Test]
     public async Task UpdateCardWithInvalidPin()
     {
         var guid = "guid-prueba";
@@ -278,7 +327,7 @@ public class TarjetaControllerTest
 
         // Assert
         Assert.That(ex.Result, Is.TypeOf<BadRequestObjectResult>());    
-    }*/
+    }
 
     [Test]
     public async Task DeleteCard()
@@ -308,16 +357,34 @@ public class TarjetaControllerTest
     public async Task DeleteCardNotFound()
     {
         var guid = "guid-prueba";
+        var userAdmin = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "guid-prueba", Role = Role.Admin, Username = "admin" };
+        
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns(userAdmin);
 
-        _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync((TarjetaResponse)null);
-        _tarjetaService.Setup(s => s.DeleteAsync(guid)).ReturnsAsync((TarjetaResponse)null);
+        _tarjetaService.Setup(s => s.DeleteAsync(guid, userAdmin)).ReturnsAsync((TarjetaResponse)null);
         
 
         var result =  await  _tarjetaController.DeleteTarjeta(guid);
 
         // Assert
         Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
-
-
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult.Value, Is.EqualTo($"La tarjeta con guid: {guid} no se ha encontrado"));
     }
+
+    [Test]
+    public async Task DeleteCardWithInvalidUser()
+    {
+        var guid = "guid-prueba";
+        var user = new Banco_VivesBank.User.Models.User { Id = 1, Guid = "guid-prueba", Role = Role.User, Username = "usuario" };
+        
+        _userService.Setup(s => s.GetAuthenticatedUser()).Returns(user);
+
+        var result = await _tarjetaController.DeleteTarjeta(guid);
+        
+        Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+        var badRequestresut = result.Result as BadRequestObjectResult;
+        Assert.That(result.Value, Is.EqualTo("Debes ser cliente o admin para borrar una tarjeta."));
+    }*/
+    
 }

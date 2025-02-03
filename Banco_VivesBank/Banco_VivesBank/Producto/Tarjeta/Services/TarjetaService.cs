@@ -197,7 +197,7 @@ public class TarjetaService : ITarjetaService
             throw new CuentaNotFoundException("Cuenta no encontrada");
         }
 
-        var cliente = _context.Clientes.FirstOrDefaultAsync(c => c.Id == user.Id);
+        var cliente = _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
 
         if (!cliente.Result.Cuentas.Contains(cuentaEntity))
         {
@@ -267,7 +267,7 @@ public class TarjetaService : ITarjetaService
         var cliente = _context.Clientes
             .Include(c => c.Cuentas)
             .ThenInclude(c => c.Tarjeta)
-            .FirstOrDefault(c => c.Id == user.Id);
+            .FirstOrDefault(c => c.UserId == user.Id);
 
         if (cliente == null)
         {
@@ -342,7 +342,7 @@ public class TarjetaService : ITarjetaService
         var cliente = _context.Clientes
             .Include(c => c.Cuentas)
             .ThenInclude(c => c.Tarjeta)
-            .FirstOrDefault(c => c.Id == user.Id);
+            .FirstOrDefault(c => c.UserId == user.Id);
 
         if (cliente == null)
         {

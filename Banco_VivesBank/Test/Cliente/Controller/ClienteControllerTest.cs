@@ -995,7 +995,7 @@ public class ClienteControllerTest
     
         var result = await _clienteController.GetMovimientos();
     
-        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        Assert.That(result?.Result, Is.TypeOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
         Assert.That(notFoundResult.Value.ToString(), Is.EqualTo("{ message = No se ha encontrado el cliente autenticado }"));
     }

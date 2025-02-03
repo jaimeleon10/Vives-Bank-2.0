@@ -781,9 +781,6 @@ public class CuentaServiceTests
         var result = Assert.ThrowsAsync<CuentaNoPertenecienteAlUsuarioException>( async () => await _cuentaService.DeleteMeAsync(user1.Guid, cuentaEntity.Guid));
         
         Assert.That(result.Message, Is.EqualTo("La cuenta cuenta-guid2 no te pertenece"));
-        
-        
-        
     }
     
     [Test, Order(35)]

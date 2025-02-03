@@ -181,7 +181,7 @@ public class TarjetaController : ControllerBase
     {
         var userAuth = _userService.GetAuthenticatedUser();
         if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
-        if (userAuth.Role != Role.Admin || userAuth.Role != Role.User) return BadRequest("Debes ser cliente o admin para borrar una tarjeta.");
+        if (userAuth.Role != Role.Admin || userAuth.Role != Role.Cliente) return BadRequest("Debes ser cliente o admin para borrar una tarjeta.");
         var tarjeta = await _tarjetaService.DeleteAsync(guid, userAuth);
         if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
         
