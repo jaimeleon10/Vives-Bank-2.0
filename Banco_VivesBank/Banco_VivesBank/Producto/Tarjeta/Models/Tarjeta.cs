@@ -18,7 +18,7 @@ namespace Banco_VivesBank.Producto.Tarjeta.Models;
         /// <summary>
         /// El identificador GUID de la tarjeta, generado automáticamente.
         /// </summary>
-        /// <example>"b89f2fda-e5e9-4b10-b2bb-528013fb74c4"</example>
+        /// <example>"5zXnkqio9jP"</example>
         [SwaggerSchema("El identificador GUID de la tarjeta.")]
         public string Guid { get; set; } = GuidGenerator.GenerarId();
         
