@@ -342,7 +342,7 @@ public class TarjetaService : ITarjetaService
         var cliente = _context.Clientes
             .Include(c => c.Cuentas)
             .ThenInclude(c => c.Tarjeta)
-            .FirstOrDefault(c => c.Id == user.Id);
+            .FirstOrDefault(c => c.UserId == user.Id);
 
         if (cliente == null)
         {
