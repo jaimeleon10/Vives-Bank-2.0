@@ -14,7 +14,7 @@ using Moq;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
-namespace Banco_VivesBank.Test.User.Services;
+namespace Test.User.Services;
 
 [TestFixture]
 public class UserServiceTest

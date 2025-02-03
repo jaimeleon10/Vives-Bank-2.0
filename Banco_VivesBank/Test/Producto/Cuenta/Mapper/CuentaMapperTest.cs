@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.Cliente.Models;
+﻿using System.Globalization;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Producto.Cuenta.Mappers;
 using Banco_VivesBank.User.Models;
@@ -154,8 +155,8 @@ public class CuentaMapperTests
         Assert.That(result.TarjetaGuid, Is.EqualTo(cuentaEntity.Tarjeta.Guid));
         Assert.That(result.ClienteGuid, Is.EqualTo(cuentaEntity.Cliente.Guid));
         Assert.That(result.ProductoGuid, Is.EqualTo(cuentaEntity.Producto.Guid));
-        Assert.That(result.CreatedAt, Is.EqualTo(cuentaEntity.CreatedAt.ToString()));
-        Assert.That(result.UpdatedAt, Is.EqualTo(cuentaEntity.UpdatedAt.ToString()));
+        Assert.That(result.CreatedAt, Is.EqualTo(cuentaEntity.CreatedAt.ToString(CultureInfo.InvariantCulture)));
+        Assert.That(result.UpdatedAt, Is.EqualTo(cuentaEntity.UpdatedAt.ToString(CultureInfo.InvariantCulture)));
         Assert.That(result.IsDeleted, Is.EqualTo(cuentaEntity.IsDeleted));
     }
 }
