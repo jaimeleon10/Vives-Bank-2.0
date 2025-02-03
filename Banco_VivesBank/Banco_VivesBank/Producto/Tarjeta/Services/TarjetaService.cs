@@ -197,7 +197,7 @@ public class TarjetaService : ITarjetaService
             throw new CuentaNotFoundException("Cuenta no encontrada");
         }
 
-        var cliente = _context.Clientes.FirstOrDefaultAsync(c => c.Id == user.Id);
+        var cliente = _context.Clientes.FirstOrDefaultAsync(c => c.UserId == user.Id);
 
         if (!cliente.Result.Cuentas.Contains(cuentaEntity))
         {
