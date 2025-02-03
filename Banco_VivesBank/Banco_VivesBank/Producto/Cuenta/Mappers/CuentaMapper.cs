@@ -9,8 +9,16 @@ using Banco_VivesBank.Producto.Tarjeta.Mappers;
 
 namespace Banco_VivesBank.Producto.Cuenta.Mappers;
 
+/// <summary>
+/// Clase estática encargada de mapear entre las entidades, modelos y respuestas de la cuenta.
+/// </summary>
 public static class CuentaMapper
 {
+    /// <summary>
+    /// Mapea una entidad de cuenta a un modelo de cuenta.
+    /// </summary>
+    /// <param name="entity">La entidad de cuenta a mapear</param>
+    /// <returns>Un modelo de cuenta correspondiente</returns>
     public static Models.Cuenta ToModelFromEntity(this CuentaEntity entity)
     {
         return new Models.Cuenta
@@ -27,7 +35,12 @@ public static class CuentaMapper
             IsDeleted = entity.IsDeleted
         };
     }
-    
+
+    /// <summary>
+    /// Mapea un modelo de cuenta a una entidad de cuenta.
+    /// </summary>
+    /// <param name="cuenta">El modelo de cuenta a mapear</param>
+    /// <returns>Una entidad de cuenta correspondiente</returns>
     public static CuentaEntity ToEntityFromModel(this Models.Cuenta cuenta)
     {
         return new CuentaEntity
@@ -44,7 +57,12 @@ public static class CuentaMapper
             IsDeleted = cuenta.IsDeleted
         };
     }
-    
+
+    /// <summary>
+    /// Mapea un modelo de cuenta a una respuesta de cuenta.
+    /// </summary>
+    /// <param name="cuenta">El modelo de cuenta a mapear</param>
+    /// <returns>Una respuesta de cuenta correspondiente</returns>
     public static CuentaResponse ToResponseFromModel(this Models.Cuenta cuenta)
     {
         return new CuentaResponse
@@ -60,7 +78,12 @@ public static class CuentaMapper
             IsDeleted = cuenta.IsDeleted
         };
     }
-    
+
+    /// <summary>
+    /// Mapea una entidad de cuenta a una respuesta de cuenta.
+    /// </summary>
+    /// <param name="cuentaEntity">La entidad de cuenta a mapear</param>
+    /// <returns>Una respuesta de cuenta correspondiente</returns>
     public static CuentaResponse ToResponseFromEntity(this CuentaEntity cuentaEntity)
     {
         return new CuentaResponse
