@@ -16,7 +16,7 @@ namespace Banco_VivesBank.Producto.Cuenta.Controllers;
 [Route("api/cuentas")]
 [Produces("application/json")] 
 [Tags("Cuentas")] 
-public class CuentaControllerAdmin : ControllerBase
+public class CuentaController : ControllerBase
 {
 
     private readonly ICuentaService _cuentaService;
@@ -25,7 +25,7 @@ public class CuentaControllerAdmin : ControllerBase
 
 
 
-    public CuentaControllerAdmin(ICuentaService cuentaService, PaginationLinksUtils paginationLinksUtils,IUserService userService)
+    public CuentaController(ICuentaService cuentaService, PaginationLinksUtils paginationLinksUtils,IUserService userService)
     {
         _cuentaService = cuentaService;
         _paginationLinksUtils = paginationLinksUtils;

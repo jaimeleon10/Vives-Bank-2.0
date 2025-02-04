@@ -21,7 +21,7 @@ public class CuentaAdminControllerTests
     private  Mock<ICuentaService> _mockCuentaService;
     private  Mock<PaginationLinksUtils> _mockPaginationLinksUtils;
     private  Mock<IUserService> _mockUserService;
-    private  CuentaControllerAdmin _controller;
+    private  CuentaController _controller;
 
     [SetUp]
     public void SetUp()
@@ -29,7 +29,7 @@ public class CuentaAdminControllerTests
         _mockCuentaService = new Mock<ICuentaService>();
         _mockPaginationLinksUtils = new Mock<PaginationLinksUtils>();
         _mockUserService = new Mock<IUserService>();
-        _controller = new CuentaControllerAdmin(_mockCuentaService.Object, _mockPaginationLinksUtils.Object, _mockUserService.Object);
+        _controller = new CuentaController(_mockCuentaService.Object, _mockPaginationLinksUtils.Object, _mockUserService.Object);
     }
     
    [Test]

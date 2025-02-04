@@ -146,32 +146,6 @@ public class CuentaServiceTests
         _dbContext.Cuentas.Add(cuenta1);
         await _dbContext.SaveChangesAsync();
     }
-    /*
-    [Test]
-    [Order(1)]
-    public async Task GetAll()
-    {
-
-        var pageRequest = new PageRequest
-        {
-            PageNumber = 0,
-            PageSize = 10,
-            SortBy = "Id",
-            Direction = "ASC"
-        };
-
-        var result = await _cuentaService.GetAllAsync(1500, 500, "Tipo1", pageRequest);
-
-        var cuenta = result.Content[0];
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Content.Count, Is.EqualTo(1));
-        Assert.That(cuenta.Saldo, Is.EqualTo(1000));
-        Assert.That(result.TotalPages, Is.EqualTo(1));
-        Assert.That(result.PageSize, Is.EqualTo(pageRequest.PageSize));
-        Assert.That(result.PageNumber, Is.EqualTo(pageRequest.PageNumber));
-        Assert.That(result.First, Is.True);
-        Assert.That(result.Last, Is.True);
-    }*/
 
     [Test]
     [Order(2)]
