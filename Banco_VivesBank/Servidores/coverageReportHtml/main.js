@@ -287,7 +287,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Movimientos.Scheduler.DomiciliacionScheduler", "rp": "Banco_VivesBank_DomiciliacionScheduler.html", "cl": 0, "ucl": 97, "cal": 97, "tl": 155, "cb": 0, "tb": 19, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "rp": "Banco_VivesBank_DomiciliacionService.html", "cl": 137, "ucl": 77, "cal": 214, "tl": 338, "cb": 19, "tb": 38, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "rp": "Banco_VivesBank_MovimientoService.html", "cl": 198, "ucl": 268, "cal": 466, "tl": 644, "cb": 28, "tb": 84, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Producto.Cuenta.Controllers.CuentaControllerAdmin", "rp": "Banco_VivesBank_CuentaControllerAdmin.html", "cl": 121, "ucl": 0, "cal": 121, "tl": 366, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Producto.Cuenta.Controllers.CuentaController", "rp": "Banco_VivesBank_CuentaController.html", "cl": 121, "ucl": 0, "cal": 121, "tl": 366, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Dto.CuentaRequest", "rp": "Banco_VivesBank_CuentaRequest.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Dto.CuentaResponse", "rp": "Banco_VivesBank_CuentaResponse.html", "cl": 9, "ucl": 0, "cal": 9, "tl": 55, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaException", "rp": "Banco_VivesBank_CuentaException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 3, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -300,7 +300,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Producto.Cuenta.Mappers.CuentaMapper", "rp": "Banco_VivesBank_CuentaMapper.html", "cl": 58, "ucl": 0, "cal": 58, "tl": 102, "cb": 7, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Models.Cuenta", "rp": "Banco_VivesBank_Cuenta.html", "cl": 10, "ucl": 0, "cal": 10, "tl": 73, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Services.CuentaService", "rp": "Banco_VivesBank_CuentaService.html", "cl": 258, "ucl": 92, "cal": 350, "tl": 635, "cb": 40, "tb": 62, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Producto.ProductoBase.Controllers.ProductoController", "rp": "Banco_VivesBank_ProductoController.html", "cl": 122, "ucl": 4, "cal": 126, "tl": 273, "cb": 26, "tb": 26, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Producto.ProductoBase.Controllers.ProductoController", "rp": "Banco_VivesBank_ProductoController.html", "cl": 124, "ucl": 12, "cal": 136, "tl": 283, "cb": 26, "tb": 26, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.ProductoBase.Dto.ProductoRequest", "rp": "Banco_VivesBank_ProductoRequest.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 47, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.ProductoBase.Dto.ProductoRequestUpdate", "rp": "Banco_VivesBank_ProductoRequestUpdate.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 39, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.ProductoBase.Dto.ProductoResponse", "rp": "Banco_VivesBank_ProductoResponse.html", "cl": 8, "ucl": 0, "cal": 8, "tl": 55, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -322,7 +322,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta", "rp": "Banco_VivesBank_Tarjeta.html", "cl": 12, "ucl": 0, "cal": 12, "tl": 94, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Tarjeta.Services.TarjetaService", "rp": "Banco_VivesBank_TarjetaService.html", "cl": 159, "ucl": 80, "cal": 239, "tl": 427, "cb": 20, "tb": 40, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Ftp.Exceptions.FtpException", "rp": "Banco_VivesBank_FtpException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Storage.Ftp.Service.FtpService", "rp": "Banco_VivesBank_FtpService.html", "cl": 102, "ucl": 8, "cal": 110, "tl": 201, "cb": 7, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Storage.Ftp.Service.FtpService", "rp": "Banco_VivesBank_FtpService.html", "cl": 106, "ucl": 4, "cal": 110, "tl": 201, "cb": 7, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Images.Exceptions.FileStorageException", "rp": "Banco_VivesBank_FileStorageException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Images.Exceptions.FileStorageNotFoundException", "rp": "Banco_VivesBank_FileStorageNotFoundException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Images.Service.FileStorageService", "rp": "Banco_VivesBank_FileStorageService.html", "cl": 56, "ucl": 1, "cal": 57, "tl": 119, "cb": 11, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -333,7 +333,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Storage.Pdf.Exception.MovimientosInvalidosException", "rp": "Banco_VivesBank_MovimientosInvalidosException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 41, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Pdf.Exception.PdfGenerateException", "rp": "Banco_VivesBank_PdfGenerateException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 41, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Pdf.Exception.PdfStorageException", "rp": "Banco_VivesBank_PdfStorageException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 41, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Storage.Pdf.Services.PdfStorage", "rp": "Banco_VivesBank_PdfStorage.html", "cl": 175, "ucl": 2, "cal": 177, "tl": 245, "cb": 17, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Storage.Pdf.Services.PdfStorage", "rp": "Banco_VivesBank_PdfStorage.html", "cl": 211, "ucl": 2, "cal": 213, "tl": 281, "cb": 17, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Zip.Controller.BackupController", "rp": "Banco_VivesBank_BackupController.html", "cl": 61, "ucl": 0, "cal": 61, "tl": 141, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Zip.Exceptions.ExportFromZipException", "rp": "Banco_VivesBank_ExportFromZipException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 15, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Zip.Exceptions.ImportFromZipException", "rp": "Banco_VivesBank_ImportFromZipException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 14, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -359,7 +359,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.User.Exceptions.UserNotFoundException", "rp": "Banco_VivesBank_UserNotFoundException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.User.Mapper.UserMapper", "rp": "Banco_VivesBank_UserMapper.html", "cl": 57, "ucl": 0, "cal": 57, "tl": 80, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.User.Models.User", "rp": "Banco_VivesBank_User.html", "cl": 8, "ucl": 0, "cal": 8, "tl": 27, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.User.Service.UserService", "rp": "Banco_VivesBank_UserService.html", "cl": 190, "ucl": 64, "cal": 254, "tl": 468, "cb": 38, "tb": 56, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.User.Service.UserService", "rp": "Banco_VivesBank_UserService.html", "cl": 181, "ucl": 73, "cal": 254, "tl": 468, "cb": 36, "tb": 56, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Utils.Auth.Jwt.JwtService", "rp": "Banco_VivesBank_JwtService.html", "cl": 0, "ucl": 22, "cal": 22, "tl": 39, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Utils.Generators.CvvGenerator", "rp": "Banco_VivesBank_CvvGenerator.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 11, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Utils.Generators.ExpDateGenerator", "rp": "Banco_VivesBank_ExpDateGenerator.html", "cl": 8, "ucl": 0, "cal": 8, "tl": 22, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -376,7 +376,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Utils.Validators.IbanValidator", "rp": "Banco_VivesBank_IbanValidator.html", "cl": 36, "ucl": 0, "cal": 36, "tl": 66, "cb": 18, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Websockets.Notificacion", "rp": "Banco_VivesBank_Notificacion.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 28, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Websockets.WebSocketHandler", "rp": "Banco_VivesBank_WebSocketHandler.html", "cl": 5, "ucl": 50, "cal": 55, "tl": 109, "cb": 1, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Program", "rp": "Banco_VivesBank_Program.html", "cl": 0, "ucl": 309, "cal": 309, "tl": 463, "cb": 0, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Program", "rp": "Banco_VivesBank_Program.html", "cl": 0, "ucl": 311, "cal": 311, "tl": 466, "cb": 0, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -457,19 +457,19 @@ var riskHotspots = [
       { "value": 6, "exceeded": false },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Program", "reportPath": "Banco_VivesBank_Program.html", "methodName": "<Main>$(System.String[])", "methodShortName": "<Main>$(...)", "fileIndex": 0, "line": 42,
+    "assembly": "Banco_VivesBank", "class": "Program", "reportPath": "Banco_VivesBank_Program.html", "methodName": "<Main>$(System.String[])", "methodShortName": "<Main>$(...)", "fileIndex": 0, "line": 43,
     "metrics": [
       { "value": 42, "exceeded": true },
       { "value": 6, "exceeded": false },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Program", "reportPath": "Banco_VivesBank_Program.html", "methodName": "RunInitMongoScript()", "methodShortName": "RunInitMongoScript()", "fileIndex": 0, "line": 407,
+    "assembly": "Banco_VivesBank", "class": "Program", "reportPath": "Banco_VivesBank_Program.html", "methodName": "RunInitMongoScript()", "methodShortName": "RunInitMongoScript()", "fileIndex": 0, "line": 410,
     "metrics": [
       { "value": 42, "exceeded": true },
       { "value": 6, "exceeded": false },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Program", "reportPath": "Banco_VivesBank_Program.html", "methodName": "RunInitMongoScriptIfEmpty()", "methodShortName": "RunInitMongoScriptIfEmpty()", "fileIndex": 0, "line": 369,
+    "assembly": "Banco_VivesBank", "class": "Program", "reportPath": "Banco_VivesBank_Program.html", "methodName": "RunInitMongoScriptIfEmpty()", "methodShortName": "RunInitMongoScriptIfEmpty()", "fileIndex": 0, "line": 372,
     "metrics": [
       { "value": 42, "exceeded": true },
       { "value": 6, "exceeded": false },
@@ -479,6 +479,12 @@ var riskHotspots = [
     "metrics": [
       { "value": 40, "exceeded": true },
       { "value": 10, "exceeded": false },
+    ]},
+  {
+    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.User.Service.UserService", "reportPath": "Banco_VivesBank_UserService.html", "methodName": "DeleteByGuidAsync()", "methodShortName": "DeleteByGuidAsync()", "fileIndex": 0, "line": 362,
+    "metrics": [
+      { "value": 40, "exceeded": true },
+      { "value": 8, "exceeded": false },
     ]},
   {
     "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Cliente.Services.ClienteService", "reportPath": "Banco_VivesBank_ClienteService.html", "methodName": "GetAllPagedAsync()", "methodShortName": "GetAllPagedAsync()", "fileIndex": 0, "line": 64,

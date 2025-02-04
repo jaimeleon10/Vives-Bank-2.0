@@ -245,7 +245,7 @@ public class CuentaController : ControllerBase
     /// <response code="401">El usuario no está autenticado</response>
     /// <response code="404">No se ha encontrado una cuenta con el IBAN especificado o la cuenta no pertenece al usuario</response>
     /// <response code="500">Error interno del servidor</response>
-    [HttpGet("/iban/{iban}")]
+    [HttpGet("me/iban/{iban}")]
     [Authorize(Policy = "ClientePolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
