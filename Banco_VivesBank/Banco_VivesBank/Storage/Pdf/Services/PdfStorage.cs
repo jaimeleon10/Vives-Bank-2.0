@@ -67,62 +67,93 @@ public class PdfStorage : IPdfStorage
     <html>
     <head>
         <style>
-            /* General page styles */
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 20px;
-            }}
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
 
-            h1 {{
-                text-align: center;
-                color: #333;
-                font-size: 28px;
-                margin-bottom: 20px;
-            }}
+        body {{
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            margin-top: -40px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }}
 
-            h3 {{
-                color: #555;
-                font-size: 20px;
-                margin-top: 20px;
-            }}
+        .container {{
+            max-width: 800px;
+            background: #fff;
+            padding: 20px;
+            margin: 10px auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }}
 
-            table {{
-                width: 100%;
-                table-layout: fixed;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }}
+        h1 {{
+            text-align: center;
+            color: #2c3e50;
+            font-size: 26px;
+            margin-top: 10px; /* Reducimos el margen superior */
+            font-weight: 700;
+        }}
 
-            th, td {{
-                padding: 12px 15px;
-                text-align: left;
-            }}
+        h3 {{
+            color: #34495e;
+            font-size: 18px;
+            margin-top: 15px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }}
 
-            .iban {{
-                font-size: 8px;
-                font-weight: bold;
-                text-align: center;
-                max-width: 200px;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-            }}
+        /* Alineación de Datos de la Cuenta y del Banco */
+        .info-table {{
+            width: 100%;
+            margin-bottom: 15px;
+            border-collapse: collapse;
+        }}
 
-            .container {{
-                width: 100%;
-                margin: 0 auto;
-            }}
+        .info-table td {{
+            padding: 8px;
+            vertical-align: top; /* Alinea los datos al inicio */
+        }}
 
-            .info-table {{
-                width: 100%;
-                margin-bottom: 20px;
-            }}
+        .info-table tr td:first-child {{
+            width: 50%;
+        }}
 
-            .info-table td {{
-                padding: 5px;
-            }}
-        </style>
+        .tabla_movim {{
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }}
+
+        .tabla_movim th, 
+        .tabla_movim td {{
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }}
+
+        .tabla_movim thead {{
+            background-color: #2c3e50;
+            color: black;
+            font-weight: bold;
+        }}
+
+        /* Ajustamos el ancho de las columnas de Origen y Destino */
+        .col-origen, .col-destino {{
+            width: 30%;
+            word-wrap: break-word;
+        }}
+
+        .footer {{
+            text-align: center;
+            font-size: 12px;
+            margin-top: 20px;
+            color: #777;
+        }}
+        .iban {{
+         font-size: 8px;
+        }}
+    </style>
         <title>Reporte de Transacciones</title>
     </head>
     <body>
@@ -152,8 +183,13 @@ public class PdfStorage : IPdfStorage
             
             <h3>Detalles de Movimientos</h3>
             {GenerarTablaMovimientos(movimientos)}
+
         </div>
-    </body>
+
+        <div class=""footer"">
+            VivesBank - Todos los derechos reservados 2021
+        </div>
+        </body>
     </html>";
     }
 
@@ -166,7 +202,7 @@ public class PdfStorage : IPdfStorage
     {
         var tablaHtml = new StringBuilder();
         tablaHtml.AppendLine(@"
-        <table border='1'>
+        <table class=""tabla_movim"", border='1'>
             <thead>
                 <tr>
                     <th>Fecha</th>
@@ -191,7 +227,7 @@ public class PdfStorage : IPdfStorage
         </tr>");
         }
 
-        tablaHtml.AppendLine("</tbody>\n</table>");
+        tablaHtml.AppendLine("</tbody>\n</table>\n");
         return tablaHtml.ToString();
     }
 
