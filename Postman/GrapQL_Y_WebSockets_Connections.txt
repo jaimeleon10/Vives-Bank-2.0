@@ -1,0 +1,4 @@
+GrapQL: https://localhost:5002/graphql
+
+WebSockets: wss://localhost:5002/ws/api/bancovivesbank
+    - Añadimos en header: key -> Authorization y value -> Bearer + token

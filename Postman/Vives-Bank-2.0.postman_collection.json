@@ -1,0 +1,1941 @@
+{
+	"info": {
+		"_postman_id": "164ec7a9-34f8-4f1d-9139-67b62a3b49f0",
+		"name": "Vives-Bank-2.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38648581"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"anita\",\r\n    \"password\": \"Password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5002/api/usuarios/login",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"usuarios",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"Password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5002/api/usuarios/login",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"usuarios",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register / Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"Natalia\",\r\n  \"password\": \"Password123\",\r\n  \"passwordConfirmation\": \"Password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5002/api/usuarios",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Usuarios",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNzhkNGMyY2YtMTA4ZS00M2MxLWI5NDAtOTI3ZWU3OTcxOTVhIiwiZXhwIjoxNzM4MTk0NTU1LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.xOnx33RUWhEuuF0Fb-DbmWroQuMMx2enjWE3hUoDK6Q",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiYmZkYjRiN2MtYTYyYi00ZmI5LTgzOWEtMjFiZmY3ZWZiNGM5IiwiZXhwIjoxNzM4MTg4MzI4LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.V_KnZZ444hxHCdbuVapExWSaY86KlpwiyiJQvuR6Vrw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios/vz2AWLK8YPS",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios",
+								"vz2AWLK8YPS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByUsername",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios/username/Testupdate3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios",
+								"username",
+								"Testupdate3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InVzZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwianRpIjoiNmJiMWY5NTktNTc0OC00NTc2LThhMzctMzljYWY4ZjA5YWY1IiwiZXhwIjoxNzM4MTk1MDM3LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.66NanL4P-Hg31uPQylPO5c_LHLpFH-2vDIN7rkabVpo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbml0YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMzA5ZTRhNzAtZjc0ZS00YTgwLWE0NzAtZmQ4ODgwNzdkYWFhIiwiZXhwIjoxNzM4MTQ2MTUxLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.7epIn9gouHfPlSx5XL9loTmm2sbGvQn4QOcRN4KABAw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"role\": \"Admin\",\r\n  \"isdeleted\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios/u6b6NDClz5o",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios",
+								"u6b6NDClz5o"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update My Pass",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJOYXRhbGlhIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik5hdGFsaWEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwianRpIjoiM2RhY2M5OTItY2VjNi00Y2UyLTk2ZjEtZjk4Mzc4ODQwMWY2IiwiZXhwIjoxNzM4MTg3NDY3LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.1LA7wZYuGjjGSKEiaa3Ib3Ihfl7ARmo_xR_5vE-Otpo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"oldPassword\": \"Password123\",\r\n    \"newPassword\": \"Password321\",\r\n    \"newPasswordConfirmation\": \"Password321\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios/password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNzhkNGMyY2YtMTA4ZS00M2MxLWI5NDAtOTI3ZWU3OTcxOTVhIiwiZXhwIjoxNzM4MTk0NTU1LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.xOnx33RUWhEuuF0Fb-DbmWroQuMMx2enjWE3hUoDK6Q",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/usuarios/vz2AWLK8YPS",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"usuarios",
+								"vz2AWLK8YPS"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Clientes",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNzhkNGMyY2YtMTA4ZS00M2MxLWI5NDAtOTI3ZWU3OTcxOTVhIiwiZXhwIjoxNzM4MTk0NTU1LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.xOnx33RUWhEuuF0Fb-DbmWroQuMMx2enjWE3hUoDK6Q",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJOYXRhbGlhIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik5hdGFsaWEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwianRpIjoiOGE1NWRkNWMtNzc2Yi00ZTczLTgyN2MtMmI1Y2VlNThlMjJlIiwiZXhwIjoxNzM4MTUzNzEyLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.jOKEpZcSuyX0kVXldht9hpsxQ4TBQwndILsgakxVwhA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes/GrFprHzywot",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes",
+								"GrFprHzywot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMTRiMzllZTItN2ZjOC00NTNkLThjNzUtNjI1OTJjMDhmOTU2IiwiZXhwIjoxNzM4MTkwNDg3LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.z9RYz8rTHk7Bp4hhXRC-FcrBOtdv_hQrQeXgl1NcIPU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dni Picture",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMWEzZmQ3MDktNmE5ZC00ODMyLWEwOTgtODQyMDIxNmZhM2Q3IiwiZXhwIjoxNzM4MjM3NjUyLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.lCz6yBXsdUFpBY-vTc-WINMTiRi936_Ng13T6UtKi8M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes/fotoDni/GbJtJkggUOM",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes",
+								"fotoDni",
+								"GbJtJkggUOM"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Movimientos PDF",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiNGY3NTljOGYtOGUxYy00MmEzLTk5Y2YtMjY3OGEzMDIwMzIxIiwiZXhwIjoxNzM4MjM1NDE3LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.up-nRX2_LRJmdO9f-ZJX_1dLK-USs3lrXMUBnfeVG1Q",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes/movimientosPDF",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes",
+								"movimientosPDF"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InVzZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwianRpIjoiYWU2ZWZmYmUtMTQ3Yy00OThiLWE0M2YtODA1M2Y1OWE4NjM4IiwiZXhwIjoxNzM4MTg4NDY1LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.agNtu-jHXogLZlDsJHMcnvHHWEYC-gDJpbjlE_JQrlA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"dni\": \"00000001r\",\r\n  \"nombre\": \"Natalia\",\r\n  \"apellidos\": \"Gonzalez\",\r\n  \"calle\": \"calleTest\",\r\n  \"numero\": \"1\",\r\n  \"codigoPostal\": \"12345\",\r\n  \"piso\": \"1\",\r\n  \"letra\": \"A\",\r\n  \"email\": \"natalia@test.com\",\r\n  \"telefono\": \"611111111\",\r\n  \"isDeleted\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/clientes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiNDg2ZDA3NTMtNDRlNS00NjIyLWEyNjUtNDk2NmY1MWVkZWJmIiwiZXhwIjoxNzM4MTkyMTM2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.yr8Aq-f6YhR4fgNTbx0VWetODu-JoOYTiD2YzW7h3S4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dni\": \"12345678Z\",\r\n    \"nombre\": \"clienteTestUpdate\",\r\n    \"apellidos\": \"clienteTestUpdate\",\r\n    \"calle\": \"calleTestUpdate\",\r\n    \"numero\": \"2\",\r\n    \"codigoPostal\": \"22222\",\r\n    \"piso\": \"2\",\r\n    \"letra\": \"B\",\r\n    \"email\": \"testUpdate@testUpdate.com\",\r\n    \"telefono\": \"666789789\",\r\n    \"isDeleted\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/clientes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update My Profile Picture",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiOTU2YzI1ZTUtZjgzNy00NjZjLTkyMjktMTAyZDQ1MzIyNjllIiwiZXhwIjoxNzM4MjM2NTI2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.GFvYMU3KpysNb5lDvtzqo5kfF57vijh6gGVWPQMEB1E",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "foto",
+									"type": "file",
+									"src": "postman-cloud:///1efdbdff-ad15-4ef0-a457-9daccb4361d9"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5002/api/clientes/fotoPerfil",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"clientes",
+								"fotoPerfil"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update My DNI Picture",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiZTgxMzllM2ItMmQzZi00YjdjLWE4ZTEtZGJmN2FhMDhmM2Q1IiwiZXhwIjoxNzM4Njg2MDUxLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.AY9Ib9C92unTv-M4kT2yQaKpjwgo5a4qzWsvA0wTl0A",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "foto",
+									"type": "file",
+									"src": "postman-cloud:///1efdbe1c-2870-4d90-a40a-53b2f632fbf4"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5002/api/clientes/fotoDni",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"clientes",
+								"fotoDni"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMmY3YmRhYTMtYzIwNy00Y2YyLWI1MzctMDU5YmUzOTFhNmI1IiwiZXhwIjoxNzM4MTkzNjMxLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.tdjf_GbScCycvT6eplgv4bFE_7MusXvdZZJ_prrYL94",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes/JdHsgzoHlrb",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes",
+								"JdHsgzoHlrb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiYzc0NTBmY2MtY2Y4OC00MjBiLWE4ZTYtMThiZmUwNTQ0OWMxIiwiZXhwIjoxNzM4MTkzNjc3LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.U_2TY33YlqBN5tYLjsJP4lUiRKfzUJoGgKsssgoPwak",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/clientes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Producto Base",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/productos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"productos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/productos/HRqtxI3zezr",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"productos",
+								"HRqtxI3zezr"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMWEzZmQ3MDktNmE5ZC00ODMyLWEwOTgtODQyMDIxNmZhM2Q3IiwiZXhwIjoxNzM4MjM3NjUyLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.lCz6yBXsdUFpBY-vTc-WINMTiRi936_Ng13T6UtKi8M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"ProductoTest2\",\r\n  \"descripcion\": \"Descripcion ProductoTest2\",\r\n  \"tipoProducto\": \"Cuenta de Gastos\",\r\n  \"tae\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/productos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"productos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMWEzZmQ3MDktNmE5ZC00ODMyLWEwOTgtODQyMDIxNmZhM2Q3IiwiZXhwIjoxNzM4MjM3NjUyLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.lCz6yBXsdUFpBY-vTc-WINMTiRi936_Ng13T6UtKi8M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"ProductoTestUpdate\",\r\n  \"descripcion\": \"Descripcion ProductoTestUpdate\",\r\n  \"tae\": 1,\r\n  \"isDeleted\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/productos/HRqtxI3zezr",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"productos",
+								"HRqtxI3zezr"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMWEzZmQ3MDktNmE5ZC00ODMyLWEwOTgtODQyMDIxNmZhM2Q3IiwiZXhwIjoxNzM4MjM3NjUyLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.lCz6yBXsdUFpBY-vTc-WINMTiRi936_Ng13T6UtKi8M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/productos/HRqtxI3zezr",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"productos",
+								"HRqtxI3zezr"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Import Productos",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1efd9cf0-1448-44a0-9652-4e9e7be4c7d8"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5002/api/productosBase/import",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"productosBase",
+								"import"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Export Productos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/productosBase/export",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"productosBase",
+								"export"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cuentas",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiOWMwNTQ0NWUtNmJhNy00NGQ3LTg4ZjEtZTg1YWMyNjBiZjc2IiwiZXhwIjoxNzM4Njg2NDE4LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.XRn2wOl2W8SZdLRwj2GLyGO_cMh1p6UdzQXQojfOUPI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/cuentas/admin",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"cuentas",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAllByClienteGuid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNDNmZDUxOWItMDJjZS00Zjk1LWEyZWYtMjFjZTkzMjkwY2MyIiwiZXhwIjoxNzM4NjgxODU2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.r7mIhiZGATUf6d95CK5DOhOdbswmlxvIaFIBChWcDiU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/cuentas/admin/cliente/GbJtJkggUOM",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"cuentas",
+								"admin",
+								"cliente",
+								"GbJtJkggUOM"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNDNmZDUxOWItMDJjZS00Zjk1LWEyZWYtMjFjZTkzMjkwY2MyIiwiZXhwIjoxNzM4NjgxODU2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.r7mIhiZGATUf6d95CK5DOhOdbswmlxvIaFIBChWcDiU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/cuentas/admin/VWt47641yDI",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"cuentas",
+								"admin",
+								"VWt47641yDI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByIban",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNDNmZDUxOWItMDJjZS00Zjk1LWEyZWYtMjFjZTkzMjkwY2MyIiwiZXhwIjoxNzM4NjgxODU2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.r7mIhiZGATUf6d95CK5DOhOdbswmlxvIaFIBChWcDiU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/cuentas/admin/iban/ES7730046576085345979538",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"cuentas",
+								"admin",
+								"iban",
+								"ES7730046576085345979538"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAllMe",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiMGVkNThjNjctOTBkYy00MWI3LWFkZjUtNjZlODVkOGU5M2Y3IiwiZXhwIjoxNzM4NjgyMDY5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.-hJo0sq3TbQGKMPvEPFCtbmqFB4KydcaL2qlFM-VYKs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/cuentas/me",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"cuentas",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMeByIban",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiMGVkNThjNjctOTBkYy00MWI3LWFkZjUtNjZlODVkOGU5M2Y3IiwiZXhwIjoxNzM4NjgyMDY5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.-hJo0sq3TbQGKMPvEPFCtbmqFB4KydcaL2qlFM-VYKs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/cuentas/me/iban/ES7730046576085345979538",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"cuentas",
+								"me",
+								"iban",
+								"ES7730046576085345979538"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateMe",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiMGVkNThjNjctOTBkYy00MWI3LWFkZjUtNjZlODVkOGU5M2Y3IiwiZXhwIjoxNzM4NjgyMDY5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.-hJo0sq3TbQGKMPvEPFCtbmqFB4KydcaL2qlFM-VYKs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipoCuenta\": \"cuentaCorriente\",\r\n  \"clienteGuid\": \"PeOrWgILMV5\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/cuentas/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"cuentas",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteMe",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiMGVkNThjNjctOTBkYy00MWI3LWFkZjUtNjZlODVkOGU5M2Y3IiwiZXhwIjoxNzM4NjgyMDY5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.-hJo0sq3TbQGKMPvEPFCtbmqFB4KydcaL2qlFM-VYKs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/cuentas/me/VWt47641yDI",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"cuentas",
+								"me",
+								"VWt47641yDI"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tarjeta",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNWRmNDNiNTYtNzk5OS00MjY2LThkNGUtYjM3MWE0MGJmMWM1IiwiZXhwIjoxNzM4MjUxOTE4LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.p1HkWwe8IaXfD2DT2kdOIrpcP-uoX6Mn2YRdApt-h6M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/tarjetas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"tarjetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/tarjetas/Cwd2r8HsEIF",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"tarjetas",
+								"Cwd2r8HsEIF"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByNumeroTarjeta",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/tarjetas/numero/452050113410132",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"tarjetas",
+								"numero",
+								"452050113410132"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiYjRhY2QyMmMtMjQ3Ny00MGY0LTg1NDYtY2I5YzQ1ODNiZjcyIiwiZXhwIjoxNzM4NTEwNDI5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.rT4qFlRMbvZQGPqvTaIssGoyLh3DNA0QNIEA6Tivgro",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cuentaGuid\": \"MtECFPtPlUo\",\r\n    \"pin\": \"1234\",\r\n    \"limiteDiario\": 100.00,\r\n    \"limiteSemanal\": 500.00,\r\n    \"limiteMensual\": 1500.00,\r\n    \"isDeleted\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/tarjetas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"tarjetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"pin\": \"1234\",\r\n  \"limiteDiario\": 200.00,\r\n  \"limiteSemanal\": 1000.00,\r\n  \"limiteMensual\": 4000.00\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/tarjetas/XjB11p9aLiD",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"tarjetas",
+								"XjB11p9aLiD"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/tarjetas/bcjDtnzTugU",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"tarjetas",
+								"bcjDtnzTugU"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Movimientos",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMzcwZjZhMzEtN2VhNS00YTNhLWEwMzMtZjMzNGU1NzVhMGMyIiwiZXhwIjoxNzM4NjE4MzY4LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.5tSva39rS9OOcca2oqaSOdyirZXY0KUhoQfmV8g-o7c",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/iFDVeS3riQn",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"iFDVeS3riQn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByClienteGuid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/cliente/GbJtJkggUOM",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"cliente",
+								"GbJtJkggUOM"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMyMovimientos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiNWI3ZTUxNDctY2IxMy00NGY2LWExNTMtZWQ2MGYzNmI3N2ZjIiwiZXhwIjoxNzM4MjUzOTkyLCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.6UiWsWMixuYK--33AXmY3e5uxM_OB3vJvg1gdniM2M8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateIngresoNomina",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiZWFmMmIzY2QtZjZmYy00ZjA4LTgyOTItYzU2MjgzYWRhY2VjIiwiZXhwIjoxNzM4Njg3MjA2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.O8BTpLDbGm5-qAjkhyrZ5z_enjW8oTJmYk4yhseNt4I",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombreEmpresa\": \"Mercadona\",\r\n  \"cifEmpresa\": \"V24946600\",\r\n  \"ibanEmpresa\": \"ES5331903527183349189255\",\r\n  \"ibanCliente\": \"ES7730046576085345979538\",\r\n  \"importe\": 1250\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/ingresoNomina",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"ingresoNomina"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreatePagoConTarjeta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiYmVlZWZkNTYtZTI3ZC00YTkxLTgzNDktNGI3OTZlN2Y0OTFjIiwiZXhwIjoxNzM4NDI3NDk5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.DF0xugPDD-FGZnkEGk2X35sNGeYLvoiqCDCKwBN3ERY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombreComercio\": \"Carrefour\",\r\n  \"importe\": 250.50,\r\n  \"numeroTarjeta\": \"0606579225434779\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/pagoConTarjeta",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"pagoConTarjeta"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateTransferencia",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbml0YSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhbml0YSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkNsaWVudGUiLCJqdGkiOiIwNWFkZDNlNC05OTRjLTRiYTItYTNlZi1jZGU1NzEyMjgwMjAiLCJleHAiOjE3Mzg2ODcyMjQsImlzcyI6IlR1RW1pc29yIiwiYXVkIjoiVHVBdWRpZW5jaWEifQ.-xoTZhebAncx4hQgWdKYgaZppNCQ-eesm1Dk64kPruA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ibanOrigen\": \"ES2114656261103572788444\",\r\n  \"nombreBeneficiario\": \"Pedro Picapiedra\",\r\n  \"ibanDestino\": \"ES7730046576085345979538\",\r\n  \"importe\": 1000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/transferencia",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"transferencia"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RevocarTransferencia",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiNzJhNzkwZTYtN2U2Zi00ZWU3LThiYjQtYzY3MTMzMjNhMjYxIiwiZXhwIjoxNzM4MjU2NjQ0LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.Z-0HATBTPjJZ64c9HP-btW3Bpnzv1IK6fmYprZZd54s",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/movimientos/transferencia/revocar/VujCRTVSdPP",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"movimientos",
+								"transferencia",
+								"revocar",
+								"VujCRTVSdPP"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Domiciliaciones",
+			"item": [
+				{
+					"name": "GetAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByGuid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones/WQZGKKCuy1q",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones",
+								"WQZGKKCuy1q"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetByClienteGuid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones/cliente/GbJtJkggUOM",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones",
+								"cliente",
+								"GbJtJkggUOM"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMyDomiciliaciones",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiMjZjOGJlNWItNjkwNC00NDBjLWIzNDgtNGU5NThhNTk4YjcyIiwiZXhwIjoxNzM4NTAwMDg4LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.TvGt2WVgw6yWGu5iUUmWkPTdw5fsGNDacBvuvfLzOmI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateDomiciliacion",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiYmVlZWZkNTYtZTI3ZC00YTkxLTgzNDktNGI3OTZlN2Y0OTFjIiwiZXhwIjoxNzM4NDI3NDk5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.DF0xugPDD-FGZnkEGk2X35sNGeYLvoiqCDCKwBN3ERY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"acreedor\": \"Netflix\",\r\n  \"ibanEmpresa\": \"ES7604878673285989969615\",\r\n  \"ibanCliente\": \"ES7730046576085345979538\",\r\n  \"importe\": 12.50,\r\n  \"periodicidad\": \"Semanal\",\r\n  \"activa\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DesactivateDomiciliacion",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiMTg3N2E2MzMtODU0Ny00Y2JmLWEwMTUtMGY0OGUyMmFhNGM2IiwiZXhwIjoxNzM4MjU3Nzc5LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.Ds3eBV9SNT21bPKYa8jKrcVO7-M1-az8rd4TsIuysJg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones/WQZGKKCuy1q",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones",
+								"WQZGKKCuy1q"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DesactivateMyDomiciliacion",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyaXRvIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InBlZHJpdG8iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDbGllbnRlIiwianRpIjoiMzUyYTQ1MmItMmI0ZS00NTA0LTgyNDEtYjlmZTlhMThhNzdkIiwiZXhwIjoxNzM4MjU3Njg0LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.rPVb2Uqrwdmhm-nwXNvENgdtdGLyczSWRajc91IMpMM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5001/api/domiciliaciones/me/JsE9iOqm8Lz",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"api",
+								"domiciliaciones",
+								"me",
+								"JsE9iOqm8Lz"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Storage Backup",
+			"item": [
+				{
+					"name": "Export Zip",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNDNmZDUxOWItMDJjZS00Zjk1LWEyZWYtMjFjZTkzMjkwY2MyIiwiZXhwIjoxNzM4NjgxODU2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.r7mIhiZGATUf6d95CK5DOhOdbswmlxvIaFIBChWcDiU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/Backup/exportar-zip",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"Backup",
+								"exportar-zip"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Import Zip",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwianRpIjoiNDNmZDUxOWItMDJjZS00Zjk1LWEyZWYtMjFjZTkzMjkwY2MyIiwiZXhwIjoxNzM4NjgxODU2LCJpc3MiOiJUdUVtaXNvciIsImF1ZCI6IlR1QXVkaWVuY2lhIn0.r7mIhiZGATUf6d95CK5DOhOdbswmlxvIaFIBChWcDiU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/Backup/importar-zip",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"Backup",
+								"importar-zip"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "FrankFuter",
+			"item": [
+				{
+					"name": "Consultar Divisas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5002/api/divisas/latest?amount=1&baseCurrency=EUR&symbol=USD,AUD,CAD",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5002",
+							"path": [
+								"api",
+								"divisas",
+								"latest"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "1"
+								},
+								{
+									"key": "baseCurrency",
+									"value": "EUR"
+								},
+								{
+									"key": "symbol",
+									"value": "USD,AUD,CAD"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
