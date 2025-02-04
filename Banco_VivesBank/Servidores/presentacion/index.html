@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco VivesBank 2.0 - Documentación</title>
+
+    <style>
+        @font-face {
+            font-family: 'Barber';
+            src: url('https://wolverine307mda.github.io/fonts/Barber-Complete.otf') format('opentype');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background: url('https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+
+        h1 {
+            font-family: 'Barber', sans-serif;
+            font-size: 4rem;
+            color: #fff;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        
+        h2, h3 {
+            color: #fff;
+            margin-top: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+        }
+
+        .botones {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .botones a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 25px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .botones a img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .coverlet {
+            background: rgba(40, 167, 69, 0.8);
+        }
+        .github {
+            background: rgba(36, 41, 46, 0.8);
+        }
+        .youtube {
+            background: rgba(255, 0, 0, 0.8);
+        }
+
+        .botones a:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 10px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .participantes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 900px;
+            margin: 30px auto;
+        }
+
+        .participante {
+            text-align: center;
+            color: #fff;
+        }
+        
+        .participante img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .participante img:hover {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+
+        .participante p {
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 900px) {
+            .participantes {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .participantes {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Vives Banks</h1><br>
+    
+    <div class="botones">
+        <a href="https://bancoVivesBank.com/coverage" class="coverlet">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10M8 10l-2 2l5 5l7-7l-2-2l-5 5z"/>
+            </svg>
+            Ver Reporte Coverlet
+        </a>
+        <a href="https://github.com/jaimeleon10/Vives-Bank-2.0/tree/develop" class="github" target="_blank">
+            <img src="https://img.icons8.com/ios11/512/FFFFFF/github.png" alt="GitHub" />
+            Ir al Repositorio
+        </a>
+        <a href="https://youtu.be/vdGFyDkFClU" class="youtube" target="_blank">
+            <img src="https://img.icons8.com/ios7/200/FFFFFF/youtube-play.png" alt="YouTube">
+            Video de YouTube
+        </a>
+    </div><br>
+
+    <h2>Participantes</h2>
+
+    <div class="participantes">
+        <div class="participante">
+            <a href="https://github.com/ngalvez0910" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/145333876" alt="Natalia González Álvarez">
+            </a>
+            <p>Natalia</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/jaimeleon10" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/113149992" alt="Jaime León">
+            </a>
+            <p>Jaime</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/alba448" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/146001599" alt="Alba García">
+            </a>
+            <p>Alba</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/wolverine307mda" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/146002100" alt="Mario de Domingo Alvarez">
+            </a>
+            <p>Mario</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/javi97ruiz" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/146001480?v=4" alt="Javier">
+            </a>
+            <p>Javier</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/13elhadri" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/146001467?v=4" alt="Yahya">
+            </a>
+            <p>Yahya</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/KevinSanchez5" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/115721589?v=4" alt="Kelvin">
+            </a>
+            <p>Kelvin</p>
+        </div>
+        <div class="participante">
+            <a href="https://github.com/Diokar017" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/105505594?v=4" alt="Oscar">
+            </a>
+            <p>Óscar</p>
+        </div>
+
+    </div>
+
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Logo_C_sharp.svg/1200px-Logo_C_sharp.svg.png" alt="Imagen flotante" style="position: fixed; bottom: 25px; right: 25px; width: 95%; height: auto; z-index: 1000; max-width: 50px;">
+
+</body>
+</html>

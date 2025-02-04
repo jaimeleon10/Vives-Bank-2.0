@@ -1,0 +1,32 @@
+﻿[
+    {
+        "nombre": "Santander 123",
+        "descripcion": "Cuenta corriente con beneficios para clientes frecuentes",
+        "tipoProducto": "Cuenta corriente",
+        "tae": 1.2
+    },
+    {
+        "nombre": "BBVA Online",
+        "descripcion": "Cuenta digital sin comisiones",
+        "tipoProducto": "Cuenta digital",
+        "tae": 1.5
+    },
+    {
+        "nombre": "ING Naranja",
+        "descripcion": "Cuenta sin comisiones ni condiciones",
+        "tipoProducto": "Cuenta sin comisiones",
+        "tae": 0.8
+    },
+    {
+        "nombre": "CaixaBank Star",
+        "descripcion": "Cuenta con ventajas para jóvenes",
+        "tipoProducto": "Cuenta para jóvenes",
+        "tae": 1.0
+    },
+    {
+        "nombre": "Openbank Everyday",
+        "descripcion": "Cuenta flexible y fácil de gestionar",
+        "tipoProducto": "Cuenta flexible",
+        "tae": 1.3
+    }
+]

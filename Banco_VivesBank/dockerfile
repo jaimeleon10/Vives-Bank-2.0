@@ -1,0 +1,29 @@
+﻿# Usa una imagen base de .NET SDK para la compilación
+# Etapa de compilación
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /app
+
+# Copia csproj y restaura dependencias
+COPY ["Banco_VivesBank/Banco_VivesBank.csproj", "Banco_VivesBank/"]
+WORKDIR /app/Banco_VivesBank
+RUN dotnet restore
+
+# Copia todo lo demás y compila
+COPY . /app
+RUN dotnet publish -c Release -o out
+
+# Etapa de Banco_VivesBank
+FROM build-env AS test-env
+WORKDIR /app
+
+COPY ./Test/Test.csproj ./Test/
+WORKDIR /app/Test
+
+RUN dotnet restore
+RUN dotnet test --logger:trx
+
+# Etapa de ejecución
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build-env /app/Banco_VivesBank/out .
+ENTRYPOINT ["dotnet", "Banco_VivesBank.dll"]

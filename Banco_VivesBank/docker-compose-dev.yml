@@ -1,0 +1,126 @@
+﻿services:
+  banco_vivesbank:
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8000:8080"
+    container_name: banco
+    volumes:
+      - coverage:/app/files/coverage
+    depends_on:
+      - mongodb
+      - postgres
+      - redis
+      - ftp
+  
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_vives-bank
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: VivesBankDB
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/initMongo.js:/docker-entrypoint-initdb.d/initMongo.js
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_vives-bank
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: VivesBankDB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: 'bitnami/redis:latest'
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=password123
+    volumes:
+      - redis_data:/bitnami/redis
+    restart: unless-stopped
+
+  ftp:
+    image: fauria/vsftpd
+    container_name: ftp_server
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    environment:
+      FTP_USER: admin
+      FTP_PASS: password
+      PASV_ADDRESS: 127.0.0.1
+      PASV_MIN_PORT: 21000
+      PASV_MAX_PORT: 21010
+    volumes:
+      - ftp_data:/home/vsftpd
+    restart: unless-stopped
+  
+  nginx_presentation:
+    image: ubuntu/nginx:latest
+    container_name: nginx_presentation
+    volumes:
+      - ./Servidores/presentacion:/var/www/html
+      - ./Servidores/presentacion/index.html:/var/www/html/index.html
+      - ./Servidores/presentacion/config:/etc/nginx/conf.d
+    restart: always
+    depends_on:
+      - banco_vivesbank
+    networks:
+      - servers
+
+  nginx_coverage:
+    image: ubuntu/nginx:latest
+    container_name: nginx_coverage
+    volumes:
+      - ./Servidores/coverageReportHtml:/var/www/html
+      - ./Servidores/nginxCoverage/default:/etc/nginx/conf.d/default.conf
+    restart: always
+    depends_on:
+      - banco_vivesbank
+    networks:
+      - servers
+
+  proxy:
+    image: ubuntu/nginx:latest
+    container_name: proxy
+    volumes:
+      - ./Servidores/proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./Servidores/proxy/certs:/etc/nginx/certs
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    depends_on:
+      - nginx_presentation
+      - nginx_coverage
+    networks:
+      - servers
+
+volumes:
+  coverage:
+  presentation_data:
+  presentation_conf:
+  mongo_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ftp_data:
+    driver: local
+
+networks:
+  servers:

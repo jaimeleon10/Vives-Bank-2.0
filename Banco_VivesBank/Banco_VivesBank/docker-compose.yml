@@ -1,0 +1,64 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_vives-bank
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: VivesBankDB
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/initMongo.js:/docker-entrypoint-initdb.d/initMongo.js
+    restart: unless-stopped
+    
+  postgres:
+    image: postgres:latest
+    container_name: postgres_vives-bank
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: VivesBankDB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: 'bitnami/redis:latest'
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=password123
+    volumes:
+      - redis_data:/bitnami/redis
+    restart: unless-stopped
+    
+  ftp:
+    image: fauria/vsftpd
+    container_name: ftp_server
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    environment:
+      FTP_USER: admin
+      FTP_PASS: password
+      PASV_ADDRESS: 127.0.0.1
+      PASV_MIN_PORT: 21000
+      PASV_MAX_PORT: 21010 
+    volumes:
+      - ftp_data:/home/vsftpd
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ftp_data:
+    driver: local

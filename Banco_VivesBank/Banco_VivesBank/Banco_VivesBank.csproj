@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+        <PackageReference Include="CacheManager.Core" Version="1.2.0" />
+        <PackageReference Include="CacheMeIfYouCan.Redis" Version="0.2.197" />
+        <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
+        <PackageReference Include="HtmlRenderer.PdfSharp" Version="1.5.1-beta1" />
+        <PackageReference Include="IronZIP" Version="2025.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.12" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.12">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+        <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
+        <PackageReference Include="Moq" Version="4.20.72" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+        <PackageReference Include="NUnit" Version="4.3.2" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+        <PackageReference Include="Quartz" Version="3.13.1" />
+        <PackageReference Include="Quartz.AspNetCore" Version="3.13.1" />
+        <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.13.1" />
+        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
+        <PackageReference Include="Serilog" Version="4.2.0" />
+        <PackageReference Include="Serilog.Extensions" Version="8.0.3" />
+        <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.2.0" />
+        <PackageReference Include="Testcontainers" Version="4.1.0" />
+        <PackageReference Include="Testcontainers.MongoDb" Version="4.1.0" />
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="obj\Banco_VivesBank.csproj.nuget.dgspec.json" />
+      <Content Include="obj\Banco_VivesBank.csproj.nuget.g.props" />
+      <Content Include="obj\Debug\net8.0\Banco_VivesBank.AssemblyInfoInputs.cache" />
+      <Content Include="obj\Debug\net8.0\Banco_VivesBank.assets.cache" />
+      <Content Include="obj\Debug\net8.0\Banco_VivesBank.csproj.AssemblyReference.cache" />
+    </ItemGroup>
+
+</Project>
