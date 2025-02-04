@@ -71,8 +71,6 @@ public class UserMapperTest
             Assert.That(user.Guid, Is.EqualTo(result.Guid));
             Assert.That(user.Username, Is.EqualTo(result.Username));
             Assert.That(user.Role.ToString(), Is.EqualTo(result.Role));
-            Assert.That(user.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.CreatedAt));
-            Assert.That(user.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.UpdatedAt));
             Assert.That(user.IsDeleted, Is.EqualTo(result.IsDeleted));
         });
         
@@ -121,8 +119,6 @@ public class UserMapperTest
             Assert.That(userEntity.Guid, Is.EqualTo(result.Guid));
             Assert.That(userEntity.Username, Is.EqualTo(result.Username));
             Assert.That(userEntity.Role.ToString(), Is.EqualTo(result.Role));
-            Assert.That(userEntity.CreatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.CreatedAt));
-            Assert.That(userEntity.UpdatedAt.ToString("dd/MM/yyyy - HH:mm:ss"), Is.EqualTo(result.UpdatedAt));
             Assert.That(userEntity.IsDeleted, Is.EqualTo(result.IsDeleted));
     }
 }

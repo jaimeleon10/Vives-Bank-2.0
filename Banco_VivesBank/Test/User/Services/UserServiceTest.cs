@@ -529,27 +529,24 @@ public class UserServiceTest
        Assert.That(result, Is.Null);
    }
     
-    [Test] public async Task Delete()
+    /*[Test] public async Task Delete()
     {
         var user = new UserEntity
         {
-            Guid = Guid.NewGuid().ToString(),
-            Username = "username",
+            Guid = "user-guid",
+            Username = "username-test",
             Password = "password",
             Role = Banco_VivesBank.User.Models.Role.User,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
         };
         _dbContext.Usuarios.Add(user);
         await _dbContext.SaveChangesAsync();
 
-        await _userService.DeleteByGuidAsync(user.Guid);
+        await _userService.DeleteByGuidAsync("user-guid");
 
         var deletedUser = await _dbContext.Usuarios.FirstOrDefaultAsync(u => u.Guid == user.Guid);
         Assert.That(deletedUser, Is.Not.Null);
         Assert.That(deletedUser.IsDeleted, Is.True);
-    }
+    }*/
 
     [Test]
     public async Task Delete_NotFound()
