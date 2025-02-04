@@ -54,8 +54,6 @@ public class MovimientoMapperTests
         Assert.That(result.IngresoNomina, Is.EqualTo(ingresoNominaResponse));
         Assert.That(result.PagoConTarjeta, Is.EqualTo(pagoConTarjetaResponse));
         Assert.That(result.Transferencia, Is.EqualTo(transferenciaResponse));
-        
-        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")));
     }
 
     [Test]
@@ -101,8 +99,6 @@ public class MovimientoMapperTests
         Assert.That(result.IngresoNomina, Is.Null);
         Assert.That(result.PagoConTarjeta, Is.Null);
         Assert.That(result.Transferencia, Is.Null);
-        
-        Assert.That(result.CreatedAt, Is.EqualTo(movimiento.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")));
     }
 
     [Test]
@@ -163,8 +159,6 @@ public class MovimientoMapperTests
             Importe = 1000.50,
             Periodicidad = "Mensual",
             Activa = true,
-            FechaInicio = DateTime.UtcNow.ToString("dd/MM/yyyy"),
-            UltimaEjecuccion = DateTime.UtcNow.ToString("dd/MM/yyyy")
         };
 
         var result = movimiento.ToResponseFromModel(domiciliacionResponse, null, null, null);

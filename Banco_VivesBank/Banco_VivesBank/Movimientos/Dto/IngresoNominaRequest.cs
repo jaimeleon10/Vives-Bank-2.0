@@ -9,7 +9,7 @@ public class IngresoNominaRequest
     [Required(ErrorMessage = "El nombre de la empresa en un campo obligatorio")]
     public string NombreEmpresa { get; set; }
     
-    [Required(ErrorMessage = "El CIF de la empresa en un campo obligatorio")] // TODO -> HACER CifValidator
+    [Required(ErrorMessage = "El CIF de la empresa en un campo obligatorio")]
     public string CifEmpresa { get; set; }
     
     [IbanValidator]

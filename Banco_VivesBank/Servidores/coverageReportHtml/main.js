@@ -254,12 +254,12 @@ var assemblies = [
       { "name": "Banco_VivesBank.Migrations.InitialData", "rp": "Banco_VivesBank_InitialData.html", "cl": 724, "ucl": 12, "cal": 736, "tl": 805, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Controller.DomiciliacionController", "rp": "Banco_VivesBank_DomiciliacionController.html", "cl": 63, "ucl": 6, "cal": 69, "tl": 209, "cb": 12, "tb": 14, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Controller.MovimientoController", "rp": "Banco_VivesBank_MovimientoController.html", "cl": 96, "ucl": 18, "cal": 114, "tl": 294, "cb": 14, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Movimientos.Database.MovimientosMongoConfig", "rp": "Banco_VivesBank_MovimientosMongoConfig.html", "cl": 5, "ucl": 20, "cal": 25, "tl": 44, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Movimientos.Database.MovimientosMongoConfig", "rp": "Banco_VivesBank_MovimientosMongoConfig.html", "cl": 5, "ucl": 4, "cal": 9, "tl": 21, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.DomiciliacionRequest", "rp": "Banco_VivesBank_DomiciliacionRequest.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 27, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.DomiciliacionResponse", "rp": "Banco_VivesBank_DomiciliacionResponse.html", "cl": 10, "ucl": 0, "cal": 10, "tl": 26, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.IngresoNominaRequest", "rp": "Banco_VivesBank_IngresoNominaRequest.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 24, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.IngresoNominaResponse", "rp": "Banco_VivesBank_IngresoNominaResponse.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Movimientos.Dto.MovimientoRequest", "rp": "Banco_VivesBank_MovimientoRequest.html", "cl": 0, "ucl": 5, "cal": 5, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Movimientos.Dto.MovimientoRequest", "rp": "Banco_VivesBank_MovimientoRequest.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.MovimientoResponse", "rp": "Banco_VivesBank_MovimientoResponse.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 25, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.PagoConTarjetaRequest", "rp": "Banco_VivesBank_PagoConTarjetaRequest.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Dto.PagoConTarjetaResponse", "rp": "Banco_VivesBank_PagoConTarjetaResponse.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -270,7 +270,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Movimientos.Exceptions.MovimientoNoPertenecienteAlUsuarioAutenticadoException", "rp": "Banco_VivesBank_MovimientoNoPertenecienteAlUsuarioAutenticadoException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Exceptions.MovimientoNotFoundException", "rp": "Banco_VivesBank_MovimientoNotFoundException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Exceptions.MovimientoTransactionException", "rp": "Banco_VivesBank_MovimientoTransactionException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Movimientos.Exceptions.PeriodicidadNotValidException", "rp": "Banco_VivesBank_PeriodicidadNotValidException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Movimientos.Exceptions.PeriodicidadNotValidException", "rp": "Banco_VivesBank_PeriodicidadNotValidException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Exceptions.TransferenciaEmitidaException", "rp": "Banco_VivesBank_TransferenciaEmitidaException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Exceptions.TransferenciaRevocadaException", "rp": "Banco_VivesBank_TransferenciaRevocadaException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Mapper.DomiciliacionMapper", "rp": "Banco_VivesBank_DomiciliacionMapper.html", "cl": 18, "ucl": 0, "cal": 18, "tl": 29, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -280,18 +280,18 @@ var assemblies = [
       { "name": "Banco_VivesBank.Movimientos.Mapper.TransferenciaMapper", "rp": "Banco_VivesBank_TransferenciaMapper.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 24, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Models.Domiciliacion", "rp": "Banco_VivesBank_Domiciliacion.html", "cl": 11, "ucl": 0, "cal": 11, "tl": 55, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Models.IngresoNomina", "rp": "Banco_VivesBank_IngresoNomina.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 28, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Movimientos.Models.Movimiento", "rp": "Banco_VivesBank_Movimiento.html", "cl": 5, "ucl": 3, "cal": 8, "tl": 42, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Movimientos.Models.Movimiento", "rp": "Banco_VivesBank_Movimiento.html", "cl": 8, "ucl": 0, "cal": 8, "tl": 42, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Models.PagoConTarjeta", "rp": "Banco_VivesBank_PagoConTarjeta.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 20, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Models.Transferencia", "rp": "Banco_VivesBank_Transferencia.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 32, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Scheduler.DomiciliacionJob", "rp": "Banco_VivesBank_DomiciliacionJob.html", "cl": 0, "ucl": 15, "cal": 15, "tl": 29, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Movimientos.Scheduler.DomiciliacionScheduler", "rp": "Banco_VivesBank_DomiciliacionScheduler.html", "cl": 0, "ucl": 97, "cal": 97, "tl": 155, "cb": 0, "tb": 19, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "rp": "Banco_VivesBank_DomiciliacionService.html", "cl": 52, "ucl": 162, "cal": 214, "tl": 338, "cb": 4, "tb": 38, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "rp": "Banco_VivesBank_MovimientoService.html", "cl": 0, "ucl": 466, "cal": 466, "tl": 644, "cb": 0, "tb": 84, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "rp": "Banco_VivesBank_DomiciliacionService.html", "cl": 137, "ucl": 77, "cal": 214, "tl": 338, "cb": 19, "tb": 38, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "rp": "Banco_VivesBank_MovimientoService.html", "cl": 198, "ucl": 268, "cal": 466, "tl": 644, "cb": 28, "tb": 84, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Controllers.CuentaControllerAdmin", "rp": "Banco_VivesBank_CuentaControllerAdmin.html", "cl": 121, "ucl": 0, "cal": 121, "tl": 366, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Dto.CuentaRequest", "rp": "Banco_VivesBank_CuentaRequest.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Dto.CuentaResponse", "rp": "Banco_VivesBank_CuentaResponse.html", "cl": 9, "ucl": 0, "cal": 9, "tl": 55, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaException", "rp": "Banco_VivesBank_CuentaException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 3, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaIbanException", "rp": "Banco_VivesBank_CuentaIbanException.html", "cl": 0, "ucl": 1, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaIbanException", "rp": "Banco_VivesBank_CuentaIbanException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaInvalidaException", "rp": "Banco_VivesBank_CuentaInvalidaException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 3, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaNoPertenecienteAlUsuarioException", "rp": "Banco_VivesBank_CuentaNoPertenecienteAlUsuarioException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 3, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Cuenta.Exceptions.CuentaNotFoundException", "rp": "Banco_VivesBank_CuentaNotFoundException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 3, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -322,7 +322,7 @@ var assemblies = [
       { "name": "Banco_VivesBank.Producto.Tarjeta.Models.Tarjeta", "rp": "Banco_VivesBank_Tarjeta.html", "cl": 12, "ucl": 0, "cal": 12, "tl": 94, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Producto.Tarjeta.Services.TarjetaService", "rp": "Banco_VivesBank_TarjetaService.html", "cl": 159, "ucl": 80, "cal": 239, "tl": 427, "cb": 20, "tb": 40, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Ftp.Exceptions.FtpException", "rp": "Banco_VivesBank_FtpException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Banco_VivesBank.Storage.Ftp.Service.FtpService", "rp": "Banco_VivesBank_FtpService.html", "cl": 106, "ucl": 4, "cal": 110, "tl": 201, "cb": 7, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Banco_VivesBank.Storage.Ftp.Service.FtpService", "rp": "Banco_VivesBank_FtpService.html", "cl": 102, "ucl": 8, "cal": 110, "tl": 201, "cb": 7, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Images.Exceptions.FileStorageException", "rp": "Banco_VivesBank_FileStorageException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Images.Exceptions.FileStorageNotFoundException", "rp": "Banco_VivesBank_FileStorageNotFoundException.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "Banco_VivesBank.Storage.Images.Service.FileStorageService", "rp": "Banco_VivesBank_FileStorageService.html", "cl": 56, "ucl": 1, "cal": 57, "tl": 119, "cb": 11, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -397,12 +397,6 @@ var riskHotspots = [
       { "value": 26, "exceeded": true },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "reportPath": "Banco_VivesBank_MovimientoService.html", "methodName": "GetByGuidAsync()", "methodShortName": "GetByGuidAsync()", "fileIndex": 0, "line": 65,
-    "metrics": [
-      { "value": 600, "exceeded": true },
-      { "value": 24, "exceeded": true },
-    ]},
-  {
     "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Storage.Zip.Services.BackupService", "reportPath": "Banco_VivesBank_BackupService.html", "methodName": "ImportFromZip()", "methodShortName": "ImportFromZip()", "fileIndex": 0, "line": 193,
     "metrics": [
       { "value": 382, "exceeded": true },
@@ -427,28 +421,10 @@ var riskHotspots = [
       { "value": 10, "exceeded": false },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "reportPath": "Banco_VivesBank_DomiciliacionService.html", "methodName": "DesactivateMyDomiciliacionAsync()", "methodShortName": "DesactivateMyDomiciliacionAsync()", "fileIndex": 0, "line": 275,
-    "metrics": [
-      { "value": 110, "exceeded": true },
-      { "value": 10, "exceeded": false },
-    ]},
-  {
-    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "reportPath": "Banco_VivesBank_MovimientoService.html", "methodName": "CreatePagoConTarjetaAsync()", "methodShortName": "CreatePagoConTarjetaAsync()", "fileIndex": 0, "line": 243,
-    "metrics": [
-      { "value": 110, "exceeded": true },
-      { "value": 10, "exceeded": false },
-    ]},
-  {
     "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Producto.Tarjeta.Controllers.TarjetaController", "reportPath": "Banco_VivesBank_TarjetaController.html", "methodName": "UpdateTarjeta()", "methodShortName": "UpdateTarjeta()", "fileIndex": 0, "line": 148,
     "metrics": [
       { "value": 110, "exceeded": true },
       { "value": 10, "exceeded": false },
-    ]},
-  {
-    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "reportPath": "Banco_VivesBank_DomiciliacionService.html", "methodName": "CreateAsync()", "methodShortName": "CreateAsync()", "fileIndex": 0, "line": 112,
-    "metrics": [
-      { "value": 89, "exceeded": true },
-      { "value": 12, "exceeded": false },
     ]},
   {
     "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "reportPath": "Banco_VivesBank_DomiciliacionService.html", "methodName": "GetByGuidAsync()", "methodShortName": "GetByGuidAsync()", "fileIndex": 0, "line": 56,
@@ -475,12 +451,6 @@ var riskHotspots = [
       { "value": 8, "exceeded": false },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "reportPath": "Banco_VivesBank_MovimientoService.html", "methodName": "CreateIngresoNominaAsync()", "methodShortName": "CreateIngresoNominaAsync()", "fileIndex": 0, "line": 168,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
     "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Websockets.WebSocketHandler", "reportPath": "Banco_VivesBank_WebSocketHandler.html", "methodName": "CloseConnection()", "methodShortName": "CloseConnection()", "fileIndex": 0, "line": 75,
     "metrics": [
       { "value": 42, "exceeded": true },
@@ -505,16 +475,22 @@ var riskHotspots = [
       { "value": 6, "exceeded": false },
     ]},
   {
-    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "reportPath": "Banco_VivesBank_DomiciliacionService.html", "methodName": "DesactivateDomiciliacionAsync()", "methodShortName": "DesactivateDomiciliacionAsync()", "fileIndex": 0, "line": 216,
+    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Domiciliaciones.DomiciliacionService", "reportPath": "Banco_VivesBank_DomiciliacionService.html", "methodName": "DesactivateMyDomiciliacionAsync()", "methodShortName": "DesactivateMyDomiciliacionAsync()", "fileIndex": 0, "line": 275,
     "metrics": [
-      { "value": 39, "exceeded": true },
-      { "value": 8, "exceeded": false },
+      { "value": 40, "exceeded": true },
+      { "value": 10, "exceeded": false },
     ]},
   {
     "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Cliente.Services.ClienteService", "reportPath": "Banco_VivesBank_ClienteService.html", "methodName": "GetAllPagedAsync()", "methodShortName": "GetAllPagedAsync()", "fileIndex": 0, "line": 64,
     "metrics": [
       { "value": 30, "exceeded": false },
       { "value": 26, "exceeded": true },
+    ]},
+  {
+    "assembly": "Banco_VivesBank", "class": "Banco_VivesBank.Movimientos.Services.Movimientos.MovimientoService", "reportPath": "Banco_VivesBank_MovimientoService.html", "methodName": "GetByGuidAsync()", "methodShortName": "GetByGuidAsync()", "fileIndex": 0, "line": 65,
+    "metrics": [
+      { "value": 25, "exceeded": false },
+      { "value": 24, "exceeded": true },
     ]},
 ];
 
