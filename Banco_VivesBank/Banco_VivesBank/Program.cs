@@ -4,6 +4,7 @@ using System.Text;
 using Banco_VivesBank.Cliente.Services;
 using Banco_VivesBank.Config.Storage.Ftp;
 using Banco_VivesBank.Database;
+using Banco_VivesBank.Frankfurter.Services;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
 using Banco_VivesBank.Movimientos.Scheduler;
@@ -161,6 +162,8 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<IStorageProductos, StorageProductos>();
     myBuilder.Services.AddScoped<IBackupService, BackupService>();
     myBuilder.Services.AddScoped<IStorageJson, StorageJson>();
+    myBuilder.Services.AddHttpClient();
+    myBuilder.Services.AddScoped<IDivisasService, DivisasService>();
     myBuilder.Services.AddScoped<PaginationLinksUtils>();
     myBuilder.Services.AddScoped<DomiciliacionScheduler>();
     myBuilder.Services.AddScoped<DomiciliacionJob>();

@@ -166,7 +166,7 @@ public class ProductoController : ControllerBase
     /// <response code="400">En caso de errores con el archivo CSV o si no se pueden importar productos.</response>
     /// <response code="500">Cuando ocurre un error interno durante el procesamiento del archivo.</response>
     [HttpPost("import")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<ProductoResponse>>> ImportFromCsv(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -203,13 +203,24 @@ public class ProductoController : ControllerBase
                     IsDeleted = false
                 };
 
-                var response = await _productoService.CreateAsync(request);
-                responses.Add(response);
+                try
+                {
+                    var response = await _productoService.CreateAsync(request);
+                    responses.Add(response);
+                }
+                catch (ProductoExistByNameException ex)
+                {
+                    _logger.LogWarning($"El producto '{product.Nombre}' ya existe, omitiendo...");
+                }
+                catch (ProductoDuplicatedException ex)
+                {
+                    _logger.LogWarning($"El producto con tipo '{product.TipoProducto}' ya existe, omitiendo...");
+                }
             }
 
             if (fileInfo.Exists)
             {
-                fileInfo.Delete(); 
+                fileInfo.Delete();
             }
 
             return Ok(responses);
@@ -219,7 +230,6 @@ public class ProductoController : ControllerBase
             return StatusCode(500, $"Error al procesar el archivo: {ex.Message}");
         }
     }
-
     /// <summary>
     /// Exporta todos los productos del sistema a un archivo CSV.
     /// </summary>
@@ -227,7 +237,7 @@ public class ProductoController : ControllerBase
     /// <response code="200">Devuelve el archivo CSV con los productos exportados.</response>
     /// <response code="500">Cuando ocurre un error interno al exportar los productos.</response>
     [HttpGet("export")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportToCsv()
     {
         try
