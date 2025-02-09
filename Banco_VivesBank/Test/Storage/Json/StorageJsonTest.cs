@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.Storage.Json.Exceptions;
+﻿using System.Reactive.Linq;
+using Banco_VivesBank.Storage.Json.Exceptions;
 using Banco_VivesBank.Storage.Json.Service;
 using Banco_VivesBank.User.Models;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,7 @@ public class StorageJsonTest
     }
 
     [Test]
-    public void ImportJson()
+    public async Task ImportJson()
     {
         var path = Path.Combine(Path.GetTempPath(), "testImport.json");
         var file = new FileInfo(path);
@@ -61,7 +62,7 @@ public class StorageJsonTest
 
         var data = new List<Banco_VivesBank.User.Models.User> { data1, data2 };
 
-        _storageJson.ExportJson(file, data);
+        await _storageJson.ExportJson(file, data);
 
         Assert.That(File.Exists(file.FullName), Is.True);
         
@@ -92,7 +93,7 @@ public class StorageJsonTest
 
         File.WriteAllText(path, "{ json invalido }");
 
-        var exception = Assert.Throws<JsonReadException>(() => _storageJson.ImportJson<Banco_VivesBank.User.Models.User>(file));
+        var exception = Assert.Throws<JsonReadException>(() => _storageJson.ImportJson<Banco_VivesBank.User.Models.User>(file).ToList().Wait());
         Assert.That(exception.Message, Is.EqualTo("Error al procesar el archivo JSON de User."));
     }
 
@@ -102,13 +103,13 @@ public class StorageJsonTest
         var path = Path.Combine(Path.GetTempPath(), "inexistente.json");
         var file = new FileInfo(path);
 
-        var exception = Assert.Throws<JsonNotFoundException>(() => _storageJson.ImportJson<Banco_VivesBank.User.Models.User>(file));
+        var exception = Assert.Throws<JsonNotFoundException>(() => _storageJson.ImportJson<Banco_VivesBank.User.Models.User>(file).ToList().Wait());
 
         Assert.That(exception.Message, Is.EqualTo("No se encontró el archivo para leer los datos de User."));
     }
     
     [Test]
-    public void ExportJson()
+    public async Task ExportJson()
     {
         var path = Path.Combine(Path.GetTempPath(), "testExport.json");
         var file = new FileInfo(path);
@@ -139,7 +140,7 @@ public class StorageJsonTest
         
         var data = new List<Banco_VivesBank.User.Models.User>{data1, data2};
         
-        _storageJson.ExportJson(file, data);
+        await _storageJson.ExportJson(file, data);
         
         Assert.That(File.Exists(path), Is.True);
         
@@ -152,12 +153,12 @@ public class StorageJsonTest
     }
     
     [Test]
-    public void ExportJsonErrorSerializacion()
+    public async Task ExportJsonErrorSerializacion()
     {
         var fileInfo = new FileInfo("path/to/file.json");
         var data = new List<object> { new { Property = "value" } };
         
-        var exception = Assert.Throws<JsonStorageException>(() => _storageJson.ExportJson(fileInfo, data));
+        var exception = Assert.ThrowsAsync<JsonStorageException>(() => _storageJson.ExportJson(fileInfo, data));
         Assert.That(exception.Message, Is.EqualTo("Ocurrió un error inesperado al guardar el archivo."));
     }
 }
