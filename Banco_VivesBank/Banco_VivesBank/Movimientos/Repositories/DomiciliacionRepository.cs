@@ -32,12 +32,18 @@ public class DomiciliacionRepository : IDomiciliacionRepository
         return await _collection.FindAsync(d => d.Activa).Result.ToListAsync();
     }
 
-    public async Task<Domiciliacion> GetDomiciliacionByIdAsync(string id)
+    public async Task<Domiciliacion?> GetDomiciliacionByIdAsync(string id)
     {
         _logger.LogInformation($"Getting direct debit with id {id} from the database.");
-        return await _collection.FindAsync(d => d.Id == id).Result.FirstOrDefaultAsync();
+        return await _collection.Find(d => d.Id == id).FirstOrDefaultAsync();
     }
-
+    
+    public async Task<Domiciliacion?> GetDomiciliacionByGuidAsync(string guid)
+    {
+        _logger.LogInformation($"Getting direct debit with guid {guid} from the database.");
+        return await _collection.Find(d => d.Guid == guid).FirstOrDefaultAsync();
+    }
+    
     public async Task<Domiciliacion> AddDomiciliacionAsync(Domiciliacion domiciliacion)
     {
         _logger.LogInformation($"Adding a new direct debit to the database: {domiciliacion}");
@@ -68,7 +74,7 @@ public class DomiciliacionRepository : IDomiciliacionRepository
         return await _collection.FindAsync(d => d.ClienteGuid == clienteGuid && d.Activa).Result.ToListAsync();
     }
 
-    public async Task<List<Domiciliacion>> GetDomiciliacionByClientGuidAsync(string clientGuid)
+    public async Task<List<Domiciliacion>> GetDomiciliacionesByClientGuidAsync(string clientGuid)
     {
         _logger.LogInformation($"Getting direct debits for client with guid {clientGuid}.");
         return await _collection.FindAsync(d => d.ClienteGuid == clientGuid).Result.ToListAsync();

@@ -86,7 +86,8 @@ public class DomiciliacionService : IDomiciliacionService
         }
         
         _logger.LogInformation($"Buscando domiciliación con guid {domiciliacionGuid} en la base de datos");
-        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+//        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        var domiciliacion = await _domiciliacionRepository.GetDomiciliacionByGuidAsync(domiciliacionGuid);
         if (domiciliacion != null)
         {
             _logger.LogInformation($"Encontrada domiciliacion con guid {domiciliacionGuid} en la base de datos");
@@ -100,7 +101,8 @@ public class DomiciliacionService : IDomiciliacionService
     public async Task<IEnumerable<DomiciliacionResponse>> GetByClienteGuidAsync(string clienteGuid)
     {
         _logger.LogInformation($"Buscando todas las domiciliaciones del cliente con guid: {clienteGuid}");
-        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
+        //var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
+        var domiciliaciones = await _domiciliacionRepository.GetDomiciliacionesByClientGuidAsync(clienteGuid);
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
@@ -108,7 +110,8 @@ public class DomiciliacionService : IDomiciliacionService
     {
         _logger.LogInformation($"Buscando todas las domiciliaciones del cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
-        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
+        //var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
+        var domiciliaciones = await _domiciliacionRepository.GetDomiciliacionesByClientGuidAsync(cliente!.Guid);
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
