@@ -7,6 +7,7 @@ using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Mapper;
 using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Movimientos.Repositories;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
@@ -21,6 +22,7 @@ namespace Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 
 public class DomiciliacionService : IDomiciliacionService
 {
+    private readonly IDomiciliacionRepository _domiciliacionRepository;
     private readonly IMongoCollection<Domiciliacion> _domiciliacionCollection;
     private readonly ILogger<DomiciliacionService> _logger;
     private readonly IClienteService _clienteService;
@@ -31,9 +33,10 @@ public class DomiciliacionService : IDomiciliacionService
     private readonly IMovimientoService _movimientoService;
     private const string CacheKeyPrefix = "Domiciliaciones:";
 
-    public DomiciliacionService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<DomiciliacionService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, IConnectionMultiplexer redis, IMemoryCache memoryCache, IMovimientoService movimientoService)
+    public DomiciliacionService(IDomiciliacionRepository domiciliacionRepository, IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<DomiciliacionService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, IConnectionMultiplexer redis, IMemoryCache memoryCache, IMovimientoService movimientoService)
     {
         _logger = logger;
+        _domiciliacionRepository = domiciliacionRepository;
         _clienteService = clienteService;
         _cuentaService = cuentaService;
         _context = context;
@@ -48,7 +51,8 @@ public class DomiciliacionService : IDomiciliacionService
     public async Task<IEnumerable<DomiciliacionResponse>> GetAllAsync()
     {
         _logger.LogInformation("Buscando todas las domiciliaciones en la base de datos");
-        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+//        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+        var domiciliaciones = await _domiciliacionRepository.GetAllDomiciliacionesAsync();
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
