@@ -191,7 +191,8 @@ public class DomiciliacionService : IDomiciliacionService
             Activa = domiciliacionRequest.Activa
         };
         
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        //await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        await _domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
         _logger.LogInformation("Domiciliación realizada con éxito");
         
         var cacheKey = CacheKeyPrefix + domiciliacion.Guid;
@@ -249,16 +250,18 @@ public class DomiciliacionService : IDomiciliacionService
         }
 
         // Intentar obtener de la base de datos
-        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        //var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        var domiciliacion = await _domiciliacionRepository.GetDomiciliacionByGuidAsync(domiciliacionGuid);
 
         if (domiciliacion == null)
         {
             _logger.LogInformation($"No se ha encontrado la domiciliacion con guid {domiciliacionGuid}");
             return null;
         }
-        
+
         domiciliacion.Activa = false;
-        await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        //await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        await _domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
         
         // Eliminar de la memoria caché y de redis
         _memoryCache.Remove(cacheKey);
@@ -308,7 +311,8 @@ public class DomiciliacionService : IDomiciliacionService
         }
 
         // Intentar obtener de la base de datos
-        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        //var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        var domiciliacion = await _domiciliacionRepository.GetDomiciliacionByGuidAsync(domiciliacionGuid);
 
         if (domiciliacion == null)
         {
@@ -325,8 +329,9 @@ public class DomiciliacionService : IDomiciliacionService
         }
         
         domiciliacion.Activa = false;
-        await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
-        
+        //await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        await _domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
+
         // Eliminar de la memoria caché y de redis
         _memoryCache.Remove(cacheKey);
         await _redisDatabase.KeyDeleteAsync(cacheKey);
