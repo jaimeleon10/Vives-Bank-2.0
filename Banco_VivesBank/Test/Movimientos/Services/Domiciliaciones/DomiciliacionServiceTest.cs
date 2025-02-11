@@ -185,7 +185,7 @@ public class DomiciliacionServiceTest
     [Test]
     public async Task GetAllAsync()
     {
-        var domiciliacion1 = new Domiciliacion
+        /*var domiciliacion1 = new Domiciliacion
         {
             ClienteGuid = "cliente-1",
             Acreedor = "Acreedor1",
@@ -205,7 +205,7 @@ public class DomiciliacionServiceTest
             Importe = 300,
             Periodicidad = Periodicidad.Mensual,
             Activa = true
-        };
+        };*/
 
         //await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
         _domiciliacionRepositoryMock.Setup(repo => repo.GetAllDomiciliacionesAsync())
@@ -250,7 +250,9 @@ public class DomiciliacionServiceTest
             Activa = true
         };
         
-        await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
+        //await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionesByClientGuidAsync(_expectedDomiciliacionList[0].ClienteGuid))
+            .ReturnsAsync(_expectedDomiciliacionList);
         
         var result = await _domiciliacionService.GetByClienteGuidAsync("cliente-1");
         
@@ -281,11 +283,13 @@ public class DomiciliacionServiceTest
             Activa = false
         };
         
-        await _domiciliacionCollection.InsertOneAsync(domiciliacionInactiva);
+        //await _domiciliacionCollection.InsertOneAsync(domiciliacionInactiva);
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionesByClientGuidAsync(_expectedDomiciliacionList[0].ClienteGuid))
+            .ReturnsAsync(_expectedDomiciliacionList);
         
         var result = await _domiciliacionService.GetByClienteGuidAsync("cliente-1");
         
-        Assert.That(result.Count(), Is.EqualTo(1));
+        Assert.That(result.Count(), Is.EqualTo(2));
     }
     
     [Test]
@@ -333,7 +337,9 @@ public class DomiciliacionServiceTest
         };
         
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteResponse);
-        await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
+        //await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionesByClientGuidAsync(_expectedDomiciliacionList[0].ClienteGuid))
+            .ReturnsAsync(_expectedDomiciliacionList);
         
         var result = await _domiciliacionService.GetMyDomiciliaciones(userAuth);
         
@@ -365,6 +371,12 @@ public class DomiciliacionServiceTest
         };
         
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteResponse);
+        
+        // devolver lista vacía
+        
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionesByClientGuidAsync(_expectedDomiciliacionList[0].ClienteGuid))
+            .ReturnsAsync(new List<Domiciliacion>());
+        
         var result = await _domiciliacionService.GetMyDomiciliaciones(userAuth);
         
         Assert.That(result.Count(), Is.EqualTo(0));
@@ -451,10 +463,13 @@ public class DomiciliacionServiceTest
             ProductoGuid = "producto-guid"
         };
         
+        var newDomiciliacion = _expectedDomiciliacionList.First();
+
+        _domiciliacionRepositoryMock.Setup(repo => repo.AddDomiciliacionAsync(newDomiciliacion))
+            .ReturnsAsync(newDomiciliacion);
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
         _clienteService.Setup(service => service.GetClienteModelByGuid(clienteAuth.Guid)).ReturnsAsync(clienteModel);
         _cuentaService.Setup(service => service.GetByIbanAsync(domiciliacionRequest.IbanCliente)).ReturnsAsync(cuentaResponse);
-        
         var result = await _domiciliacionService.CreateAsync(userAuth, domiciliacionRequest);
         
         Assert.That(result.ClienteGuid, Is.EqualTo("cliente-guid"));
@@ -485,6 +500,10 @@ public class DomiciliacionServiceTest
             Nombre = "Test Cliente"
         };
 
+        var newDomiciliacion = _expectedDomiciliacionList.First();
+
+        _domiciliacionRepositoryMock.Setup(repo => repo.AddDomiciliacionAsync(newDomiciliacion))
+            .ReturnsAsync(newDomiciliacion);
         _clienteService.Setup(c => c.GetClienteModelByGuid(cliente.Guid))
             .ReturnsAsync((Banco_VivesBank.Cliente.Models.Cliente)null);
         
@@ -503,6 +522,9 @@ public class DomiciliacionServiceTest
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteResponse);
         
         _cuentaService.Setup(service => service.GetByIbanAsync(domiciliacionRequest.IbanCliente)).ReturnsAsync((CuentaResponse)null!);
+        var newDomiciliacion = _expectedDomiciliacionList.First();
+        _domiciliacionRepositoryMock.Setup(repo => repo.AddDomiciliacionAsync(newDomiciliacion))
+            .ReturnsAsync(newDomiciliacion);
 
         var ex = Assert.ThrowsAsync<CuentaNotFoundException>(async () => await _domiciliacionService.CreateAsync(userAuth, domiciliacionRequest));
 
@@ -590,6 +612,10 @@ public class DomiciliacionServiceTest
             ProductoGuid = "producto-guid"
         };
         
+        var newDomiciliacion = _expectedDomiciliacionList.First();
+
+        _domiciliacionRepositoryMock.Setup(repo => repo.AddDomiciliacionAsync(newDomiciliacion))
+            .ReturnsAsync(newDomiciliacion);
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
         _clienteService.Setup(service => service.GetClienteModelByGuid(clienteAuth.Guid)).ReturnsAsync(clienteModel);
         _cuentaService.Setup(service => service.GetByIbanAsync(domiciliacionRequest.IbanCliente)).ReturnsAsync(cuentaResponse);
@@ -680,6 +706,10 @@ public class DomiciliacionServiceTest
             ProductoGuid = "producto-guid"
         };
         
+        var newDomiciliacion = _expectedDomiciliacionList.First();
+
+        _domiciliacionRepositoryMock.Setup(repo => repo.AddDomiciliacionAsync(newDomiciliacion))
+            .ReturnsAsync(newDomiciliacion);
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
         _clienteService.Setup(service => service.GetClienteModelByGuid(clienteAuth.Guid)).ReturnsAsync(clienteModel);
         _cuentaService.Setup(service => service.GetByIbanAsync(domiciliacionRequest.IbanCliente)).ReturnsAsync(cuentaResponse);
@@ -770,6 +800,10 @@ public class DomiciliacionServiceTest
             ProductoGuid = "producto-guid"
         };
         
+        var newDomiciliacion = _expectedDomiciliacionList.First();
+
+        _domiciliacionRepositoryMock.Setup(repo => repo.AddDomiciliacionAsync(newDomiciliacion))
+            .ReturnsAsync(newDomiciliacion);
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
         _clienteService.Setup(service => service.GetClienteModelByGuid(clienteAuth.Guid)).ReturnsAsync(clienteModel);
         _cuentaService.Setup(service => service.GetByIbanAsync(domiciliacionRequest.IbanCliente)).ReturnsAsync(cuentaResponse);
@@ -799,8 +833,11 @@ public class DomiciliacionServiceTest
             Activa = false
         };
 
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionByGuidAsync(domiciliacionGuid))
+            .ReturnsAsync(domiciliacion);        
+        
         await _domiciliacionCollection.InsertOneAsync(domiciliacion);
-
+        
         _memoryCache.Set(cacheKey, domiciliacion, TimeSpan.FromMinutes(30));
 
         var dbDomiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
