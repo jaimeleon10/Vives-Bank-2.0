@@ -416,6 +416,14 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Usuario borrado (desactivado) con id: {guid}");
             return userExistenteEntity.ToResponseFromEntity();
         }
+
+        public Task DeleteMeAsUserAsync()
+        {
+            _logger.LogInformation("Deleting the user logged in the system");
+            var user = GetAuthenticatedUser() ?? throw new UserNotFoundException("No se ha encontrado usuario con los credenciales introducidos al sistema");
+            return DeleteByGuidAsync(user.Guid);
+        }
+
         /// <summary>
         /// Autenticación de un usuario.
         /// </summary>

@@ -22,6 +22,7 @@ public interface IUserService
     public Task<UserResponse> UpdatePasswordAsync(Models.User user, UpdatePasswordRequest updatePasswordRequest);
     
     public Task<UserResponse?> DeleteByGuidAsync(string guid);
+    public Task DeleteMeAsUserAsync();
     
     string Authenticate(string username, string password);
     Models.User? GetAuthenticatedUser();

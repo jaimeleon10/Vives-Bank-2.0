@@ -248,4 +248,15 @@ public class UserController : ControllerBase
         if (userResponse is null) return NotFound(new { message = $"No se ha podido borrar el usuario con guid: {guid}"}); 
         return Ok(userResponse);
     }
+
+    [HttpDelete("/me")]
+    [Authorize(Policy = "UserPolicy")]
+    public async Task<ActionResult> DeleteMe()
+    {
+        var userAuth = _userService.GetAuthenticatedUser();
+        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
+
+        var userResponse = await _userService.DeleteByGuidAsync(userAuth.Guid);
+        return Ok(userResponse);
+    }
 }
