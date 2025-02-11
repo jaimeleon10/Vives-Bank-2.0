@@ -147,8 +147,8 @@ namespace Banco_VivesBank.User.Service
 
             // Consultar la base de datos
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
-            if (userEntity != null)
-            {
+            if (userEntity == null) throw new UserNotFoundException($"Usuario no encontrado con guid: {guid}");
+           
                 _logger.LogInformation($"Usuario encontrado con guid: {guid}");
 
                 // Mapear entidad a modelo y respuesta
@@ -163,10 +163,6 @@ namespace Banco_VivesBank.User.Service
                 await _redisDatabase.StringSetAsync(cacheKey, redisValue, TimeSpan.FromMinutes(30));
 
                 return userResponse;
-            }
-
-            _logger.LogInformation($"Usuario no encontrado con guid: {guid}");
-            return null;
         }
 
         /// <summary>
@@ -181,14 +177,11 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
 
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
-            if (userEntity != null)
-            {
+            if (userEntity == null) throw new UserNotFoundException($"Usuario no encontrado con nombre de usuario: {username}");
+            
                 _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
                 return userEntity.ToResponseFromEntity();
-            }
-
-            _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
-            return null;
+                
         }
         /// <summary>
         /// Búsqueda de un usuario por su nombre de usuario.
@@ -232,14 +225,10 @@ namespace Banco_VivesBank.User.Service
             _logger.LogInformation($"Buscando usuario con guid: {userAuth.Guid}");
 
             var userEntity = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == userAuth.Guid);
-            if (userEntity != null)
-            {
+            if (userEntity == null) throw new UserNotFoundException($"Usuario no encontrado con guid: {userAuth.Guid}");
+            
                 _logger.LogInformation($"Usuario encontrado con guid: {userAuth.Guid}");
                 return userEntity.ToResponseFromEntity();
-            }
-
-            _logger.LogInformation($"Usuario no encontrado con id: {userAuth.Guid}");
-            return null;
         }
         /// <summary>
         /// Creación de un usuario.
@@ -327,11 +316,7 @@ namespace Banco_VivesBank.User.Service
 
             var userEntityExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
             
-            if (userEntityExistente == null)
-            {
-                _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
-                return null;
-            }
+            if (userEntityExistente == null) throw new UserNotFoundException($"Usuario no encontrado con guid: {guid}");
 
             userEntityExistente.Role = Enum.Parse<Role>(userRequestUpdate.Role, true);
             userEntityExistente.UpdatedAt = DateTime.UtcNow;
@@ -450,19 +435,17 @@ namespace Banco_VivesBank.User.Service
             if (string.IsNullOrEmpty(username))
             {
                 _logger.LogWarning("No se ha encontrado el nombre de usuario en el contexto de seguridad");
+                // crear nueva excepción personalizada y no devolver null
                 return null;
             }
 
             _logger.LogInformation($"Buscando usuario con nombre de usuario: {username}");
             var userEntity = _context.Usuarios.AsNoTracking().FirstOrDefault(u => u.Username.ToLower() == username.ToLower());
-            if (userEntity != null)
-            {
+            if (userEntity == null) throw new UserNotFoundException($"Usuario no encontrado con nombre de usuario: {username}");
+            
                 _logger.LogInformation($"Usuario encontrado con nombre de usuario: {username}");
                 return userEntity.ToModelFromEntity();
-            }
-
-            _logger.LogInformation($"Usuario no encontrado con nombre de usuario: {username}");
-            return null;
+                
         }
     }
 }
