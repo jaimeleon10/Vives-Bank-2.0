@@ -46,6 +46,7 @@ public class DomiciliacionServiceTest
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _redisDatabase;
     private Mock<IDomiciliacionRepository> _domiciliacionRepositoryMock;
+    private List<Domiciliacion> _expectedDomiciliacionList;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -122,6 +123,30 @@ public class DomiciliacionServiceTest
             _memoryCache,
             _movimientoService.Object
         );
+        _expectedDomiciliacionList = new List<Domiciliacion>
+        {
+            new Domiciliacion
+            {
+                ClienteGuid = "cliente-1",
+                Acreedor = "Acreedor1",
+                IbanEmpresa = "ES1234567890123456789012",
+                IbanCliente = "ES9876543210987654321098",
+                Importe = 200,
+                Periodicidad = Periodicidad.Mensual,
+                Activa = true
+            },
+            new Domiciliacion
+            {
+                ClienteGuid = "cliente-2",
+                Acreedor = "Acreedor2",
+                IbanEmpresa = "ES2345678901234567890123",
+                IbanCliente = "ES8765432109876543210987",
+                Importe = 300,
+                Periodicidad = Periodicidad.Mensual,
+                Activa = true
+            }
+        };
+
     }
     
     [SetUp]
@@ -182,7 +207,9 @@ public class DomiciliacionServiceTest
             Activa = true
         };
 
-        await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
+        //await _domiciliacionCollection.InsertManyAsync(new List<Domiciliacion> { domiciliacion1, domiciliacion2 });
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetAllDomiciliacionesAsync())
+            .ReturnsAsync(_expectedDomiciliacionList);
         
         var result = await _domiciliacionService.GetAllAsync();
         
