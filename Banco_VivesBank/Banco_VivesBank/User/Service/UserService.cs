@@ -366,7 +366,7 @@ namespace Banco_VivesBank.User.Service
             if (userExistenteEntity == null)
             {
                 _logger.LogWarning($"Usuario no encontrado con guid: {guid}");
-                return null;
+                throw new UserNotFoundException($"Usuario no encontrado con guid: {guid}");
             }
 
             userExistenteEntity.IsDeleted = true;
@@ -375,31 +375,33 @@ namespace Banco_VivesBank.User.Service
         
             _logger.LogInformation($"Desactivando cliente, cuentas y tarjetas pertenecientes al usuario con guid {userExistenteEntity.Guid}");
             var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == guid);
-            if (clienteExistenteEntity == null)
+            if (clienteExistenteEntity != null)
             {
-                _logger.LogWarning($"Cliente no encontrado para el usuario con guid: {guid}");
-                throw new ClienteNotFoundException($"Cliente no encontrado para el usuario con guid: {guid}");
+                clienteExistenteEntity.IsDeleted = true;
+                clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
+                _context.Clientes.Update(clienteExistenteEntity);
             }
-
-            clienteExistenteEntity.IsDeleted = true;
-            clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
-            _context.Clientes.Update(clienteExistenteEntity);
-            
             var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
-            foreach (var cuenta in cuentas)
+            if (cuentas.Any())
             {
-                cuenta.IsDeleted = true;
-                cuenta.UpdatedAt = DateTime.UtcNow;
-                _context.Cuentas.Update(cuenta);
+                foreach (var cuenta in cuentas)
+                {
+                    if (cuenta.Saldo > 0)
+                    {
+                        throw new InvalidOperationException("No se puede desactivar una cuenta con saldo");
+                    }
+                    cuenta.IsDeleted = true;
+                    cuenta.UpdatedAt = DateTime.UtcNow;
+                    _context.Cuentas.Update(cuenta);
 
-                if (cuenta.TarjetaId == null) continue;
-                var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
-                tarjetaExistente!.IsDeleted = true;
-                tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
-            
-                _context.Tarjetas.Update(tarjetaExistente);
+                    if (cuenta.TarjetaId == null) continue;
+                    var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+                    tarjetaExistente!.IsDeleted = true;
+                    tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
+                
+                    _context.Tarjetas.Update(tarjetaExistente);
+                }
             }
-        
             _logger.LogInformation("Guardando todos los cambios en la base de datos");
             await _context.SaveChangesAsync();
 
