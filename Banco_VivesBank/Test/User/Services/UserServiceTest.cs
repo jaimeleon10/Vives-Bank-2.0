@@ -243,13 +243,18 @@ public class UserServiceTest
    }
 
    
-    [Test]
-    public async Task GetByGuidAsync_NotFound()
-    {
-        var result = await _userService.GetByGuidAsync("nonexistent-guid");
+   [Test]
+   public async Task GetByGuidAsync_NotFound()
+   {
+       var guid = "nonexistent-guid";
+    
+       var exception = Assert.ThrowsAsync<UserNotFoundException>(async () => 
+           await _userService.GetByGuidAsync(guid)
+       );
+    
+       Assert.That(exception.Message, Is.EqualTo($"Usuario no encontrado con guid: {guid}"));
+   }
 
-        Assert.That(result, Is.Null);
-    }
     
 
 
@@ -280,10 +285,15 @@ public class UserServiceTest
     [Test]
     public async Task GetByUsername_NotFound()
     {
-        var result = await _userService.GetByUsernameAsync("nonexistent-username");
+        var username = "nonexistent-username";
 
-        Assert.That(result, Is.Null);
+        var exception = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+            await _userService.GetByUsernameAsync(username)
+        );
+
+        Assert.That(exception.Message, Is.EqualTo($"Usuario no encontrado con nombre de usuario: {username}"));
     }
+
     
     [Test]
     public async Task GetUserModelByGuidAsync_Successfully()
@@ -519,15 +529,17 @@ public class UserServiceTest
        var nonExistentGuid = Guid.NewGuid().ToString();
        var userRequestUpdate = new UserRequestUpdate
        {
-           
            Role = "User",
            IsDeleted = false
        };
 
-       var result = await _userService.UpdateAsync(nonExistentGuid, userRequestUpdate);
+       var exception = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+           await _userService.UpdateAsync(nonExistentGuid, userRequestUpdate)
+       );
 
-       Assert.That(result, Is.Null);
+       Assert.That(exception.Message, Is.EqualTo($"Usuario no encontrado con guid: {nonExistentGuid}"));
    }
+
     
     /*[Test] public async Task Delete()
     {
@@ -593,15 +605,19 @@ public class UserServiceTest
     [Test]
     public void GetAuthenticatedUser_NotFound()
     {
+        // Limpiar la tabla Usuarios
         _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
         _dbContext.SaveChanges();
-    
+
         var username = "username1";
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.Name, username) }));
         _httpContextAccessorMock.Setup(x => x.HttpContext.User).Returns(claimsPrincipal);
-        var result = _userService.GetAuthenticatedUser();
-        Assert.That(result, Is.Null);
+
+        // Verifica que se lance la excepción y valida el mensaje
+        var exception = Assert.Throws<UserNotFoundException>(() => _userService.GetAuthenticatedUser());
+        Assert.That(exception.Message, Is.EqualTo($"Usuario no encontrado con nombre de usuario: {username}"));
     }
+
 
 
 
