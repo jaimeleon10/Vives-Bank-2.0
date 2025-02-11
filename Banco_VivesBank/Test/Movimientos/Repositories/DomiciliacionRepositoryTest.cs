@@ -111,6 +111,33 @@ private MongoDbContainer _mongoDbContainer;
         var result = await _repository.GetDomiciliacionByIdAsync(ObjectId.GenerateNewId().ToString());
         Assert.That(result, Is.Null);
     }
+    
+    [Test]
+    public async Task GetDomiciliacionByGuidAsync()
+    {
+        var domiciliacion = new Domiciliacion
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            Guid = Guid.NewGuid().ToString(),
+            ClienteGuid = Guid.NewGuid().ToString(),
+            Acreedor = "Acreedor Test",
+            IbanCliente = "ES9121000418450200051332",
+            IbanEmpresa = "ES6621000418401234567891",
+            Importe = 100
+        };
+        await _repository.AddDomiciliacionAsync(domiciliacion);
+        var domiciliacionByGuid = await _repository.GetDomiciliacionByGuidAsync(domiciliacion.Guid);
+
+        Assert.That(domiciliacionByGuid, Is.Not.Null);
+        Assert.That(domiciliacionByGuid.Guid, Is.EqualTo(domiciliacion.Guid));
+
+    }
+    [Test]
+    public async Task GetDomiciliacionByGuidAsync_NotFound()
+    {
+        var result = await _repository.GetDomiciliacionByGuidAsync(Guid.NewGuid().ToString());
+        Assert.That(result, Is.Null);
+    }
 
     [Test]
     public async Task AddDomiciliacionAsync()
