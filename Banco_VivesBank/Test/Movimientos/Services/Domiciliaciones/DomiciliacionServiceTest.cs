@@ -21,6 +21,7 @@ using Testcontainers.MongoDb;
 using Banco_VivesBank.Cliente.Dto;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Movimientos.Repositories;
 using Banco_VivesBank.User.Dto;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
@@ -44,6 +45,7 @@ public class DomiciliacionServiceTest
     private IMemoryCache _memoryCache;
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _redisDatabase;
+    private Mock<IDomiciliacionRepository> _domiciliacionRepositoryMock;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -81,6 +83,7 @@ public class DomiciliacionServiceTest
         _memoryCache = new MemoryCache(new MemoryCacheOptions());
         _redis = new Mock<IConnectionMultiplexer>();
         _redisDatabase = new Mock<IDatabase>();
+        _domiciliacionRepositoryMock = new Mock<IDomiciliacionRepository>();
         
         _mongoConfigMock.Setup(x => x.Value).Returns(new MovimientosMongoConfig
         {
@@ -109,6 +112,7 @@ public class DomiciliacionServiceTest
         _redisDatabase.Setup(db => db.StringGetAsync(cacheKey, It.IsAny<CommandFlags>())).ReturnsAsync(simulatedRedisValue);
 
         _domiciliacionService = new DomiciliacionService(
+            _domiciliacionRepositoryMock.Object,
             _mongoConfigMock.Object,    
             _loggerMock.Object,         
             _clienteService.Object,  
