@@ -372,42 +372,49 @@ namespace Banco_VivesBank.User.Service
             userExistenteEntity.IsDeleted = true;
             userExistenteEntity.UpdatedAt = DateTime.UtcNow;
             _context.Usuarios.Update(userExistenteEntity);
-        
+
             _logger.LogInformation($"Desactivando cliente, cuentas y tarjetas pertenecientes al usuario con guid {userExistenteEntity.Guid}");
+
             var clienteExistenteEntity = await _context.Clientes.Include(c => c.User).FirstOrDefaultAsync(c => c.User.Guid == guid);
             if (clienteExistenteEntity != null)
             {
                 clienteExistenteEntity.IsDeleted = true;
                 clienteExistenteEntity.UpdatedAt = DateTime.UtcNow;
                 _context.Clientes.Update(clienteExistenteEntity);
-            }
-            var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
-            if (cuentas.Any())
-            {
-                foreach (var cuenta in cuentas)
-                {
-                    if (cuenta.Saldo > 0)
-                    {
-                        throw new InvalidOperationException("No se puede desactivar una cuenta con saldo");
-                    }
-                    cuenta.IsDeleted = true;
-                    cuenta.UpdatedAt = DateTime.UtcNow;
-                    _context.Cuentas.Update(cuenta);
 
-                    if (cuenta.TarjetaId == null) continue;
-                    var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
-                    tarjetaExistente!.IsDeleted = true;
-                    tarjetaExistente!.UpdatedAt = DateTime.UtcNow;
-                
-                    _context.Tarjetas.Update(tarjetaExistente);
+                var cuentas = await _context.Cuentas.Where(c => c.ClienteId == clienteExistenteEntity.Id).ToListAsync();
+                if (cuentas.Any())
+                {
+                    foreach (var cuenta in cuentas)
+                    {
+                        if (cuenta.Saldo > 0)
+                        {
+                            throw new InvalidOperationException("No se puede desactivar una cuenta con saldo");
+                        }
+                        cuenta.IsDeleted = true;
+                        cuenta.UpdatedAt = DateTime.UtcNow;
+                        _context.Cuentas.Update(cuenta);
+
+                        if (cuenta.TarjetaId != null)
+                        {
+                            var tarjetaExistente = await _context.Tarjetas.FirstOrDefaultAsync(t => t.Id == cuenta.TarjetaId);
+                            if (tarjetaExistente != null)
+                            {
+                                tarjetaExistente.IsDeleted = true;
+                                tarjetaExistente.UpdatedAt = DateTime.UtcNow;
+                                _context.Tarjetas.Update(tarjetaExistente);
+                            }
+                        }
+                    }
                 }
             }
+
             _logger.LogInformation("Guardando todos los cambios en la base de datos");
             await _context.SaveChangesAsync();
 
             var cacheKey = CacheKeyPrefix + userExistenteEntity.Guid;
 
-            // Eliminar de la cache en memoria
+            // Eliminar de la caché en memoria
             _memoryCache.Remove(cacheKey);
 
             // Eliminar de Redis
