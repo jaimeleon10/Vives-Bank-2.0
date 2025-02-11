@@ -25,6 +25,7 @@ using Banco_VivesBank.Swagger.Examples.User;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Auth.Jwt;
+using Banco_VivesBank.Utils.ExceptionMiddleware;
 using Banco_VivesBank.Utils.Pagination;
 using Banco_VivesBank.Websockets;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -119,7 +120,7 @@ app.Map("/ws/api/bancovivesbank", async context =>
 app.MapControllers();
 
 app.MapGraphQL(); // Accesible en /graphql
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 Console.WriteLine($"🕹️ Running service in url: {builder.Configuration["urls"] ?? "not configured"} in mode {environment} 🟢");
 

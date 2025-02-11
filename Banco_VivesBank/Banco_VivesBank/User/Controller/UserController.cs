@@ -24,15 +24,8 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public ActionResult Login([FromBody] LoginRequest loginRequest)
     {
-        try
-        {
             var token = _userService.Authenticate(loginRequest.Username, loginRequest.Password);
             return Ok(new { Token = token });
-        }
-        catch (UnauthorizedAccessException e)
-        {
-            return Unauthorized(new { message = e.Message});
-        }
     }
     /// <summary>
     /// Obtiene todos los usuarios paginados y filtrados por diferentes parámetros.
@@ -57,8 +50,6 @@ public class UserController : ControllerBase
         [FromQuery] string sortBy = "Id",
         [FromQuery] string direction = "asc")
     {
-        try
-        {
             var pageRequest = new PageRequest
             {
                 PageNumber = page,
@@ -66,25 +57,11 @@ public class UserController : ControllerBase
                 SortBy = sortBy,
                 Direction = direction
             };
-
             var pageResult = await _userService.GetAllAsync(username, role, pageRequest);
-
             var baseUri = new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}");
             var linkHeader = _paginationLinksUtils.CreateLinkHeader(pageResult, baseUri);
-
             Response.Headers.Append("link", linkHeader);
-
             return Ok(pageResult);
-        }
-        catch (UserNotFoundException e)
-        {
-            return NotFound(new { message = "No se han encontrado los usuarios.", details = e.Message });
-
-        }
-        catch (Exception e)
-        {
-            return NotFound(new { message = "Ocurrió un error procesando la solicitud.", details = e.Message });
-        }
     }
     /// <summary>
     /// Obtiene un usuario por su guid
@@ -102,9 +79,6 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> GetByGuid(string guid)
     {
         var user = await _userService.GetByGuidAsync(guid);
-
-        if (user is null) return NotFound(new { message = $"No se ha encontrado usuario con guid: {guid}"});
-
         return Ok(user); 
     }
     /// <summary>
@@ -123,12 +97,7 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> GetMe()
     {
         var userAuth = _userService.GetAuthenticatedUser();
-        if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
-        
         var user = await _userService.GetMeAsync(userAuth);
-
-        if (user is null) return NotFound(new { message = $"No se ha encontrado usuario con guid: {userAuth.Guid}"});
-
         return Ok(user); 
     }
     /// <summary>
@@ -147,8 +116,6 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> GetByUsername(string username)
     {
         var user = await _userService.GetByUsernameAsync(username);
-
-        if (user is null) return NotFound(new { message = $"No se ha encontrado usuario con nombre de usuario: {username}"}); 
         return Ok(user); 
     }
     /// <summary>
@@ -168,15 +135,7 @@ public class UserController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-        try
-        {
             return Ok(await _userService.CreateAsync(userRequest));
-        }
-        catch (UserException e)
-        {
-            return BadRequest(new { message = e.Message});
-        }
     }
     /// <summary>
     /// Actualiza un usuario por su guid
@@ -199,7 +158,6 @@ public class UserController : ControllerBase
         }
         
         var userResponse = await _userService.UpdateAsync(guid, userRequest);
-        if (userResponse is null) return NotFound(new { message = $"No se ha podido actualizar el usuario con guid: {guid}"}); 
         return Ok(userResponse);
     }
     /// <summary>
@@ -217,17 +175,9 @@ public class UserController : ControllerBase
     [Authorize(Policy = "ClienteOrUserPolicy")]
     public async Task<ActionResult> UpdateMyPassword([FromBody] UpdatePasswordRequest updatePasswordRequest)
     {
-        try
-        {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return NotFound(new { message = "No se ha podido identificar al usuario logeado"});
             var updatedUser = await _userService.UpdatePasswordAsync(userAuth, updatePasswordRequest);
             return Ok(updatedUser);
-        }
-        catch (UserException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
     }
     /// <summary>
     /// Borra un usuario por su guid
@@ -245,7 +195,6 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserResponse>> DeleteByGuid(string guid)
     {
         var userResponse = await _userService.DeleteByGuidAsync(guid);
-        if (userResponse is null) return NotFound(new { message = $"No se ha podido borrar el usuario con guid: {guid}"}); 
         return Ok(userResponse);
     }
 }
