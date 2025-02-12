@@ -7,6 +7,7 @@ using Banco_VivesBank.Database;
 using Banco_VivesBank.Frankfurter.Services;
 using Banco_VivesBank.GraphQL;
 using Banco_VivesBank.Movimientos.Database;
+using Banco_VivesBank.Movimientos.Repositories;
 using Banco_VivesBank.Movimientos.Scheduler;
 using Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
@@ -168,6 +169,9 @@ WebApplicationBuilder InitServices()
     myBuilder.Services.AddScoped<DomiciliacionScheduler>();
     myBuilder.Services.AddScoped<DomiciliacionJob>();
     myBuilder.Services.AddHttpContextAccessor();
+    myBuilder.Services.AddScoped<IDomiciliacionService, DomiciliacionService>();
+    myBuilder.Services.AddScoped<IDomiciliacionRepository, DomiciliacionRepository>();
+
     
     // Quartz (domiciliaciones)
     myBuilder.Services.AddQuartz(q =>
