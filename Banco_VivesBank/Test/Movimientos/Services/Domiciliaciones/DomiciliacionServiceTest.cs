@@ -221,6 +221,9 @@ public class DomiciliacionServiceTest
     [Test]
     public async Task GetAllAsync_SinDomiciliaciones()
     {
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetAllDomiciliacionesAsync())
+           .ReturnsAsync(new List<Domiciliacion>());
+        
         var result = await _domiciliacionService.GetAllAsync();
         Assert.That(result.Count(), Is.EqualTo(0));
     }
@@ -264,7 +267,8 @@ public class DomiciliacionServiceTest
     [Test]
     public async Task GetByClienteGuidAsync_SinDomiciliaciones()
     {
-       
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionesByClientGuidAsync("cliente-3"))
+            .ReturnsAsync(new List<Domiciliacion>());
         var result = await _domiciliacionService.GetByClienteGuidAsync("cliente-3");
         Assert.That(result.Count(), Is.EqualTo(0));
     }
@@ -901,13 +905,16 @@ public class DomiciliacionServiceTest
             FechaInicio = DateTime.UtcNow,
             UltimaEjecucion = DateTime.UtcNow
         };
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
-
+        
+        //await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        
         var cacheKey = "Domiciliaciones:" + domiciliacion.Guid;
         _memoryCache.Remove(cacheKey);
         
         _redisDatabase.Setup(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync((RedisValue)string.Empty);
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionByGuidAsync(domiciliacion.Guid))
+            .ReturnsAsync(domiciliacion);  
 
         var result = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacion.Guid);
 
@@ -972,7 +979,10 @@ public class DomiciliacionServiceTest
         await _domiciliacionCollection.InsertOneAsync(domiciliacion);
         
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
-
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionByGuidAsync(domiciliacion.Guid))
+            .ReturnsAsync(domiciliacion);  
+        _redisDatabase.Setup(x => x.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync((RedisValue)string.Empty);
         _memoryCache.Set(cacheKey, domiciliacion, TimeSpan.FromMinutes(30));
 
         var dbDomiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
@@ -1068,8 +1078,8 @@ public class DomiciliacionServiceTest
             FechaInicio = DateTime.UtcNow,
             UltimaEjecucion = DateTime.UtcNow
         };
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
-
+        //await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        
         var cacheKey = "Domiciliaciones:" + domiciliacion.Guid;
         _memoryCache.Remove(cacheKey);
         
@@ -1077,7 +1087,9 @@ public class DomiciliacionServiceTest
             .ReturnsAsync((RedisValue)string.Empty);
         
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
-
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionByGuidAsync(domiciliacion.Guid))
+            .ReturnsAsync(domiciliacion);  
+        
         var result = await _domiciliacionService.DesactivateDomiciliacionAsync(domiciliacion.Guid);
 
         Assert.That(result, Is.Not.Null, "El resultado no debe ser nulo");
@@ -1161,7 +1173,7 @@ public class DomiciliacionServiceTest
             FechaInicio = DateTime.UtcNow,
             UltimaEjecucion = DateTime.UtcNow
         };
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        //await _domiciliacionCollection.InsertOneAsync(domiciliacion);
 
         var cacheKey = "Domiciliaciones:" + domiciliacion.Guid;
         _memoryCache.Remove(cacheKey);
@@ -1171,6 +1183,8 @@ public class DomiciliacionServiceTest
         
         _clienteService.Setup(service => service.GetMeAsync(userAuth)).ReturnsAsync(clienteAuth);
 
+        _domiciliacionRepositoryMock.Setup(repo => repo.GetDomiciliacionByGuidAsync(domiciliacion.Guid))
+            .ReturnsAsync(domiciliacion); 
         var ex = Assert.ThrowsAsync<MovimientoNoPertenecienteAlUsuarioAutenticadoException>(async () => await _domiciliacionService.DesactivateMyDomiciliacionAsync(userAuth, domiciliacion.Guid));
         
         Assert.That(ex.Message, Is.EqualTo($"La domiciliación con guid {domiciliacion.Guid} no pertenece al cliente autenticado con guid {clienteAuth.Guid} y no puede ser desactivada"));
