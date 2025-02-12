@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Banco_VivesBank.Cliente.Exceptions;
 using Banco_VivesBank.Database;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
@@ -389,7 +390,7 @@ namespace Banco_VivesBank.User.Service
                     {
                         if (cuenta.Saldo > 0)
                         {
-                            throw new InvalidOperationException("No se puede desactivar una cuenta con saldo");
+                            throw new CuentaSaldoExcepcion(cuenta.Guid);
                         }
                         cuenta.IsDeleted = true;
                         cuenta.UpdatedAt = DateTime.UtcNow;

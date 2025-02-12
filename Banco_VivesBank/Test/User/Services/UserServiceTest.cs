@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Models;
 using Banco_VivesBank.Producto.ProductoBase.Mappers;
 using Banco_VivesBank.User.Dto;
@@ -599,10 +600,10 @@ public class UserServiceTest
         await _dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        var ex = Assert.ThrowsAsync<CuentaSaldoExcepcion>(async () =>
             await _userService.DeleteByGuidAsync(guid)
         );
-        ClassicAssert.AreEqual("No se puede desactivar una cuenta con saldo", ex.Message);
+        ClassicAssert.AreEqual($"No se puede eliminar la cuenta con el GUID {guid} porque tiene saldo", ex.Message);
     }
 
     [Test]

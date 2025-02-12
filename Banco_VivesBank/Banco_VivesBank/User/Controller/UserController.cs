@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
@@ -253,9 +254,9 @@ public class UserController : ControllerBase
         {
             return NotFound($"No se ha encontrado usuario con el guid especificado: {guid}");
         }
-        catch (InvalidOperationException e)
+        catch (CuentaSaldoExcepcion e)
         {
-            return BadRequest("No se puede eliminar una cuenta con saldo");
+            return BadRequest(new {Message = e.Message});
         }
     }
 
@@ -272,7 +273,7 @@ public class UserController : ControllerBase
         {
             return NotFound(new { message = e.Message });
         }
-        catch (InvalidOperationException e)
+        catch (CuentaSaldoExcepcion e)
         {
             return BadRequest(new { message = e.Message });
         }
