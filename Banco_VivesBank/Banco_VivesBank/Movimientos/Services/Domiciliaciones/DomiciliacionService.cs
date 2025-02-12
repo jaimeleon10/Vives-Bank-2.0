@@ -7,6 +7,7 @@ using Banco_VivesBank.Movimientos.Dto;
 using Banco_VivesBank.Movimientos.Exceptions;
 using Banco_VivesBank.Movimientos.Mapper;
 using Banco_VivesBank.Movimientos.Models;
+using Banco_VivesBank.Movimientos.Repositories;
 using Banco_VivesBank.Movimientos.Services.Movimientos;
 using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Cuenta.Services;
@@ -21,6 +22,7 @@ namespace Banco_VivesBank.Movimientos.Services.Domiciliaciones;
 
 public class DomiciliacionService : IDomiciliacionService
 {
+    private readonly IDomiciliacionRepository _domiciliacionRepository;
     private readonly IMongoCollection<Domiciliacion> _domiciliacionCollection;
     private readonly ILogger<DomiciliacionService> _logger;
     private readonly IClienteService _clienteService;
@@ -31,9 +33,10 @@ public class DomiciliacionService : IDomiciliacionService
     private readonly IMovimientoService _movimientoService;
     private const string CacheKeyPrefix = "Domiciliaciones:";
 
-    public DomiciliacionService(IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<DomiciliacionService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, IConnectionMultiplexer redis, IMemoryCache memoryCache, IMovimientoService movimientoService)
+    public DomiciliacionService(IDomiciliacionRepository domiciliacionRepository, IOptions<MovimientosMongoConfig> movimientosDatabaseSettings, ILogger<DomiciliacionService> logger, IClienteService clienteService, ICuentaService cuentaService, GeneralDbContext context, IConnectionMultiplexer redis, IMemoryCache memoryCache, IMovimientoService movimientoService)
     {
         _logger = logger;
+        _domiciliacionRepository = domiciliacionRepository;
         _clienteService = clienteService;
         _cuentaService = cuentaService;
         _context = context;
@@ -48,7 +51,8 @@ public class DomiciliacionService : IDomiciliacionService
     public async Task<IEnumerable<DomiciliacionResponse>> GetAllAsync()
     {
         _logger.LogInformation("Buscando todas las domiciliaciones en la base de datos");
-        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+//        var domiciliaciones = await _domiciliacionCollection.Find(_ => true).ToListAsync();
+        var domiciliaciones = await _domiciliacionRepository.GetAllDomiciliacionesAsync();
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
@@ -82,7 +86,8 @@ public class DomiciliacionService : IDomiciliacionService
         }
         
         _logger.LogInformation($"Buscando domiciliación con guid {domiciliacionGuid} en la base de datos");
-        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+//        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        var domiciliacion = await _domiciliacionRepository.GetDomiciliacionByGuidAsync(domiciliacionGuid);
         if (domiciliacion != null)
         {
             _logger.LogInformation($"Encontrada domiciliacion con guid {domiciliacionGuid} en la base de datos");
@@ -96,7 +101,8 @@ public class DomiciliacionService : IDomiciliacionService
     public async Task<IEnumerable<DomiciliacionResponse>> GetByClienteGuidAsync(string clienteGuid)
     {
         _logger.LogInformation($"Buscando todas las domiciliaciones del cliente con guid: {clienteGuid}");
-        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
+        //var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == clienteGuid).ToListAsync();
+        var domiciliaciones = await _domiciliacionRepository.GetDomiciliacionesByClientGuidAsync(clienteGuid);
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
@@ -104,7 +110,8 @@ public class DomiciliacionService : IDomiciliacionService
     {
         _logger.LogInformation($"Buscando todas las domiciliaciones del cliente autenticado");
         var cliente = await _clienteService.GetMeAsync(userAuth);
-        var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
+        //var domiciliaciones = await _domiciliacionCollection.Find(dom => dom.ClienteGuid == cliente!.Guid).ToListAsync();
+        var domiciliaciones = await _domiciliacionRepository.GetDomiciliacionesByClientGuidAsync(cliente!.Guid);
         return domiciliaciones.Select(mov => mov.ToResponseFromModel());
     }
 
@@ -184,7 +191,8 @@ public class DomiciliacionService : IDomiciliacionService
             Activa = domiciliacionRequest.Activa
         };
         
-        await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        //await _domiciliacionCollection.InsertOneAsync(domiciliacion);
+        await _domiciliacionRepository.AddDomiciliacionAsync(domiciliacion);
         _logger.LogInformation("Domiciliación realizada con éxito");
         
         var cacheKey = CacheKeyPrefix + domiciliacion.Guid;
@@ -242,16 +250,18 @@ public class DomiciliacionService : IDomiciliacionService
         }
 
         // Intentar obtener de la base de datos
-        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        //var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        var domiciliacion = await _domiciliacionRepository.GetDomiciliacionByGuidAsync(domiciliacionGuid);
 
         if (domiciliacion == null)
         {
             _logger.LogInformation($"No se ha encontrado la domiciliacion con guid {domiciliacionGuid}");
             return null;
         }
-        
+
         domiciliacion.Activa = false;
-        await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        //await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        await _domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
         
         // Eliminar de la memoria caché y de redis
         _memoryCache.Remove(cacheKey);
@@ -301,7 +311,8 @@ public class DomiciliacionService : IDomiciliacionService
         }
 
         // Intentar obtener de la base de datos
-        var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        //var domiciliacion = await _domiciliacionCollection.Find(dom => dom.Guid == domiciliacionGuid).FirstOrDefaultAsync();
+        var domiciliacion = await _domiciliacionRepository.GetDomiciliacionByGuidAsync(domiciliacionGuid);
 
         if (domiciliacion == null)
         {
@@ -318,8 +329,9 @@ public class DomiciliacionService : IDomiciliacionService
         }
         
         domiciliacion.Activa = false;
-        await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
-        
+        //await _domiciliacionCollection.ReplaceOneAsync(m => m.Guid == domiciliacionGuid, domiciliacion);
+        await _domiciliacionRepository.UpdateDomiciliacionAsync(domiciliacion.Id, domiciliacion);
+
         // Eliminar de la memoria caché y de redis
         _memoryCache.Remove(cacheKey);
         await _redisDatabase.KeyDeleteAsync(cacheKey);
