@@ -310,7 +310,7 @@ public class ProductoServiceTest
             await _productoService.UpdateAsync("Guid_no_existente", new ProductoRequestUpdate());
         });
 
-        Assert.That(ex.Message, Is.EqualTo("Producto con guid: Guid_no_existente no encontrado"));
+        Assert.That(ex.Message, Is.EqualTo("El producto con la id Guid_no_existente no existe"));
     }
     
     [Test]

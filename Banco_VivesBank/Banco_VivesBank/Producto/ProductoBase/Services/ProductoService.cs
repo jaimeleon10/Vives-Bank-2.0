@@ -212,7 +212,7 @@ public class ProductoService : IProductoService
         if (baseEntityExistente == null)
         {
             _logger.LogWarning($"Producto con guid: {guid} no encontrado");
-            throw new ProductoNotExistException($"Producto con guid: {guid} no encontrado");
+            throw new ProductoNotExistException(guid);
         }
     
         _logger.LogInformation("Validando nombre único");
