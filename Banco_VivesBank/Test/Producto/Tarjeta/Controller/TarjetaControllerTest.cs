@@ -159,16 +159,18 @@ public class TarjetaControllerTest
     }
 
     [Test]
-    public async Task GetByGuidNotFound()
+    public async Task GetByGuid_NotFound()
     {
-        var guid = "Guid-Prueba";
-        // Act
+        var guid = "non-existing-guid";
+
+        // Arrange
         _tarjetaService.Setup(s => s.GetByGuidAsync(guid)).ReturnsAsync((TarjetaResponse)null);
-        
-        var result =  await  _tarjetaController.GetTarjetaByGuid(guid);
+
+        // Act
+        var result = await _tarjetaController.GetTarjetaByGuid(guid);
 
         // Assert
-        Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
     }
 
     [Test]

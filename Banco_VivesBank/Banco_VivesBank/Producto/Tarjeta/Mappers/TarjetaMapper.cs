@@ -51,26 +51,6 @@ public static class TarjetaMapper
             IsDeleted = false
         };
     }
-    
-    
-    /// <summary>
-    /// Convierte un DTO de actualización de tarjeta en un modelo de tarjeta.
-    /// </summary>
-    /// <param name="dto">DTO de actualización de tarjeta.</param>
-    /// <returns>Modelo de tarjeta.</returns>
-    public static Models.Tarjeta ToModelFromRequestUpdate(this TarjetaRequestUpdate dto)
-    {
-        return new Models.Tarjeta
-        {
-            Pin = dto.Pin,
-            LimiteDiario = dto.LimiteDiario,
-            LimiteSemanal = dto.LimiteSemanal,
-            LimiteMensual = dto.LimiteMensual,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        };
-    }
 
     
     /// <summary>
@@ -154,5 +134,25 @@ public static class TarjetaMapper
     public static List<TarjetaResponse> ToResponseList(this List<TarjetaEntity> entities)
     {
         return entities.Select(entity => entity.ToResponseFromEntity()).ToList();
+    }
+    
+    
+    public static TarjetaEntity ToEntityFromRequest(TarjetaRequest request)
+    {
+        return new TarjetaEntity
+        {
+            Pin = request.Pin,
+            LimiteDiario = request.LimiteDiario,
+            LimiteSemanal = request.LimiteSemanal,
+            LimiteMensual = request.LimiteMensual,
+        };
+    }
+
+    public static void UpdateFromRequest(this TarjetaEntity entity, TarjetaRequestUpdate request)
+    {
+        entity.Pin = request.Pin;
+        entity.LimiteDiario = request.LimiteDiario;
+        entity.LimiteSemanal = request.LimiteSemanal;
+        entity.LimiteMensual = request.LimiteMensual;
     }
 }
