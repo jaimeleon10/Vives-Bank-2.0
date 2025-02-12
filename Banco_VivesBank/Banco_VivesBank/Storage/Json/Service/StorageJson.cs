@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Banco_VivesBank.Storage.Json.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -91,6 +92,9 @@ public class StorageJson : IStorageJson
                         }
                     }
                 }
+                jsonReader.Close();
+                stream.Close();
+                streamReader.Close();
                 observer.OnCompleted();
             }
             catch (FileNotFoundException fnfEx)
@@ -102,6 +106,11 @@ public class StorageJson : IStorageJson
             {
                 _logger.LogError(jsonEx, "Error al leer el archivo");
                 observer.OnError(new JsonReadException($"Error al procesar el archivo JSON de {typeof(T).Name}.", jsonEx));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inesperado al importar los datos");
+                observer.OnError(ex);
             }
         });
     }
