@@ -1,6 +1,6 @@
 using System.IO.Compression;
-using Banco_VivesBank.Cliente.Dto;
-using Banco_VivesBank.Cliente.Exceptions;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using Banco_VivesBank.Cliente.Mapper;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
@@ -18,6 +18,8 @@ using MongoDB.Driver;
 using Path = System.IO.Path;
 
 namespace Banco_VivesBank.Storage.Zip.Services;
+
+using Cliente.Models;
 
 /// <summary>
 /// Servicio encargado de realizar exportación e importación de datos en formato ZIP.
@@ -119,12 +121,12 @@ public class BackupService : IBackupService
     /// <param name="movimientos">Lista de movimientos a exportar.</param>
     /// <param name="domiciliaciones">Lista de domiciliaciones a exportar.</param>
     public void ExportarDatosAJson(string sourceDirectory, List<UserEntity> usuarios,  
-        List<Cliente.Models.Cliente> clientes, List<ProductoEntity> productos, 
+        List<Cliente> clientes, List<ProductoEntity> productos, 
         List<Cuenta> cuentas, List<Tarjeta> tarjetas, List<Movimiento> movimientos, 
         List<Domiciliacion> domiciliaciones)
     {
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "usuarios.json")), usuarios ?? new List<UserEntity>());
-        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes ?? new List<Cliente.Models.Cliente>());
+        _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "clientes.json")), clientes ?? new List<Cliente>());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "productos.json")), productos ?? new List<ProductoEntity>());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "cuentas.json")), cuentas ?? new List<Cuenta>());
         _storageJson.ExportJson(new FileInfo(Path.Combine(sourceDirectory, "tarjetas.json")), tarjetas ?? new List<Tarjeta>());
@@ -238,7 +240,18 @@ public class BackupService : IBackupService
                 throw new ImportFromZipException("Uno o más archivos necesarios para importar no están presentes en el ZIP.", null);
             }
 
-            var users = _storageJson.ImportJson<UserEntity>(usuariosFile);
+            var usersTask = _storageJson.ImportJson<UserEntity>(usuariosFile).ToList().ToTask();
+            var clientesModelTask = _storageJson.ImportJson<Cliente>(clientesFile).ToList().ToTask();
+            var clientes= new List<ClienteEntity>();
+            var productosTask = _storageJson.ImportJson<ProductoEntity>(productoFile).ToList().ToTask();
+            var cuentasModelTask = _storageJson.ImportJson<Cuenta>(cuentasFile).ToList().ToTask();
+            var cuentas = new List<CuentaEntity>();
+            var tarjetasModelTask = _storageJson.ImportJson<Tarjeta>(tarjetasFile).ToList().ToTask();
+            var tarjetas = new List<TarjetaEntity>();
+            var movimientosTask = _storageJson.ImportJson<Movimiento>(movimientosFile).ToList().ToTask();
+            var domiciliacionesTask = _storageJson.ImportJson<Domiciliacion>(domiciliacionesFile).ToList().ToTask();
+
+            var users = await usersTask;
             if (users == null || !users.Any())
             {
                 _logger.LogWarning("No hay usuarios para importar.");
@@ -249,8 +262,7 @@ public class BackupService : IBackupService
                 await SaveEntidadesSiNoExistenAsync(users, _context.Usuarios, u => u.Id.ToString(), u => u.Guid);
             }
 
-            var clientesModel = _storageJson.ImportJson<Cliente.Models.Cliente>(clientesFile);
-            var clientes = new List<ClienteEntity>();
+            var clientesModel = await clientesModelTask;
             if (clientesModel != null && clientesModel.Any())
             {
                 clientes = clientesModel.Select(ClienteMapper.ToEntityFromModel).ToList();
@@ -262,7 +274,7 @@ public class BackupService : IBackupService
                 _logger.LogWarning("No hay clientes para importar.");
             }
 
-            var productos = _storageJson.ImportJson<ProductoEntity>(productoFile);
+            var productos = await productosTask;
             if (productos == null || !productos.Any())
             {
                 _logger.LogWarning("No hay productos para importar.");
@@ -273,8 +285,7 @@ public class BackupService : IBackupService
                 await SaveEntidadesSiNoExistenAsync(productos, _context.ProductoBase, p => p.Id.ToString(), p => p.Guid);
             }
 
-            var cuentasModel = _storageJson.ImportJson<Cuenta>(cuentasFile);
-            var cuentas = new List<CuentaEntity>();
+            var cuentasModel = await cuentasModelTask;
             if (cuentasModel != null && cuentasModel.Any())
             {
                 cuentas = cuentasModel.Select(CuentaMapper.ToEntityFromModel).ToList();
@@ -285,9 +296,7 @@ public class BackupService : IBackupService
             {
                 _logger.LogWarning("No hay cuentas para importar.");
             }
-
-            var tarjetasModel = _storageJson.ImportJson<Tarjeta>(tarjetasFile);
-            var tarjetas = new List<TarjetaEntity>();
+            var tarjetasModel = await tarjetasModelTask;
             if (tarjetasModel != null && tarjetasModel.Any())
             {
                 tarjetas = tarjetasModel.Select(TarjetaMapper.ToEntityFromModel).ToList();
@@ -298,8 +307,7 @@ public class BackupService : IBackupService
             {
                 _logger.LogWarning("No hay tarjetas para importar.");
             }
-
-            var movimientos = _storageJson.ImportJson<Movimiento>(movimientosFile);
+            var movimientos = await movimientosTask;
             if (movimientos == null || !movimientos.Any())
             {
                 _logger.LogWarning("No hay movimientos para importar.");
@@ -309,8 +317,7 @@ public class BackupService : IBackupService
                 _logger.LogInformation("Almacenando Movimientos en MongoDB...");
                 await SaveSiNoExistenAsyncMongo(movimientos, _movimientoCollection, m => m.Guid.ToString());
             }
-
-            var domiciliaciones = _storageJson.ImportJson<Domiciliacion>(domiciliacionesFile);
+            var domiciliaciones = await domiciliacionesTask;
             if (domiciliaciones == null || !domiciliaciones.Any())
             {
                 _logger.LogWarning("No hay domiciliaciones para importar.");

@@ -1,5 +1,5 @@
 using System.IO.Compression;
-using Banco_VivesBank.Cliente.Models;
+using System.Reactive.Linq;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Movimientos.Database;
@@ -33,7 +33,7 @@ public class BackupServiceTests : IAsyncDisposable
     private MongoDbContainer _mongoDbContainer;
     private IMongoClient _mongoClient;
     private IMongoDatabase _mongoDatabase;
-    
+
     [OneTimeSetUp]
     public async Task Setup()
     {
@@ -104,7 +104,7 @@ public class BackupServiceTests : IAsyncDisposable
         var exception = Assert.ThrowsAsync<ArgumentNullException>(
             () => _backupService.ExportToZip(null, "test.zip")
         );
-        
+
         Assert.That(exception.ParamName, Is.EqualTo("sourceDirectory"));
     }
 
@@ -114,10 +114,10 @@ public class BackupServiceTests : IAsyncDisposable
         var exception = Assert.ThrowsAsync<ArgumentNullException>(
             () => _backupService.ExportToZip("origen", null)
         );
-        
+
         Assert.That(exception.ParamName, Is.EqualTo("zipFilePath"));
     }
-    
+
     [Test]
     public async Task ExportacionZipFileNotFound()
     {
@@ -148,10 +148,10 @@ public class BackupServiceTests : IAsyncDisposable
     {
         var dirOrigen = CreateTempDirectory();
         var rutaZip = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid()}.zip");
-        var archivosEsperados = new[] { 
+        var archivosEsperados = new[] {
             "usuarios.json", "clientes.json", "productos.json",
-            "cuentas.json", "tarjetas.json", "movimientos.json", 
-            "domiciliaciones.json" 
+            "cuentas.json", "tarjetas.json", "movimientos.json",
+            "domiciliaciones.json"
         };
 
         try
@@ -178,8 +178,8 @@ public class BackupServiceTests : IAsyncDisposable
     [Test]
     public async Task GuardarEntidadesEvitaDuplicadosPorGuid()
     {
-        var usuarioExistente = new UserEntity 
-        { 
+        var usuarioExistente = new UserEntity
+        {
             Guid = "test-guid",
             Username = "test",
             Password = "test123",
@@ -189,8 +189,8 @@ public class BackupServiceTests : IAsyncDisposable
             UpdatedAt = DateTime.UtcNow
         };
 
-        var usuarioDuplicado = new UserEntity 
-        { 
+        var usuarioDuplicado = new UserEntity
+        {
             Guid = "test-guid",
             Username = "duplicate",
             Password = "duplicate-pass",
@@ -217,8 +217,8 @@ public class BackupServiceTests : IAsyncDisposable
     [Test]
     public async Task GuardarEnMongoEvitaDuplicados()
     {
-        var movimiento = new Movimiento 
-        { 
+        var movimiento = new Movimiento
+        {
             Id = "mov1",
             Guid = "guid1",
             ClienteGuid = "client1",
@@ -245,8 +245,8 @@ public class BackupServiceTests : IAsyncDisposable
             .ReturnsAsync(new Mock<IAsyncCursor<Movimiento>>().Object);
 
         await _backupService.SaveSiNoExistenAsyncMongo(
-            movimientos, 
-            _movimientosCollectionMock.Object, 
+            movimientos,
+            _movimientosCollectionMock.Object,
             m => m.Guid
         );
 
@@ -259,14 +259,18 @@ public class BackupServiceTests : IAsyncDisposable
             Times.Once
         );
     }
-    
+
     [Test]
     public async Task AgregarArchivosAlZip()
     {
         var dirOrigen = CreateTempDirectory();
         var rutaZip = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid()}.zip");
 
-        var archivosJson = new[] { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" };
+        var archivosJson = new[]
+        {
+            "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json",
+            "domiciliaciones.json"
+        };
         foreach (var archivo in archivosJson)
         {
             File.WriteAllText(Path.Combine(dirOrigen, archivo), "{}");
@@ -307,8 +311,12 @@ public class BackupServiceTests : IAsyncDisposable
     public async Task EliminarArchivosTemporales()
     {
         var dirOrigen = CreateTempDirectory();
-        var archivosJson = new[] { "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json", "domiciliaciones.json" };
-        
+        var archivosJson = new[]
+        {
+            "usuarios.json", "clientes.json", "productos.json", "cuentas.json", "tarjetas.json", "movimientos.json",
+            "domiciliaciones.json"
+        };
+
         foreach (var archivo in archivosJson)
         {
             File.WriteAllText(Path.Combine(dirOrigen, archivo), "{}");
@@ -319,28 +327,28 @@ public class BackupServiceTests : IAsyncDisposable
         foreach (var archivo in archivosJson)
         {
             var filePath = Path.Combine(dirOrigen, archivo);
-            Assert.That(File.Exists(filePath), Is.False); 
+            Assert.That(File.Exists(filePath), Is.False);
         }
 
         Directory.Delete(dirOrigen, true);
     }
-    
+
     [Test]
     public async Task ImportFromZip_WithValidZipFile_ImportsAllEntities()
     {
         var zipPath = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid()}.zip");
         var destinationDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        
+
         Directory.CreateDirectory(destinationDir);
         using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
         {
-            var files = new[] 
-            { 
+            var files = new[]
+            {
                 "usuarios.json", "clientes.json", "productos.json",
                 "cuentas.json", "tarjetas.json", "movimientos.json",
-                "domiciliaciones.json" 
+                "domiciliaciones.json"
             };
-            
+
             foreach (var file in files)
             {
                 var entry = zip.CreateEntry(file);
@@ -352,9 +360,10 @@ public class BackupServiceTests : IAsyncDisposable
         try
         {
             await _backupService.ImportFromZip(zipPath, destinationDir);
-            
+
             _storageJsonMock.Verify(x => x.ImportJson<UserEntity>(It.IsAny<FileInfo>()), Times.Once);
-            _storageJsonMock.Verify(x => x.ImportJson<Banco_VivesBank.Cliente.Models.Cliente>(It.IsAny<FileInfo>()), Times.Once);
+            _storageJsonMock.Verify(x => x.ImportJson<Banco_VivesBank.Cliente.Models.Cliente>(It.IsAny<FileInfo>()),
+                Times.Once);
             _storageJsonMock.Verify(x => x.ImportJson<ProductoEntity>(It.IsAny<FileInfo>()), Times.Once);
             _storageJsonMock.Verify(x => x.ImportJson<Cuenta>(It.IsAny<FileInfo>()), Times.Once);
             _storageJsonMock.Verify(x => x.ImportJson<Tarjeta>(It.IsAny<FileInfo>()), Times.Once);
@@ -388,7 +397,7 @@ public class BackupServiceTests : IAsyncDisposable
         // Arrange
         var zipPath = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid()}.zip");
         var destinationDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        
+
         // Create a ZIP file with missing required files
         Directory.CreateDirectory(destinationDir);
         using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
@@ -464,71 +473,66 @@ public class BackupServiceTests : IAsyncDisposable
             await _mongoDbContainer.DisposeAsync();
         }
     }
-    
+
     private void ConfigureStorageJsonMock()
     {
         _storageJsonMock
             .Setup(s => s.ImportJson<UserEntity>(It.IsAny<FileInfo>()))
-            .Returns(new List<UserEntity> 
-            { 
-                new UserEntity 
-                { 
+            .Returns(Observable.Return(
+                new UserEntity
+                {
                     Guid = "test-user-guid",
                     Username = "testuser",
                     Password = "testpass",
                     Role = Role.User
-                }
-            });
+                }));
 
         _storageJsonMock
             .Setup(s => s.ImportJson<Banco_VivesBank.Cliente.Models.Cliente>(It.IsAny<FileInfo>()))
-            .Returns(new List<Banco_VivesBank.Cliente.Models.Cliente> 
-            { 
-                /*new Banco_VivesBank.Cliente.Models.Cliente
-                { 
-                    Guid = "test-client-guid",
-                    Nombre = "Test Client",
-                    Email = "test@example.com",
-                    Telefono = "1234567890",
-                    Direccion = new Direccion
-                    {
-                        Calle = "Test Street",
-                        Numero = "123",
-                        CodigoPostal = "12345",
-                        Piso = "2",
-                        Letra = "A"
-                    },
-                    User = new Banco_VivesBank.User.Models.User
-                    {
-                        Guid = "test-user-guid",
-                        Username = "testuser",
-                        Password = "testpass",
-                        Role = Role.User
-                    },
-                    Dni = "03177397Q",
-                    Apellidos = "apellido"
-                }*/
-            });
+            .Returns(Observable.Empty<Banco_VivesBank.Cliente.Models.Cliente>());
+            /*new Banco_VivesBank.Cliente.Models.Cliente
+            {
+                Guid = "test-client-guid",
+                Nombre = "Test Client",
+                Email = "test@example.com",
+                Telefono = "1234567890",
+                Direccion = new Direccion
+                {
+                    Calle = "Test Street",
+                    Numero = "123",
+                    CodigoPostal = "12345",
+                    Piso = "2",
+                    Letra = "A"
+                },
+                User = new Banco_VivesBank.User.Models.User
+                {
+                    Guid = "test-user-guid",
+                    Username = "testuser",
+                    Password = "testpass",
+                    Role = Role.User
+                },
+                Dni = "03177397Q",
+                Apellidos = "apellido"
+            }*/
 
-        _storageJsonMock
-            .Setup(s => s.ImportJson<ProductoEntity>(It.IsAny<FileInfo>()))
-            .Returns(new List<ProductoEntity>());
+            _storageJsonMock
+                .Setup(s => s.ImportJson<ProductoEntity>(It.IsAny<FileInfo>()))
+                .Returns(Observable.Empty<ProductoEntity>());
 
-        _storageJsonMock
-            .Setup(s => s.ImportJson<Cuenta>(It.IsAny<FileInfo>()))
-            .Returns(new List<Cuenta> ());
+            _storageJsonMock
+                .Setup(s => s.ImportJson<Cuenta>(It.IsAny<FileInfo>()))
+                .Returns(Observable.Empty<Cuenta>());
 
-        _storageJsonMock
-            .Setup(s => s.ImportJson<Tarjeta>(It.IsAny<FileInfo>()))
-            .Returns(new List<Tarjeta>());
+            _storageJsonMock
+                .Setup(s => s.ImportJson<Tarjeta>(It.IsAny<FileInfo>()))
+                .Returns(Observable.Empty<Tarjeta>());
 
-        _storageJsonMock
-            .Setup(s => s.ImportJson<Movimiento>(It.IsAny<FileInfo>()))
-            .Returns(new List<Movimiento>());
+            _storageJsonMock
+                .Setup(s => s.ImportJson<Movimiento>(It.IsAny<FileInfo>()))
+                .Returns(Observable.Empty<Movimiento>());
 
-        _storageJsonMock
-            .Setup(s => s.ImportJson<Domiciliacion>(It.IsAny<FileInfo>()))
-            .Returns(new List<Domiciliacion>());
-    }
-
+            _storageJsonMock
+                .Setup(s => s.ImportJson<Domiciliacion>(It.IsAny<FileInfo>()))
+                .Returns(Observable.Empty<Domiciliacion>());
+        }
 }
