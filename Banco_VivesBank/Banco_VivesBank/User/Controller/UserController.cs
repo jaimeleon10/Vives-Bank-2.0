@@ -255,7 +255,7 @@ public class UserController : ControllerBase
         }
         catch (InvalidOperationException e)
         {
-            return BadRequest(new { message = e.Message });
+            return BadRequest("No se puede eliminar una cuenta con saldo");
         }
     }
 
