@@ -13,6 +13,6 @@ namespace Banco_VivesBank.Producto.ProductoBase.Exceptions
         /// Constructor de la excepción.
         /// </summary>
         /// <param name="message">El mensaje de error que describe el motivo de la excepción.</param>
-        public ProductoNotExistException(string message) : base(message) { }
+        public ProductoNotExistException(string id) : base($"El producto con la id {id} no existe") { }
     }
 }

@@ -377,7 +377,7 @@ public class CuentaService : ICuentaService
         if (tipoCuenta == null)
         {
             _logger.LogError($"El tipo de cuenta {cuentaRequest.TipoCuenta} no existe en nuestro catalogo");
-            throw new ProductoNotExistException($"El tipo de Cuenta {cuentaRequest.TipoCuenta} no existe en nuestro catalogo");
+            throw new ProductoNotExistException(guid);
         }
 
         var tipoCuentaModel = await _productoService.GetBaseModelByGuid(tipoCuenta.Guid);
