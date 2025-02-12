@@ -36,7 +36,7 @@ public class UserServiceTest
     private Mock<IJwtService> _jwtServiceMock;
     private Mock<IHttpContextAccessor> _httpContextAccessorMock;
 
-    [OneTimeSetUp]
+    [SetUp]
     public async Task Setup()
     {
         _postgreSqlContainer = new PostgreSqlBuilder()
@@ -54,6 +54,7 @@ public class UserServiceTest
             .Options;
 
         _dbContext = new GeneralDbContext(options);
+        await _dbContext.Database.EnsureDeletedAsync();
         await _dbContext.Database.EnsureCreatedAsync();
 
         _connectionMultiplexerMock = new Mock<IConnectionMultiplexer>();
@@ -80,7 +81,7 @@ public class UserServiceTest
     }
 
     
-    [OneTimeTearDown]
+    [TearDown]
     public async Task Teardown()
     {
         if (_dbContext != null)
@@ -552,10 +553,19 @@ public class UserServiceTest
    {
        // Arrange
        var guid = "existing-guid";
+       var producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
+           { Guid = guid, Nombre = "producto", Descripcion = "producto", TipoProducto = "cuenta" };
        var direccion = new Direccion { Calle = "calle de al lao", Letra = "A", Piso = "4", CodigoPostal = "28025", Numero = "1"};
        var userEntity = new UserEntity { Guid = guid, IsDeleted = false, Username = "manolo@gmail.com", Password = "12345678A"};
+       var clienteEntity = new ClienteEntity
+       {
+           Id = 9999, User = userEntity, Telefono = "669843935", Guid = "existing-guid2", Nombre = "manolo",
+           Email = "manolo@gmail.com", Dni = "12345678Z", Apellidos = "guitierrez", Direccion = direccion
+       };
+       var cuentaEntity = new CuentaEntity {Cliente = clienteEntity, Guid = guid, Saldo = 0.0,ProductoId = producto.Id, Producto = producto.ToEntityFromModel() ,Iban = IbanGenerator.GenerateIban(),ClienteId = 9999, IsDeleted = false };
        _dbContext.Usuarios.Add(userEntity);
-       _dbContext.Clientes.Add(new ClienteEntity { User = userEntity ,Telefono = "669843935", Guid = "existing-guid2", Nombre = "manolo",Email = "manolo@gmail.com" , Dni = "12345678Z", Apellidos = "guitierrez",Direccion = direccion});
+       _dbContext.Cuentas.Add(cuentaEntity);
+       _dbContext.Clientes.Add(clienteEntity);
        await _dbContext.SaveChangesAsync();
 
        var result = await _userService.DeleteByGuidAsync(guid);
@@ -575,10 +585,17 @@ public class UserServiceTest
         var guid = "existing-guid";
         var producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
             { Guid = guid, Nombre = "producto", Descripcion = "producto", TipoProducto = "cuenta" };
+        var direccion = new Direccion { Calle = "calle de al lao", Letra = "A", Piso = "4", CodigoPostal = "28025", Numero = "1"};
         var userEntity = new UserEntity { Guid = guid, IsDeleted = false, Username = "manolo@gmail.com", Password = "12345678A"};
-        var cuentaEntity = new CuentaEntity { Guid = guid, Saldo = 1000.0,ProductoId = producto.Id, Producto = producto.ToEntityFromModel() ,Iban = IbanGenerator.GenerateIban(),ClienteId = 1, IsDeleted = false };
+        var clienteEntity = new ClienteEntity
+        {
+            Id = 9999, User = userEntity, Telefono = "669843935", Guid = "existing-guid2", Nombre = "manolo",
+            Email = "manolo@gmail.com", Dni = "12345678Z", Apellidos = "guitierrez", Direccion = direccion
+        };
+        var cuentaEntity = new CuentaEntity {Cliente = clienteEntity, Guid = guid, Saldo = 1000.0,ProductoId = producto.Id, Producto = producto.ToEntityFromModel() ,Iban = IbanGenerator.GenerateIban(),ClienteId = 9999, IsDeleted = false };
         _dbContext.Usuarios.Add(userEntity);
         _dbContext.Cuentas.Add(cuentaEntity);
+        _dbContext.Clientes.Add(clienteEntity);
         await _dbContext.SaveChangesAsync();
 
         // Act & Assert
@@ -588,6 +605,66 @@ public class UserServiceTest
         ClassicAssert.AreEqual("No se puede desactivar una cuenta con saldo", ex.Message);
     }
 
+    [Test]
+    public async Task DeleteMeAsUserAsync_UserExists_DeletesUser()
+    {
+        // Arrange
+        var userEntity = new UserEntity
+        {
+            Guid = "test-guid",
+            Username = "manolo",
+            Password = BCrypt.Net.BCrypt.HashPassword("password1"),
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.Usuarios.Add(userEntity);
+        _dbContext.SaveChanges();
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Name, "manolo")
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
+
+        // Act
+        await _userService.DeleteMeAsUserAsync();
+
+        // Assert
+        var deletedUser = await _dbContext.Usuarios.FirstOrDefaultAsync(u => u.Guid == "test-guid");
+        ClassicAssert.IsNotNull(deletedUser);
+        ClassicAssert.IsTrue(deletedUser.IsDeleted);
+    }
+    [Test]
+    public void DeleteMeAsUserAsync_NoAuthenticatedUser_ThrowsUserNotFoundException()
+    {
+        // Arrange
+        _httpContextAccessorMock.Setup(h => h.HttpContext).Returns((HttpContext)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _userService.DeleteMeAsUserAsync());
+        ClassicAssert.AreEqual("No se ha encontrado usuario con los credenciales introducidos al sistema", ex.Message);
+    }
+    
+    [Test]
+    public async Task DeleteMeAsUserAsync_UserDoesNotExist_ThrowsUserNotFoundException()
+    {
+        // Arrange
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Name, "nonexistentuser")
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _userService.DeleteMeAsUserAsync());
+        ClassicAssert.AreEqual("No se ha encontrado usuario con los credenciales introducidos al sistema", ex.Message);
+    }
     [Test]
     public void GetAuthenticatedUser_Successfully()
     {
