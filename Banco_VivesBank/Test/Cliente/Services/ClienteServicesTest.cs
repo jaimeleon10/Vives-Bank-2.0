@@ -8,20 +8,19 @@ using Banco_VivesBank.Database.Entities;
 using Banco_VivesBank.Storage.Ftp.Service;
 using Banco_VivesBank.Storage.Images.Exceptions;
 using Banco_VivesBank.Storage.Images.Service;
-using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Mapper;
-using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
 using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
-using Role = Banco_VivesBank.User.Models.Role;
+using IContainer = DotNet.Testcontainers.Containers.IContainer;
 
 namespace Test.Cliente.Services;
 
@@ -34,16 +33,34 @@ public class ClienteServiceTests
     private Mock<IFtpService> _ftpService;
     private Mock<IUserService> _userServiceMock;
     private Mock<IFileStorageService> _storageService;
-    
     private Mock<IConnectionMultiplexer> _redis;
     private Mock<IDatabase> _redisDatabase;
-
     private IMemoryCache _memoryCache;
-
+    private IContainer _ftpContainer;
 
     [OneTimeSetUp]
     public async Task Setup()
     {
+        Console.WriteLine("🔄 Iniciando configuración de pruebas...");
+
+        _ftpContainer = new ContainerBuilder()
+            .WithImage("fauria/vsftpd")
+            .WithPortBinding(21, true)
+            .WithPortBinding(21000, true)
+            .WithEnvironment("FTP_USER", "myuser")
+            .WithEnvironment("FTP_PASS", "mypass")
+            .WithEnvironment("PASV_ADDRESS", "127.0.0.1")
+            .WithEnvironment("PASV_MIN_PORT", "21000")
+            .WithEnvironment("PASV_MAX_PORT", "21000")
+            .WithEnvironment("FTP_HOME", "/home/vsftpd")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(21))
+            .Build();
+
+        await _ftpContainer.StartAsync();
+        var ftpPort = _ftpContainer.GetMappedPublicPort(21);
+
+        Console.WriteLine($"✅ FTP Container iniciado en {_ftpContainer.Hostname}:{ftpPort}");
+
         _postgreSqlContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
             .WithDatabase("testdb")
@@ -53,6 +70,7 @@ public class ClienteServiceTests
             .Build();
 
         await _postgreSqlContainer.StartAsync();
+        Console.WriteLine($"✅ PostgreSQL Container iniciado en {_postgreSqlContainer.GetConnectionString()}");
 
         var options = new DbContextOptionsBuilder<GeneralDbContext>()
             .UseNpgsql(_postgreSqlContainer.GetConnectionString())
@@ -60,6 +78,7 @@ public class ClienteServiceTests
 
         _dbContext = new GeneralDbContext(options);
         await _dbContext.Database.EnsureCreatedAsync();
+        Console.WriteLine("✅ Base de datos creada y lista para pruebas.");
 
         _userServiceMock = new Mock<IUserService>();
         _storageService = new Mock<IFileStorageService>();
@@ -71,35 +90,38 @@ public class ClienteServiceTests
         _redis
             .Setup(conn => conn.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_redisDatabase.Object);
-        
+
+        var inMemorySettings = new Dictionary<string, string>
+        {
+            { "FileStorageRemoteConfig:FtpHost", _ftpContainer.Hostname },
+            { "FileStorageRemoteConfig:FtpPort", ftpPort.ToString() },
+            { "FileStorageRemoteConfig:FtpUsername", "myuser" },
+            { "FileStorageRemoteConfig:FtpPassword", "mypass" },
+            { "FileStorageRemoteConfig:FtpDirectory", "/home/vsftpd" }
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+
         _clienteService = new ClienteService(
-            _dbContext, 
+            _dbContext,
             NullLogger<ClienteService>.Instance,
             _userServiceMock.Object,
             _storageService.Object,
             _memoryCache,
             _redis.Object,
             _ftpService.Object
-            );
+        );
     }
-    
-    [SetUp]
-    public async Task CleanDatabase()
-    {
-        // Limpia las tablas de la base de datos
-        _dbContext.Clientes.RemoveRange(_dbContext.Clientes);
-        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
 
-        // Guarda los cambios para aplicar la limpieza
-        await _dbContext.SaveChangesAsync();
-    }
 
     [OneTimeTearDown]
     public async Task Teardown()
     {
-        if (_dbContext != null)
+        if (_ftpContainer != null)
         {
-            await _dbContext.DisposeAsync();
+            await _ftpContainer.DisposeAsync();
         }
 
         if (_postgreSqlContainer != null)
@@ -112,7 +134,22 @@ public class ClienteServiceTests
         {
             _memoryCache.Dispose();
         }
-    }  
+        if (_dbContext != null)
+        {
+            await _dbContext.DisposeAsync();
+        }
+    }
+    
+    [SetUp]
+    public async Task CleanDatabase()
+    {
+        // Limpia las tablas de la base de datos
+        _dbContext.Clientes.RemoveRange(_dbContext.Clientes);
+        _dbContext.Usuarios.RemoveRange(_dbContext.Usuarios);
+
+        // Guarda los cambios para aplicar la limpieza
+        await _dbContext.SaveChangesAsync();
+    }
     
  
     [Test]
