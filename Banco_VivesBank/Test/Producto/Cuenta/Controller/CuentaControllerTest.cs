@@ -369,12 +369,12 @@ public class CuentaAdminControllerTests
     }
     
     [Test]
-    public async Task GetByGuid_ReturnsInternalServerError_WhenAnExceptionOccurs()
+    public async Task GetByGuid_ReturnsBadRequest_WhenCuentaIsNotSerializable()
     {
         var guid = "test-guid";
 
         _mockCuentaService.Setup(service => service.GetByGuidAsync(guid))
-            .ThrowsAsync(new Exception("Error interno"));
+            .ThrowsAsync(new CuentaNotSerializableExceptions("Error al deserializar cuenta desde Redis"));
 
         var claims = new[]
         {
@@ -400,7 +400,7 @@ public class CuentaAdminControllerTests
         var objectResult = result.Result as ObjectResult;
         Assert.That(objectResult, Is.Not.Null);
 
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult.StatusCode, Is.EqualTo(400));
     }
     
     

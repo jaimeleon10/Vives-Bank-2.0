@@ -230,7 +230,7 @@ public class CuentaService : ICuentaService
             if (cuentaFromRedis == null)
             {
                 _logger.LogWarning("Error al deserializar cuenta desde Redis");
-                throw new Exception("Error al deserializar cuenta desde Redis");
+                throw new CuentaNotSerializableExceptions("Error al deserializar cuenta desde Redis");
             }
             _memoryCache.Set(cacheKey, cuentaFromRedis, TimeSpan.FromMinutes(30));
             return cuentaFromRedis.ToResponseFromModel(); 

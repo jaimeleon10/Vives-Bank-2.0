@@ -132,9 +132,9 @@ public class CuentaController : ControllerBase
             
             return Ok(cuentaByGuid);
         }
-        catch (Exception e)
+        catch (CuentaNotSerializableExceptions e)
         {
-            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+            return StatusCode(400, e.Message);
         }
     }
 
