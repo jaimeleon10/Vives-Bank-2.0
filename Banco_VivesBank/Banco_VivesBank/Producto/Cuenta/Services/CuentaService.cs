@@ -230,7 +230,7 @@ public class CuentaService : ICuentaService
             if (cuentaFromRedis == null)
             {
                 _logger.LogWarning("Error al deserializar cuenta desde Redis");
-                throw new Exception("Error al deserializar cuenta desde Redis");
+                throw new CuentaNotSerializableExceptions("Error al deserializar cuenta desde Redis");
             }
             _memoryCache.Set(cacheKey, cuentaFromRedis, TimeSpan.FromMinutes(30));
             return cuentaFromRedis.ToResponseFromModel(); 
@@ -437,7 +437,13 @@ public class CuentaService : ICuentaService
         if (cuentaExistenteEntity == null)
         {
             _logger.LogError($"La cuenta con el GUID {guid} no existe.");
-            return null;
+            throw new CuentaNotFoundException(guid);
+        }
+
+        if (cuentaExistenteEntity.Saldo < 0)
+        {
+            _logger.LogError($"No se puede eliminar la cuenta con el GUID {guid} porque tiene saldo");
+            throw new CuentaSaldoExcepcion(guid);
         }
 
         _logger.LogInformation("Actualizando isDeleted a true");
@@ -483,7 +489,7 @@ public class CuentaService : ICuentaService
     {
         _logger.LogInformation($"Eliminando cuenta {guid}");
         
-        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.User.Guid == guidClient);
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Guid == guidClient);
 
         if (cliente == null)
         {
@@ -500,7 +506,7 @@ public class CuentaService : ICuentaService
         if (cuentaExistenteEntity == null)
         {
             _logger.LogError($"La cuenta con el GUID {guid} no existe.");
-            return null;
+            throw new CuentaNotFoundException(guid);
         }
 
         if (cuentaExistenteEntity.Cliente.Guid != cliente.Guid)
@@ -508,6 +514,12 @@ public class CuentaService : ICuentaService
             _logger.LogInformation($"La cuenta {guid} no te pertenece");
             throw new CuentaNoPertenecienteAlUsuarioException($"La cuenta {guid} no te pertenece");
             
+        }
+
+        if (cuentaExistenteEntity.Saldo > 0)
+        {
+            _logger.LogError($"No se puede eliminar la cuenta con el GUID {guid} porque tiene saldo");
+            throw new CuentaSaldoExcepcion(guid);
         }
 
         _logger.LogInformation("Actualizando isDeleted a true");

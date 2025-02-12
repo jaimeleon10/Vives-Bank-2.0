@@ -1,4 +1,5 @@
-﻿using Banco_VivesBank.User.Dto;
+﻿using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
@@ -244,8 +245,37 @@ public class UserController : ControllerBase
     [Authorize(Policy = "AdminPolicy")]
     public async Task<ActionResult<UserResponse>> DeleteByGuid(string guid)
     {
-        var userResponse = await _userService.DeleteByGuidAsync(guid);
-        if (userResponse is null) return NotFound(new { message = $"No se ha podido borrar el usuario con guid: {guid}"}); 
-        return Ok(userResponse);
+        try
+        {
+            var userResponse = await _userService.DeleteByGuidAsync(guid);
+            return Ok(userResponse);
+        }
+        catch (UserNotFoundException e)
+        {
+            return NotFound($"No se ha encontrado usuario con el guid especificado: {guid}");
+        }
+        catch (CuentaSaldoExcepcion e)
+        {
+            return BadRequest(new {Message = e.Message});
+        }
+    }
+
+    [HttpDelete("/me")]
+    [Authorize(Policy = "UserPolicy")]
+    public async Task<ActionResult> DeleteMe()
+    {
+        try
+        {
+            var user = _userService.DeleteMeAsUserAsync();
+            return NoContent();
+        }
+        catch (UserNotFoundException e)
+        {
+            return NotFound(new { message = e.Message });
+        }
+        catch (CuentaSaldoExcepcion e)
+        {
+            return BadRequest(new { message = e.Message });
+        }
     }
 }

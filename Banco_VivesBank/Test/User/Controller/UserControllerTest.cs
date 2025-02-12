@@ -26,59 +26,59 @@ namespace Test.User.Controller
             _userController = new UserController(_mockUserService.Object, _mockPaginationLinksUtils.Object);
         }
 
-         /*[Test]
-         public async Task GetAll()
-         {
-             var expectedUsers = new List<UserResponse>
-             {
-                 new UserResponse { Guid = "guid1", Username = "test1" },
-                 new UserResponse { Guid = "guid2", Username = "test2" }
-             };
+        /*[Test]
+        public async Task GetAll()
+        {
+            var expectedUsers = new List<UserResponse>
+            {
+                new UserResponse { Guid = "guid1", Username = "test1" },
+                new UserResponse { Guid = "guid2", Username = "test2" }
+            };
 
-             var page = 0;
-             var size = 10;
-             var sortBy = "id";
-             var direction = "desc";
+            var page = 0;
+            var size = 10;
+            var sortBy = "id";
+            var direction = "desc";
 
-             var pageRequest = new PageRequest
-             {
-                 PageNumber = page,
-                 PageSize = size,
-                 SortBy = sortBy,
-                 Direction = direction
-             };
+            var pageRequest = new PageRequest
+            {
+                PageNumber = page,
+                PageSize = size,
+                SortBy = sortBy,
+                Direction = direction
+            };
 
-             var pageResponse = new PageResponse<UserResponse>
-             {
-                 Content = expectedUsers,
-                 TotalElements = expectedUsers.Count,
-                 PageNumber = pageRequest.PageNumber,
-                 PageSize = pageRequest.PageSize,
-                 TotalPages = 1
-             };
+            var pageResponse = new PageResponse<UserResponse>
+            {
+                Content = expectedUsers,
+                TotalElements = expectedUsers.Count,
+                PageNumber = pageRequest.PageNumber,
+                PageSize = pageRequest.PageSize,
+                TotalPages = 1
+            };
 
-             _mockUserService.Setup(s => s.GetAllAsync(null, null, pageRequest))
-                 .ReturnsAsync(pageResponse);
+            _mockUserService.Setup(s => s.GetAllAsync(null, null, pageRequest))
+                .ReturnsAsync(pageResponse);
 
-             var result = await _userController.Getall(null, null, page, size, sortBy, direction);
+            var result = await _userController.Getall(null, null, page, size, sortBy, direction);
 
-             Assert.That(result, Is.Not.Null);
-             Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
 
-             var okResult = result.Result as OkObjectResult;
-             Assert.That(okResult, Is.Null);
+            var okResult = result.Result as OkObjectResult;
+            Assert.That(okResult, Is.Null);
 
-             var pageResponseResult = okResult.Value as PageResponse<UserResponse>;
-             Assert.That(pageResponseResult, Is.Not.Null);
-             Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
-             Assert.That(pageResponseResult.Content, Is.EqualTo(expectedUsers));
-             Assert.That(pageResponseResult.TotalElements, Is.EqualTo(expectedUsers.Count));
-             Assert.That(pageResponseResult.PageNumber, Is.EqualTo(pageRequest.PageNumber));
-             Assert.That(pageResponseResult.PageSize, Is.EqualTo(pageRequest.PageSize));
-             Assert.That(pageResponseResult.TotalPages, Is.EqualTo(1));
-         }
-         */
-         
+            var pageResponseResult = okResult.Value as PageResponse<UserResponse>;
+            Assert.That(pageResponseResult, Is.Not.Null);
+            Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
+            Assert.That(pageResponseResult.Content, Is.EqualTo(expectedUsers));
+            Assert.That(pageResponseResult.TotalElements, Is.EqualTo(expectedUsers.Count));
+            Assert.That(pageResponseResult.PageNumber, Is.EqualTo(pageRequest.PageNumber));
+            Assert.That(pageResponseResult.PageSize, Is.EqualTo(pageRequest.PageSize));
+            Assert.That(pageResponseResult.TotalPages, Is.EqualTo(1));
+        }
+        */
+
 
         [Test]
         public async Task GetUserByGuid()
@@ -227,6 +227,54 @@ namespace Test.User.Controller
             Assert.That(okResult.StatusCode, Is.EqualTo(StatusCodes.Status200OK));
             Assert.That(userResponse.Guid, Is.EqualTo(expectedUser.Guid));
             Assert.That(userResponse.Username, Is.EqualTo(expectedUser.Username));
+        }
+
+        [Test]
+        public async Task DeleteUser_ThrowsNotFoundException()
+        {
+            _mockUserService.Setup(s => s.DeleteByGuidAsync("guid"))
+                .ThrowsAsync(new UserNotFoundException("User not found"));
+
+            var result = await _userController.DeleteByGuid("guid");
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+
+            var notFoundResult = result.Result as NotFoundObjectResult;
+            Assert.That(notFoundResult, Is.Not.Null);
+            Assert.That(notFoundResult.Value, Is.Not.Null);
+            Assert.That(notFoundResult.Value.ToString(),
+                Is.EqualTo("No se ha encontrado usuario con el guid especificado: guid"));
+            Assert.That(notFoundResult.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+        }
+
+        [Test]
+        public async Task DeleteUser_ThrowsInvalidOperationException()
+        {
+            _mockUserService.Setup(s => s.DeleteByGuidAsync("guid"))
+                .ThrowsAsync(new InvalidOperationException("An error occurred while deleting the user"));
+
+            var result = await _userController.DeleteByGuid("guid");
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+
+            var objectResult = result.Result as BadRequestObjectResult;
+            Assert.That(objectResult, Is.Not.Null);
+            Assert.That(objectResult.Value, Is.EqualTo("No se puede eliminar una cuenta con saldo"));
+            Assert.That(objectResult.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+        }
+
+        [Test]
+        public async Task DeleteMe_UserDeletedSuccessfully_ReturnsNoContent()
+        {
+            _mockUserService.Setup(s => s.DeleteMeAsUserAsync())
+                .Returns(Task.CompletedTask);
+
+            var result = await _userController.DeleteMe();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.TypeOf<NoContentResult>());
         }
 
     }

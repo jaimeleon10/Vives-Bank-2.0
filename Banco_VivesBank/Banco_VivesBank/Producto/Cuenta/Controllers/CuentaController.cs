@@ -132,9 +132,9 @@ public class CuentaController : ControllerBase
             
             return Ok(cuentaByGuid);
         }
-        catch (Exception e)
+        catch (CuentaNotSerializableExceptions e)
         {
-            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+            return StatusCode(400, e.Message);
         }
     }
 
@@ -188,13 +188,15 @@ public class CuentaController : ControllerBase
         try
         {
             var cuentaDelete = await _cuentaService.DeleteByGuidAsync(guid);
-            if (cuentaDelete is null) return NotFound(new { message = $"Cuenta no encontrada con guid {guid}" });
-            
             return Ok(cuentaDelete);
         }
-        catch (Exception e)
+        catch (CuentaSaldoExcepcion e)
         {
-            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+            return BadRequest(new { message = e.Message });
+        }
+        catch (CuentaNotFoundException e)
+        {
+            return NotFound(new { message = e.Message });
         }
     }
 
@@ -218,7 +220,8 @@ public class CuentaController : ControllerBase
         try
         {
             var userAuth = _userService.GetAuthenticatedUser();
-            if (userAuth is null) return Unauthorized(new { message = "No se ha podido identificar al usuario logeado" });
+            if (userAuth is null)
+                return Unauthorized(new { message = "No se ha podido identificar al usuario logeado" });
 
             var cuentas = await _cuentaService.GetAllMeAsync(userAuth.Guid);
             return Ok(cuentas);
@@ -227,9 +230,13 @@ public class CuentaController : ControllerBase
         {
             return NotFound(new { message = e.Message });
         }
-        catch (Exception e)
+        catch (CuentaSaldoExcepcion e)
         {
-            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+            return BadRequest(new { message = e.Message });
+        }
+        catch (CuentaNoPertenecienteAlUsuarioException e)
+        {
+            return BadRequest(new { message = e.Message });
         }
     }
 
@@ -357,9 +364,9 @@ public class CuentaController : ControllerBase
         {
             return StatusCode(403, new { message = "No tienes permisos para eliminar esta cuenta.", details = e.Message });
         }
-        catch (Exception e)
+        catch (CuentaSaldoExcepcion e)
         {
-            return StatusCode(500, new { message = "Error interno del servidor.", details = e.Message });
+            return StatusCode(400, e.Message);
         }
     }
 

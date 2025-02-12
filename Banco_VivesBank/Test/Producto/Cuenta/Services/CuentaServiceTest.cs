@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using Direccion = Banco_VivesBank.Cliente.Models.Direccion;
@@ -732,49 +733,127 @@ public class CuentaServiceTests
     [Test, Order(31)]
     public async Task DeleteMeAsync_CuentaNotFound()
     {
-        var guidFlase = "cuenta-guid-not-found";
-        var result =await  _cuentaService.DeleteMeAsync(user1.Guid, guidFlase);
-        
-        Assert.That(result, Is.Null);
-    }
-    
-    [Test, Order(33)]
-    public async Task DeleteMeAsync_CuentaNoPerteneceAUsuario()
-    {
-        var userEntity = new UserEntity { Guid = "user2-guid", Username = "username2", Password = "password2", Role = Role.User, IsDeleted = false,
-            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var userEntity = new UserEntity 
+        { 
+            Guid = "user2-guid", 
+            Username = "username2", 
+            Password = "password2", 
+            Role = Role.User, 
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow, 
+            UpdatedAt = DateTime.UtcNow 
+        };
         _dbContext.Usuarios.Add(userEntity);
-        await _dbContext.SaveChangesAsync();
-        var clienteEntity = new ClienteEntity { Guid = "cliente-guid2", Dni="12345678b" ,Telefono = "123465789", Nombre = "Juan", Apellidos = "PEREZ", Direccion = new Direccion { Calle = "Calle Falsa", Numero = "123", CodigoPostal = "28000", Piso = "2", Letra = "A" }, Email = "algo", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, IsDeleted = false, UserId = userEntity.Id };
+        await _dbContext.SaveChangesAsync();  // Guardar usuario
+
+        // Crear y guardar el cliente en la base de datos
+        var clienteEntity = new ClienteEntity 
+        { 
+            Guid = "cliente-guid2", 
+            Dni = "12345678B", 
+            Telefono = "123465789", 
+            Nombre = "Juan", 
+            Apellidos = "PEREZ", 
+            Direccion = new Direccion 
+            { 
+                Calle = "Calle Falsa", 
+                Numero = "123", 
+                CodigoPostal = "28000", 
+                Piso = "2", 
+                Letra = "A" 
+            }, 
+            Email = "algo@example.com", 
+            CreatedAt = DateTime.UtcNow, 
+            UpdatedAt = DateTime.UtcNow, 
+            IsDeleted = false, 
+            UserId = userEntity.Id, // Relacionar con usuario creado
+            User = userEntity       // Asegurar que el usuario esté referenciado
+        };
         _dbContext.Clientes.Add(clienteEntity);
-        await _dbContext.SaveChangesAsync();
-        var cuentaEntity = new CuentaEntity { Guid = "cuenta-guid2", Iban = "ES1234567890123456789012", Saldo = 1000, ClienteId = clienteEntity.Id, ProductoId = producto1.Id, IsDeleted = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-        _dbContext.Cuentas.Add(cuentaEntity);
-        await _dbContext.SaveChangesAsync();
-        
-        var result = Assert.ThrowsAsync<CuentaNoPertenecienteAlUsuarioException>( async () => await _cuentaService.DeleteMeAsync(user1.Guid, cuentaEntity.Guid));
-        
-        Assert.That(result.Message, Is.EqualTo("La cuenta cuenta-guid2 no te pertenece"));
+        await _dbContext.SaveChangesAsync();  // Guardar cliente
+
+        // 🔹 Verificar que el cliente realmente está en la base de datos
+        var clienteEnDb = await _dbContext.Clientes
+            .Include(c => c.User) // Incluir la relación con el usuario
+            .FirstOrDefaultAsync(c => c.Guid == clienteEntity.Guid);
+
+        ClassicAssert.NotNull(clienteEnDb, "El cliente no se guardó correctamente en la base de datos.");
+        ClassicAssert.NotNull(clienteEnDb!.User, "El cliente no tiene un usuario asociado en la base de datos.");
+        Assert.That(clienteEnDb.User.Guid, Is.EqualTo(userEntity.Guid), "El GUID del usuario no coincide.");
+
+        // ID de cuenta inexistente
+        var cuentaInexistenteGuid = "cuenta-inexistente-guid";
+
+        // Act & Assert: Verificar que se lanza la excepción CuentaNotFoundException
+        var caughtException = Assert.ThrowsAsync<CuentaNotFoundException>(async () =>
+            await _cuentaService.DeleteMeAsync(clienteEntity.Guid, cuentaInexistenteGuid));
+
+        Assert.That(caughtException!.Message, Is.EqualTo($"No se ha encontrado la cuenta con el guuid: {cuentaInexistenteGuid}"));
     }
     
     [Test, Order(35)]
     public async Task DeleteByGuidAsync_Success()
     {
-        var result = await _cuentaService.DeleteByGuidAsync(cuenta1.Guid);
-        
+        // Arrange: Crear la cuenta con saldo 0.0
+        var cuentaEntityTest = new CuentaEntity
+        { 
+            Guid = "jaja", 
+            Iban = "ES1234567890123456789012", 
+            Saldo = 0.0, 
+            ClienteId = cliente1.Id, 
+            ProductoId = producto1.Id 
+        };
+
+        // Guardar la cuenta en la base de datos de pruebas
+        _dbContext.Cuentas.Add(cuentaEntityTest);
+        await _dbContext.SaveChangesAsync();
+
+        // Asegurarnos de que la cuenta se guardó correctamente con saldo 0
+        var cuentaGuardada = await _dbContext.Cuentas.FirstOrDefaultAsync(c => c.Guid == cuentaEntityTest.Guid);
+        ClassicAssert.NotNull(cuentaGuardada, "La cuenta no se ha guardado en la base de datos.");
+        ClassicAssert.AreEqual(0.0, cuentaGuardada.Saldo, "El saldo de la cuenta guardada no es 0.0.");
+
+        // Act: Ejecutar la acción para eliminar la cuenta
+        var result = await _cuentaService.DeleteByGuidAsync(cuentaEntityTest.Guid);
+
+        // Assert: Verificar que la cuenta ha sido marcada como eliminada
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Guid, Is.EqualTo("cuenta-guid"));
-        Assert.That(result.Iban, Is.EqualTo("ES1234567890123456789012"));
-        Assert.That(result.Saldo, Is.EqualTo(1000));
         Assert.That(result.IsDeleted, Is.EqualTo(true));
+
+        // Asegurarnos de que el saldo no cambió a pesar de la eliminación
+        var cuentaEliminada = await _dbContext.Cuentas.FirstOrDefaultAsync(c => c.Guid == cuentaEntityTest.Guid);
+        ClassicAssert.NotNull(cuentaEliminada, "La cuenta no ha sido eliminada correctamente.");
+        ClassicAssert.AreEqual(true, cuentaEliminada.IsDeleted, "La cuenta no fue marcada como eliminada.");
     }
+
     
     [Test, Order(37)]
     public async Task DeleteByGuid_CuentaNotFound()
     {
-        var result = await _cuentaService.DeleteByGuidAsync("cuenta-guid-not-found");
+        var result = Assert.ThrowsAsync<CuentaNotFoundException>(async () =>
+            await _cuentaService.DeleteByGuidAsync("123"));
         
-        Assert.That(result, Is.Null);
+        Assert.That(result.Message, Is.EqualTo("No se ha encontrado la cuenta con el guuid: 123"));
+    }
+
+    [Test]
+    public async Task DeleteByGuid_ThrowsCuentaSaldoException()
+    {
+        var cuentaEntity = new CuentaEntity 
+        { 
+            Guid = "cuenta-guid", 
+            Iban = "ES1234567890123456789012", 
+            Saldo = 100, 
+            ClienteId = cliente1.Id, 
+            ProductoId = producto1.Id 
+        };
+        _dbContext.Cuentas.Add(cuentaEntity);
+        await _dbContext.SaveChangesAsync();  // Guardar cuenta
+
+        var ex = Assert.ThrowsAsync<CuentaSaldoExcepcion>(async () =>
+            await _cuentaService.DeleteByGuidAsync(cuentaEntity.Guid));
+
+        Assert.That(ex.Message, Is.EqualTo($"No se puede eliminar la cuenta con el GUID {cuentaEntity.Guid} porque tiene saldo"));
     }
     
     

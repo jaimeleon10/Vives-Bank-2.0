@@ -1,16 +1,23 @@
 using System.Security.Claims;
+using Banco_VivesBank.Cliente.Models;
 using Banco_VivesBank.Database;
 using Banco_VivesBank.Database.Entities;
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
+using Banco_VivesBank.Producto.Cuenta.Models;
+using Banco_VivesBank.Producto.ProductoBase.Mappers;
 using Banco_VivesBank.User.Dto;
 using Banco_VivesBank.User.Exceptions;
+using Banco_VivesBank.User.Mapper;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Auth.Jwt;
+using Banco_VivesBank.Utils.Generators;
 using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NUnit.Framework.Legacy;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 
@@ -30,7 +37,7 @@ public class UserServiceTest
     private Mock<IJwtService> _jwtServiceMock;
     private Mock<IHttpContextAccessor> _httpContextAccessorMock;
 
-    [OneTimeSetUp]
+    [SetUp]
     public async Task Setup()
     {
         _postgreSqlContainer = new PostgreSqlBuilder()
@@ -48,6 +55,7 @@ public class UserServiceTest
             .Options;
 
         _dbContext = new GeneralDbContext(options);
+        await _dbContext.Database.EnsureDeletedAsync();
         await _dbContext.Database.EnsureCreatedAsync();
 
         _connectionMultiplexerMock = new Mock<IConnectionMultiplexer>();
@@ -74,7 +82,7 @@ public class UserServiceTest
     }
 
     
-    [OneTimeTearDown]
+    [TearDown]
     public async Task Teardown()
     {
         if (_dbContext != null)
@@ -528,32 +536,135 @@ public class UserServiceTest
 
        Assert.That(result, Is.Null);
    }
+
+   [Test]
+   public async Task DeleteByGuidAsync_UserNotFound_ThrowsUserNotFoundException()
+   {
+       var guid = "non-existing-guid";
+       _dbContext.Usuarios.Add(new UserEntity { Guid = "existing-guid" , Username = "manolo@gmaail.com", Password = "12345678A"}); 
+       await _dbContext.SaveChangesAsync();
+       
+       var ex = Assert.ThrowsAsync<UserNotFoundException>(async () =>
+           await _userService.DeleteByGuidAsync(guid)
+       );
+       ClassicAssert.AreEqual($"Usuario no encontrado con guid: {guid}", ex.Message);
+   }
+   [Test]
+   public async Task DeleteByGuidAsync_UserExists_DeletesUserAndRelatedEntities()
+   {
+       // Arrange
+       var guid = "existing-guid";
+       var producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
+           { Guid = guid, Nombre = "producto", Descripcion = "producto", TipoProducto = "cuenta" };
+       var direccion = new Direccion { Calle = "calle de al lao", Letra = "A", Piso = "4", CodigoPostal = "28025", Numero = "1"};
+       var userEntity = new UserEntity { Guid = guid, IsDeleted = false, Username = "manolo@gmail.com", Password = "12345678A"};
+       var clienteEntity = new ClienteEntity
+       {
+           Id = 9999, User = userEntity, Telefono = "669843935", Guid = "existing-guid2", Nombre = "manolo",
+           Email = "manolo@gmail.com", Dni = "12345678Z", Apellidos = "guitierrez", Direccion = direccion
+       };
+       var cuentaEntity = new CuentaEntity {Cliente = clienteEntity, Guid = guid, Saldo = 0.0,ProductoId = producto.Id, Producto = producto.ToEntityFromModel() ,Iban = IbanGenerator.GenerateIban(),ClienteId = 9999, IsDeleted = false };
+       _dbContext.Usuarios.Add(userEntity);
+       _dbContext.Cuentas.Add(cuentaEntity);
+       _dbContext.Clientes.Add(clienteEntity);
+       await _dbContext.SaveChangesAsync();
+
+       var result = await _userService.DeleteByGuidAsync(guid);
+
+   
+       var user = await _dbContext.Usuarios.FirstOrDefaultAsync(u => u.Guid == guid);
+       ClassicAssert.IsTrue(user.IsDeleted);
+       ClassicAssert.AreEqual(result.Guid, guid);
     
-    /*[Test] public async Task Delete()
+       var cliente = await _dbContext.Clientes.FirstOrDefaultAsync(c => c.User.Guid == guid);
+       ClassicAssert.IsTrue(cliente.IsDeleted);
+   }
+    [Test]
+    public async Task DeleteByGuidAsync_AccountWithBalance_ThrowsInvalidOperationException()
     {
-        var user = new UserEntity
+        // Arrange
+        var guid = "existing-guid";
+        var producto = new Banco_VivesBank.Producto.ProductoBase.Models.Producto
+            { Guid = guid, Nombre = "producto", Descripcion = "producto", TipoProducto = "cuenta" };
+        var direccion = new Direccion { Calle = "calle de al lao", Letra = "A", Piso = "4", CodigoPostal = "28025", Numero = "1"};
+        var userEntity = new UserEntity { Guid = guid, IsDeleted = false, Username = "manolo@gmail.com", Password = "12345678A"};
+        var clienteEntity = new ClienteEntity
         {
-            Guid = "user-guid",
-            Username = "username-test",
-            Password = "password",
-            Role = Banco_VivesBank.User.Models.Role.User,
+            Id = 9999, User = userEntity, Telefono = "669843935", Guid = "existing-guid2", Nombre = "manolo",
+            Email = "manolo@gmail.com", Dni = "12345678Z", Apellidos = "guitierrez", Direccion = direccion
         };
-        _dbContext.Usuarios.Add(user);
+        var cuentaEntity = new CuentaEntity {Cliente = clienteEntity, Guid = guid, Saldo = 1000.0,ProductoId = producto.Id, Producto = producto.ToEntityFromModel() ,Iban = IbanGenerator.GenerateIban(),ClienteId = 9999, IsDeleted = false };
+        _dbContext.Usuarios.Add(userEntity);
+        _dbContext.Cuentas.Add(cuentaEntity);
+        _dbContext.Clientes.Add(clienteEntity);
         await _dbContext.SaveChangesAsync();
 
-        await _userService.DeleteByGuidAsync("user-guid");
-
-        var deletedUser = await _dbContext.Usuarios.FirstOrDefaultAsync(u => u.Guid == user.Guid);
-        Assert.That(deletedUser, Is.Not.Null);
-        Assert.That(deletedUser.IsDeleted, Is.True);
-    }*/
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<CuentaSaldoExcepcion>(async () =>
+            await _userService.DeleteByGuidAsync(guid)
+        );
+        ClassicAssert.AreEqual($"No se puede eliminar la cuenta con el GUID {guid} porque tiene saldo", ex.Message);
+    }
 
     [Test]
-    public async Task Delete_NotFound()
+    public async Task DeleteMeAsUserAsync_UserExists_DeletesUser()
     {
-        var result = await _userService.DeleteByGuidAsync("nonexistent-guid");
+        // Arrange
+        var userEntity = new UserEntity
+        {
+            Guid = "test-guid",
+            Username = "manolo",
+            Password = BCrypt.Net.BCrypt.HashPassword("password1"),
+            Role = Banco_VivesBank.User.Models.Role.User,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-        Assert.That(result, Is.Null);
+        _dbContext.Usuarios.Add(userEntity);
+        _dbContext.SaveChanges();
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Name, "manolo")
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
+
+        // Act
+        await _userService.DeleteMeAsUserAsync();
+
+        // Assert
+        var deletedUser = await _dbContext.Usuarios.FirstOrDefaultAsync(u => u.Guid == "test-guid");
+        ClassicAssert.IsNotNull(deletedUser);
+        ClassicAssert.IsTrue(deletedUser.IsDeleted);
+    }
+    [Test]
+    public void DeleteMeAsUserAsync_NoAuthenticatedUser_ThrowsUserNotFoundException()
+    {
+        // Arrange
+        _httpContextAccessorMock.Setup(h => h.HttpContext).Returns((HttpContext)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _userService.DeleteMeAsUserAsync());
+        ClassicAssert.AreEqual("No se ha encontrado usuario con los credenciales introducidos al sistema", ex.Message);
+    }
+    
+    [Test]
+    public async Task DeleteMeAsUserAsync_UserDoesNotExist_ThrowsUserNotFoundException()
+    {
+        // Arrange
+        var httpContext = new DefaultHttpContext();
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Name, "nonexistentuser")
+        }));
+
+        _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserNotFoundException>(() => _userService.DeleteMeAsUserAsync());
+        ClassicAssert.AreEqual("No se ha encontrado usuario con los credenciales introducidos al sistema", ex.Message);
     }
     [Test]
     public void GetAuthenticatedUser_Successfully()

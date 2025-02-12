@@ -13,6 +13,7 @@ using Banco_VivesBank.Utils.Pagination;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using NUnit.Framework.Legacy;
 
 namespace Test.Producto.Cuenta.Controller;
 
@@ -369,12 +370,12 @@ public class CuentaAdminControllerTests
     }
     
     [Test]
-    public async Task GetByGuid_ReturnsInternalServerError_WhenAnExceptionOccurs()
+    public async Task GetByGuid_ReturnsBadRequest_WhenCuentaIsNotSerializable()
     {
         var guid = "test-guid";
 
         _mockCuentaService.Setup(service => service.GetByGuidAsync(guid))
-            .ThrowsAsync(new Exception("Error interno"));
+            .ThrowsAsync(new CuentaNotSerializableExceptions("Error al deserializar cuenta desde Redis"));
 
         var claims = new[]
         {
@@ -400,7 +401,7 @@ public class CuentaAdminControllerTests
         var objectResult = result.Result as ObjectResult;
         Assert.That(objectResult, Is.Not.Null);
 
-        Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+        Assert.That(objectResult.StatusCode, Is.EqualTo(400));
     }
     
     
@@ -1161,6 +1162,82 @@ public class CuentaAdminControllerTests
         var result = await _controller.Delete(cuentaGuid);
 
         Assert.That(result.Result, Is.TypeOf<UnauthorizedObjectResult>());
+    }
+
+    [Test]
+    public async Task DeleteCuentaClientNotFound()
+    {
+        var user = new Banco_VivesBank.User.Models.User
+        {
+            Id = 1,
+            Guid = "user-guid",
+            Username = "cliente1",
+            Role = Role.Cliente
+        };
+
+        var cuentaGuid = "cuenta-guid";
+
+        _mockUserService.Setup(service => service.GetAuthenticatedUser()).Returns(user);
+        _mockCuentaService.Setup(service => service.DeleteMeAsync(user.Guid, cuentaGuid))
+           .ThrowsAsync(new ClienteNotFoundException("Cliente no encontrado"));
+
+        var claims = new[] { new Claim(ClaimTypes.Name, user.Username), new Claim(ClaimTypes.Role, "Cliente") };
+        var identity = new ClaimsIdentity(claims, "TestAuthentication");
+        var principal = new ClaimsPrincipal(identity);
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = principal }
+        };
+    }
+
+    [Test]
+    public async Task DelteCuenta_NoPerteneceClient()
+    {
+        var user = new Banco_VivesBank.User.Models.User
+        {
+            Id = 1,
+            Guid = "user-guid",
+            Username = "cliente1",
+            Role = Role.Cliente
+        };
+        _mockUserService.Setup(u => u.GetAuthenticatedUser()).Returns(user);
+        _mockCuentaService
+            .Setup(c => c.DeleteMeAsync(user.Guid, "test-guid"))
+            .ThrowsAsync(new CuentaNoPertenecienteAlUsuarioException("No tienes permisos para eliminar esta cuenta."));
+
+        // Act
+        var result = await _controller.Delete("test-guid");
+
+        // Assert
+        var forbiddenResult = result.Result as ObjectResult;
+        ClassicAssert.NotNull(forbiddenResult);
+        ClassicAssert.AreEqual(StatusCodes.Status403Forbidden, forbiddenResult.StatusCode);
+    }
+
+    [Test]
+    public async Task DeleteCuentaException_CuentaSaldoException()
+    {
+        var user = new Banco_VivesBank.User.Models.User
+        {
+            Id = 1,
+            Guid = "user-guid",
+            Username = "cliente1",
+            Role = Role.Cliente
+        };
+        _mockUserService.Setup(u => u.GetAuthenticatedUser()).Returns(user);
+        _mockCuentaService
+            .Setup(c => c.DeleteMeAsync(user.Guid, "test-guid"))
+            .ThrowsAsync(new CuentaSaldoExcepcion("No se puede eliminar la cuenta porque tiene saldo."));
+
+        // Act
+        var result = await _controller.Delete("test-guid");
+
+        // Assert
+        var badRequestResult = result.Result as ObjectResult;
+        ClassicAssert.NotNull(badRequestResult);
+        ClassicAssert.AreEqual(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        
     }
     
     [Test]
