@@ -175,8 +175,8 @@ public class TarjetaServiceTest
         var guid = "Guid-Prueba";
 
         // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _tarjetaService.GetByGuidAsync("non-existing-guid");
-        Assert.That(tarjetaNoExiste, Is.Null);
+        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.GetByGuidAsync("non-existing-guid"));
+        Assert.That(ex.Message, Is.EqualTo("Tarjeta no encontrada"));
     }
     
     [Test]
@@ -422,11 +422,9 @@ public class TarjetaServiceTest
     public async Task Delete_NotFound()
     {
         var nonExistingTarjetaGuid = "Non-existing-tarjeta-guid";
-        await _tarjetaService.DeleteAsync(nonExistingTarjetaGuid, user.ToModelFromEntity());
 
-        // Test con tarjeta que no existe
-        var tarjetaNoExiste = await _dbContext.Tarjetas.FirstOrDefaultAsync(t => t.Guid == nonExistingTarjetaGuid);
-        Assert.That(tarjetaNoExiste, Is.Null);
+        var ex = Assert.ThrowsAsync<TarjetaNotFoundException>(() => _tarjetaService.DeleteAsync(nonExistingTarjetaGuid, user.ToModelFromEntity()));
+        Assert.That(ex.Message, Is.EqualTo("Tarjeta no encontrada"));
     }
 
 }

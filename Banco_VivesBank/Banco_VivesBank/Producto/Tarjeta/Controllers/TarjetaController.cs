@@ -1,7 +1,9 @@
+using Banco_VivesBank.Producto.Cuenta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Dto;
 using Banco_VivesBank.Producto.Tarjeta.Exceptions;
 using Banco_VivesBank.Producto.Tarjeta.Models;
 using Banco_VivesBank.Producto.Tarjeta.Services;
+using Banco_VivesBank.User.Exceptions;
 using Banco_VivesBank.User.Models;
 using Banco_VivesBank.User.Service;
 using Banco_VivesBank.Utils.Pagination;
@@ -80,9 +82,15 @@ public class TarjetaController : ControllerBase
     [SwaggerOperation(Summary = "Obtiene una tarjeta por su GUID.")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByGuid(string guid)
     {
-        var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
-        if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
-        return Ok(tarjeta);
+        try
+        {
+            var tarjeta = await _tarjetaService.GetByGuidAsync(guid);
+            return Ok(tarjeta);
+        }
+        catch (TarjetaNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
     }
     
     /// <summary>
@@ -95,9 +103,15 @@ public class TarjetaController : ControllerBase
     [SwaggerOperation(Summary = "Obtiene una tarjeta por su número.")]
     public async Task<ActionResult<TarjetaResponse>> GetTarjetaByNumeroTarjeta(string numeroTarjeta)
     {
-        var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync(numeroTarjeta);
-        if (tarjeta == null) return NotFound($"La tarjeta con numero de tarjeta: {numeroTarjeta} no se ha encontrado");
-        return Ok(tarjeta);
+        try
+        {
+            var tarjeta = await _tarjetaService.GetByNumeroTarjetaAsync(numeroTarjeta);
+            return Ok(tarjeta);
+        }
+        catch (TarjetaNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
     }
 
     /// <summary>
@@ -181,10 +195,24 @@ public class TarjetaController : ControllerBase
     {
         var userAuth = _userService.GetAuthenticatedUser();
         if (userAuth is null) return NotFound("No se ha podido identificar al usuario logeado");
-        if (userAuth.Role != Role.Admin || userAuth.Role != Role.Cliente) return BadRequest("Debes ser cliente o admin para borrar una tarjeta.");
-        var tarjeta = await _tarjetaService.DeleteAsync(guid, userAuth);
-        if (tarjeta == null) return NotFound($"La tarjeta con guid: {guid} no se ha encontrado");
-        
-        return Ok(tarjeta);
+        if (userAuth.Role != Role.Admin && userAuth.Role != Role.Cliente) return BadRequest("Debes ser cliente o admin para borrar una tarjeta.");
+
+        try
+        {
+            var tarjeta = await _tarjetaService.DeleteAsync(guid, userAuth);
+            return Ok(tarjeta);
+        }
+        catch (UserNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (TarjetaNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (CuentaNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
     }
 }
